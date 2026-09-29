@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+window.addEventListener("error",function(e){
+try{
+// Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
+if((!e.filename||e.lineno===0||e.lineno==null)&&(!e.message||/Script error/i.test(e.message)))return;
+var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.id="__err";b.style.cssText="position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;font:12px/1.4 monospace;padding:8px 12px;white-space:pre-wrap;max-height:40vh;overflow:auto";document.body?document.body.appendChild(b):document.documentElement.appendChild(b);}b.textContent="\u26a0\ufe0f JS error: "+(e.message||e.type)+"  @ "+(e.filename||"").split("/").pop()+":"+(e.lineno||"?");}catch(_){}}, true);
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Cash Flow Planner v245</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="icon" type="image/png" href="images/Generated_Image_6gOkY3O5U4Iyp48k.png">
+<style>
+:root{--bg:#f5f6f8;--bg2:#fff;--bg3:#f0f1f4;--surface:#e8eaef;--border:#d4d7e0;--border2:#c0c4d0;--text:#1a1d27;--text2:#4a5068;--text3:#7a8098;--primary:#4a7aed;--primary-bg:rgba(74,122,237,.1);--success:#16a34a;--success-bg:rgba(22,163,74,.08);--warning:#d97706;--warning-bg:rgba(217,119,6,.08);--error:#dc2626;--error-bg:rgba(220,38,38,.08);--purple:#7c3aed;--purple-bg:rgba(124,58,237,.08);--radius:8px;--radius-sm:6px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Fira Code','Cascadia Code',monospace;--shadow:0 1px 3px rgba(0,0,0,.06)}
+html.dark{--bg:#0f1117;--bg2:#1a1d27;--bg3:#252833;--surface:#2a2d3a;--border:#353849;--border2:#454860;--text:#e8eaed;--text2:#9aa0b0;--text3:#6b7185;--primary:#5b8def;--primary-bg:rgba(91,141,239,.12);--success:#4ade80;--success-bg:rgba(74,222,128,.1);--warning:#fbbf24;--warning-bg:rgba(251,191,36,.1);--error:#f87171;--error-bg:rgba(248,113,113,.1);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.1);--shadow:0 1px 3px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px}
+.nav{background:var(--bg2);border-right:1px solid var(--border);padding:8px 8px;display:flex;flex-direction:column;align-items:stretch;width:190px;position:fixed;top:0;left:0;bottom:0;z-index:100;box-shadow:var(--shadow);transition:width .18s ease;overflow:hidden}.nav-brand{font-size:14px;font-weight:700;white-space:nowrap;padding:6px 8px 10px;display:flex;align-items:center;gap:6px;overflow:hidden}.sb-toggle{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;color:var(--text2);font-size:13px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font)}.sb-toggle:hover{background:var(--bg3);color:var(--text)}.nav-tabs{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto;overflow-x:hidden;align-items:stretch}.nav-tab{padding:8px 10px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-radius:var(--radius-sm);white-space:nowrap;font-family:var(--font);transition:background .15s ease,color .15s ease;text-align:left;width:100%}.nav-tab:hover{color:var(--text);background:var(--bg3)}.nav-tab:active{opacity:.7}.nav-tab.active{color:#fff;background:var(--primary);font-weight:600;box-shadow:0 1px 4px rgba(74,122,237,.35)}.nav-tab i{font-size:14px;width:18px;text-align:center;flex-shrink:0}.nav-group{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--text3);text-transform:uppercase;padding:10px 10px 3px;white-space:nowrap;user-select:none}.nav-group:first-child{padding-top:2px}.nav-right{display:flex;flex-direction:column;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}.theme-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;color:var(--text2);font-size:12px;display:flex;align-items:center;gap:10px;font-family:var(--font);white-space:nowrap}.theme-btn i{width:18px;text-align:center;flex-shrink:0}.theme-btn:hover{background:var(--bg3)}body.sb-collapsed .nav{width:56px}body.sb-collapsed .nav-tab span,body.sb-collapsed .theme-btn span,body.sb-collapsed .nav-brand .brand-txt,body.sb-collapsed .nav-group{display:none}body.sb-collapsed .nav-tab,body.sb-collapsed .theme-btn{justify-content:center;gap:0}body.sb-collapsed .nav-brand{justify-content:center;padding:6px 0 10px}
+/* Sidebar sub-items (nested under a parent tab) — v166 */
+.nav-subwrap{display:flex;flex-direction:column;gap:1px;margin:1px 0 3px 0}
+.nav-sub{padding:5px 10px 5px 34px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);cursor:pointer;border:none;background:none;border-radius:var(--radius-sm);white-space:nowrap;font-family:var(--font);text-align:left;transition:background .12s,color .12s}
+.nav-sub:hover{background:var(--bg3);color:var(--text)}
+.nav-sub.active{background:var(--primary-bg);color:var(--primary);font-weight:600}
+.nav-sub::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0}
+/* When sidebar collapsed, hide sub-items entirely */
+body.sb-collapsed .nav-subwrap{display:none}
+/* Hide the old horizontal sub-tab bars — nav now lives in the sidebar */
+.sub-tabs{display:none !important}
+.main{max-width:1240px;margin:0 auto;padding:16px;margin-left:190px;transition:margin-left .18s ease}body.sb-collapsed .main{margin-left:56px}@media(max-width:720px){.nav{width:56px}.nav-tab span,.theme-btn span,.nav-brand .brand-txt,.nav-group{display:none}.nav-tab,.theme-btn{justify-content:center;gap:0}.main{margin-left:56px}.sb-toggle{display:none}}.tab-content{display:none}.tab-content.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}.card h2{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:10px}.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;box-shadow:var(--shadow)}.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)}.kpi-val{font-size:16px;font-weight:700;font-family:var(--mono)}.kpi-note{font-size:9px;color:var(--text3);margin-top:1px}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}.tbl th{text-align:left;padding:5px 6px;background:var(--bg3);border-bottom:2px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);font-weight:600}.tbl th.r,.tbl td.r{text-align:right}.tbl td{padding:4px 6px;border-bottom:1px solid var(--border)}.tbl tr:hover{background:rgba(128,128,128,.04)}
+/* === Bills tab readability polish (scoped, CSS-only; no logic change) === */
+#tab-bills .tbl tbody tr:nth-child(even){background:rgba(128,128,128,.035)}
+#tab-bills .tbl tbody tr:hover{background:var(--primary-bg)}
+#tab-bills .tbl td{padding:7px 8px;vertical-align:middle;border-bottom:1px solid var(--border)}
+#tab-bills .tbl th{padding:7px 8px;position:sticky;top:0;z-index:2;background:var(--bg3);box-shadow:0 1px 0 var(--border)}
+#tab-bills .tbl .sel,#tab-bills .tbl .inp,#tab-bills .tbl .inp-inline{border-color:transparent;background:transparent;transition:border-color .12s,background .12s}
+#tab-bills .tbl .sel:hover,#tab-bills .tbl .inp:hover,#tab-bills .tbl .inp-inline:hover{border-color:var(--border);background:var(--bg2)}
+#tab-bills .tbl .sel:focus,#tab-bills .tbl .inp:focus,#tab-bills .tbl .inp-inline:focus{border-color:var(--primary);background:var(--bg2)}
+#tab-bills .tbl .inp-inline{font-weight:600}
+#tab-bills .tbl .inp-num{font-family:var(--mono);text-align:right}
+/* Readability fixes for Bills tables (v144): consistent font sizing, no clipped day inputs, tidy date inputs */
+#tab-bills .tbl .inp,#tab-bills .tbl .sel{font-size:11px;font-family:var(--font);color:var(--text);line-height:1.35;box-sizing:border-box}
+#tab-bills .tbl .inp-num{font-size:11px}
+/* Bill Day / day-of-month number inputs: wide enough for 2 digits + spinner */
+#tab-bills .tbl input[type=number]{min-width:46px;text-align:center}
+/* Native date inputs: smaller internal font so dd/mm/yyyy is not stretched, consistent height */
+#tab-bills .tbl input[type=date]{font-size:10px;font-family:var(--mono);padding:2px 4px;box-sizing:border-box}
+#tab-bills .tbl select.sel{font-size:11px;padding:2px 4px}
+#tab-bills .tbl td{vertical-align:middle}
+#tab-bills .tbl input[type=date]{color:var(--text2)}
+#tab-bills .tbl input[type=date]:hover,#tab-bills .tbl input[type=date]:focus{color:var(--text)}
+
+/* Bills/planned overflow fix (v231): inline name/notes inputs must be shrinkable (the global
+   .inp-inline min-width:130px forced the table wider than its card); tables may scroll if still wide. */
+#tab-bills .tbl .inp-inline{min-width:0;width:100%}
+#tab-bills .tbl{width:100%;table-layout:auto}
+/* Card scrolls horizontally only if the table is still wider than the frame — table semantics kept. */
+#tab-bills .sub-panel>.card{overflow-x:auto}
+
+/* ===== Shared table field styling — apply the Bills borderless/hover look to
+   Payroll Setup, Tax Exemptions (tab-paytax), Assets, To-Do, Wishlist (v228) ===== */
+#tab-bills .tbl tbody tr:nth-child(even), #tab-paytax .tbl tbody tr:nth-child(even), #tab-assets .tbl tbody tr:nth-child(even), #tab-todos .tbl tbody tr:nth-child(even), #tab-wishlist .tbl tbody tr:nth-child(even){background:rgba(128,128,128,.035)}
+#tab-bills .tbl tbody tr:hover, #tab-paytax .tbl tbody tr:hover, #tab-assets .tbl tbody tr:hover, #tab-todos .tbl tbody tr:hover, #tab-wishlist .tbl tbody tr:hover{background:var(--primary-bg)}
+#tab-bills .tbl td, #tab-paytax .tbl td, #tab-assets .tbl td, #tab-todos .tbl td, #tab-wishlist .tbl td{padding:7px 8px;vertical-align:middle;border-bottom:1px solid var(--border)}
+#tab-bills .tbl th, #tab-paytax .tbl th, #tab-assets .tbl th, #tab-todos .tbl th, #tab-wishlist .tbl th{padding:7px 8px;position:sticky;top:0;z-index:2;background:var(--bg3);box-shadow:0 1px 0 var(--border)}
+#tab-bills .tbl .sel, #tab-paytax .tbl .sel, #tab-assets .tbl .sel, #tab-todos .tbl .sel, #tab-wishlist .tbl .sel, #tab-bills .tbl .inp, #tab-paytax .tbl .inp, #tab-assets .tbl .inp, #tab-todos .tbl .inp, #tab-wishlist .tbl .inp, #tab-bills .tbl .inp-inline, #tab-paytax .tbl .inp-inline, #tab-assets .tbl .inp-inline, #tab-todos .tbl .inp-inline, #tab-wishlist .tbl .inp-inline{border-color:transparent;background:transparent;transition:border-color .12s,background .12s}
+#tab-bills .tbl .sel:hover, #tab-paytax .tbl .sel:hover, #tab-assets .tbl .sel:hover, #tab-todos .tbl .sel:hover, #tab-wishlist .tbl .sel:hover, #tab-bills .tbl .inp:hover, #tab-paytax .tbl .inp:hover, #tab-assets .tbl .inp:hover, #tab-todos .tbl .inp:hover, #tab-wishlist .tbl .inp:hover, #tab-bills .tbl .inp-inline:hover, #tab-paytax .tbl .inp-inline:hover, #tab-assets .tbl .inp-inline:hover, #tab-todos .tbl .inp-inline:hover, #tab-wishlist .tbl .inp-inline:hover{border-color:var(--border);background:var(--bg2)}
+#tab-bills .tbl .sel:focus, #tab-paytax .tbl .sel:focus, #tab-assets .tbl .sel:focus, #tab-todos .tbl .sel:focus, #tab-wishlist .tbl .sel:focus, #tab-bills .tbl .inp:focus, #tab-paytax .tbl .inp:focus, #tab-assets .tbl .inp:focus, #tab-todos .tbl .inp:focus, #tab-wishlist .tbl .inp:focus, #tab-bills .tbl .inp-inline:focus, #tab-paytax .tbl .inp-inline:focus, #tab-assets .tbl .inp-inline:focus, #tab-todos .tbl .inp-inline:focus, #tab-wishlist .tbl .inp-inline:focus{border-color:var(--primary);background:var(--bg2)}
+#tab-bills .tbl .inp-inline, #tab-paytax .tbl .inp-inline, #tab-assets .tbl .inp-inline, #tab-todos .tbl .inp-inline, #tab-wishlist .tbl .inp-inline{font-weight:600}
+#tab-bills .tbl .inp-num, #tab-paytax .tbl .inp-num, #tab-assets .tbl .inp-num, #tab-todos .tbl .inp-num, #tab-wishlist .tbl .inp-num{font-family:var(--mono);text-align:right}
+/* Readability fixes for Bills tables (v144): consistent font sizing, no clipped day inputs, tidy date inputs */
+#tab-bills .tbl .inp, #tab-paytax .tbl .inp, #tab-assets .tbl .inp, #tab-todos .tbl .inp, #tab-wishlist .tbl .inp, #tab-bills .tbl .sel, #tab-paytax .tbl .sel, #tab-assets .tbl .sel, #tab-todos .tbl .sel, #tab-wishlist .tbl .sel{font-size:11px;font-family:var(--font);color:var(--text);line-height:1.35;box-sizing:border-box}
+#tab-bills .tbl .inp-num, #tab-paytax .tbl .inp-num, #tab-assets .tbl .inp-num, #tab-todos .tbl .inp-num, #tab-wishlist .tbl .inp-num{font-size:11px}
+/* Bill Day / day-of-month number inputs: wide enough for 2 digits + spinner */
+#tab-bills .tbl input[type=number], #tab-paytax .tbl input[type=number], #tab-assets .tbl input[type=number], #tab-todos .tbl input[type=number], #tab-wishlist .tbl input[type=number]{min-width:46px;text-align:center}
+/* Native date inputs: smaller internal font so dd/mm/yyyy is not stretched, consistent height */
+#tab-bills .tbl input[type=date], #tab-paytax .tbl input[type=date], #tab-assets .tbl input[type=date], #tab-todos .tbl input[type=date], #tab-wishlist .tbl input[type=date]{font-size:10px;font-family:var(--mono);padding:2px 4px;box-sizing:border-box}
+#tab-bills .tbl select.sel, #tab-paytax .tbl select.sel, #tab-assets .tbl select.sel, #tab-todos .tbl select.sel, #tab-wishlist .tbl select.sel{font-size:11px;padding:2px 4px}
+#tab-bills .tbl td, #tab-paytax .tbl td, #tab-assets .tbl td, #tab-todos .tbl td, #tab-wishlist .tbl td{vertical-align:middle}
+#tab-bills .tbl input[type=date], #tab-paytax .tbl input[type=date], #tab-assets .tbl input[type=date], #tab-todos .tbl input[type=date], #tab-wishlist .tbl input[type=date]{color:var(--text2)}
+#tab-bills .tbl input[type=date]:hover, #tab-paytax .tbl input[type=date]:hover, #tab-assets .tbl input[type=date]:hover, #tab-todos .tbl input[type=date]:hover, #tab-wishlist .tbl input[type=date]:hover, #tab-bills .tbl input[type=date]:focus, #tab-paytax .tbl input[type=date]:focus, #tab-assets .tbl input[type=date]:focus, #tab-todos .tbl input[type=date]:focus, #tab-wishlist .tbl input[type=date]:focus{color:var(--text)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:9px}.form-group{display:flex;flex-direction:column;gap:2px}.form-group label{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);font-weight:500}
+.inp-inline{background:transparent;border:none;color:var(--text);font-size:11px;width:100%;min-width:130px;padding:1px 0}
+.btn{padding:5px 12px;border:none;border-radius:var(--radius-sm);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:4px}.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{opacity:.9}.btn:active{transform:scale(0.95);opacity:.7;transition:transform .1s,opacity .1s}.btn-ghost:active{transform:scale(0.95);background:var(--surface)}.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg3)}
+.tag{display:inline-block;font-size:8px;padding:1px 5px;border-radius:8px;font-weight:500}.tag-active{background:var(--success-bg);color:var(--success)}.tag-planned{background:var(--warning-bg);color:var(--warning)}.tag-finished{background:var(--bg3);color:var(--text3)}.tag-cancelled{background:var(--error-bg);color:var(--error)}.tag-auto{background:var(--purple-bg);color:var(--purple)}
+.shifted{color:var(--primary);font-weight:600;background:var(--primary-bg);padding:1px 4px;border-radius:3px;font-family:var(--mono);font-size:9px}.orig{color:var(--text3);font-family:var(--mono);font-size:9px}
+.add-row{display:flex;gap:5px;padding:6px 9px;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-sm);margin-top:5px;align-items:center;cursor:pointer;color:var(--text3);font-size:10px}.add-row:hover{background:var(--surface);color:var(--text)}.del-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:2px;font-size:10px}.del-btn:hover{color:var(--error)}
+.acc-header{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;user-select:none;margin-bottom:2px}.acc-header:hover{background:var(--surface)}.acc-header .arr{transition:transform .2s;font-size:9px;color:var(--text3)}.acc-header .arr.open{transform:rotate(90deg)}.acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}.acc-body.open{max-height:6000px}
+.pay-details{max-height:0;overflow:hidden;transition:max-height .2s ease}.pay-details.open{max-height:500px}.pay-row:hover{background:var(--primary-bg)}
+.day-row{padding:3px 10px 3px 24px;border-bottom:1px solid rgba(128,128,128,.06);font-size:10px;display:flex;gap:4px}.day-row:hover{background:rgba(128,128,128,.04)}.day-date{width:44px;font-family:var(--mono);color:var(--text3);font-size:9px;flex-shrink:0}.day-icon{width:14px;flex-shrink:0;font-size:11px}.day-name{flex:1}.day-card{font-size:8px;padding:0 4px;border-radius:6px;background:var(--purple-bg);color:var(--purple);margin:0 3px}.day-amt{font-family:var(--mono);min-width:80px;text-align:right}.day-bal{font-family:var(--mono);font-weight:600;min-width:90px;text-align:right;color:var(--primary)}
+.chart-box{height:320px;margin:10px 0}
+.toast{position:fixed;bottom:14px;right:14px;background:var(--success);color:#fff;padding:6px 12px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}.toast.show{opacity:1}
+.types-list{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}.type-chip{display:inline-flex;align-items:center;gap:2px;padding:2px 7px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:10px}.type-chip .x{cursor:pointer;color:var(--text3);font-size:9px;margin-left:1px}.type-chip .x:hover{color:var(--error)}.type-add{display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border:1px dashed var(--border2);border-radius:10px;font-size:10px;cursor:pointer;color:var(--text3)}.type-add:hover{background:var(--bg3)}
+.flex{display:flex}.gap-2{gap:7px}.flex-wrap{flex-wrap:wrap}.mb-3{margin-bottom:8px}
+.text-success{color:var(--success)}.text-error{color:var(--error)}.text-warning{color:var(--warning)}.text-primary{color:var(--primary)}.text-muted{color:var(--text3)}
+.sub-tabs{display:flex;gap:2px;margin-bottom:10px}.sub-tab{padding:5px 12px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text2)}.sub-tab:hover{background:var(--surface)}.sub-tab:active{transform:scale(0.95);opacity:.7}.sub-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sub-panel{display:none}.sub-panel.active{display:block}
+@media(max-width:768px){
+.form-grid{grid-template-columns:1fr}
+.kpi-grid{grid-template-columns:repeat(2,1fr)}
+.nav-tab span{display:none}
+/* Mobile: tighter page padding, cards full-bleed, tables scroll horizontally so nothing overflows */
+.main{padding:10px}
+.card{padding:10px;border-radius:8px}
+.sub-panel>.card,.tab-content>.card{overflow-x:auto}
+.tbl{font-size:11px}
+/* Bigger tap targets for buttons + selects on touch */
+.btn{padding:7px 12px}
+.sel,.inp,select.inp{min-height:34px}
+/* Filter bars wrap and stay readable */
+.filterbar{gap:6px}
+}
+@media(max-width:480px){
+.kpi-grid{grid-template-columns:1fr}
+.card h2{font-size:13px}
+/* Calendar cells shrink but stay tappable */
+#dash-calendar .card [style*="grid-template-columns:repeat(7"]{gap:2px}
+}
+
+/* ===== Assets table (Assets tab) — fixed layout + consistent fonts (v224) ===== */
+#assets-content .tbl{table-layout:fixed;font-size:11px}
+#assets-content .tbl th,#assets-content .tbl td{font-size:11px;vertical-align:middle;overflow:hidden}
+#assets-content .tbl td{padding:4px 5px}
+#assets-content .tbl th{white-space:nowrap}
+/* Column widths: Name | Type | Currency | Value | FX | Value(B) | Cash-out | Notes | del */
+#assets-content .tbl col.c-name{width:22%}
+#assets-content .tbl col.c-type{width:13%}
+#assets-content .tbl col.c-cur{width:8%}
+#assets-content .tbl col.c-val{width:14%}
+#assets-content .tbl col.c-thb{width:14%}
+#assets-content .tbl col.c-cash{width:13%}
+#assets-content .tbl col.c-notes{width:13%}
+#assets-content .tbl col.c-del{width:3%}
+/* Normalize every field to fill its cell so columns stay aligned regardless of content length */
+#assets-content .tbl .inp-inline{min-width:0;width:100%;font-size:11px}
+#assets-content .tbl .sel{width:100%;font-size:11px;padding:2px 4px;box-sizing:border-box}
+#assets-content .tbl .inp{width:100%;box-sizing:border-box;font-size:11px;font-family:var(--font);line-height:1.35}
+/* Ensure every form field (inputs, selects, textareas) uses the app font at a consistent size — native controls don't inherit font-family, which made non-table dropdowns look different (v229) */
+.inp,.sel,select.inp,input.inp,textarea.inp{font-family:var(--font)}
+select.inp{font-size:11px;padding:2px 4px}
+#assets-content .tbl .inp-num{width:100%;max-width:100%;box-sizing:border-box;text-align:right;font-size:11px}
+#assets-content .tbl input[type=date]{width:100%;box-sizing:border-box}
+#assets-content .tbl td [data-f=fx_rate]{max-width:100%;box-sizing:border-box}
+/* ===== Unified filter/sort bar styling (v239): consistent font + size across all pages ===== */
+.filterbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filterbar>span,.filterbar>label{font-size:11px;color:var(--text3);font-family:var(--font)}
+.filterbar .sel{font-size:11px !important;padding:3px 8px !important;font-family:var(--font)}
+.filterbar .btn{font-size:11px !important;padding:4px 10px !important}
+.inp,select.inp{padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);min-height:28px;font-size:11px;line-height:1.35}
+.inp:hover,select.inp:hover{border-color:var(--border2,var(--border))}
+.inp:focus,select.inp:focus{border-color:var(--primary);background:var(--bg2);outline:none}
+/* Keep table-embedded fields borderless/compact (the .tbl-scoped rules already do this; re-assert min-height off) */
+.tbl .inp,.tbl .sel,.tbl .inp-inline{min-height:0;padding-top:2px;padding-bottom:2px}
+.sel{padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);min-height:28px;color:var(--text);font-size:11px;font-family:var(--font);line-height:1.35}
+.sel:hover{border-color:var(--border2,var(--border))}
+.sel:focus{border-color:var(--primary);outline:none}
+.tbl .sel{min-height:0;padding:2px 4px;border-color:transparent;background:transparent}
+/* v242: force uniform font-size on standalone form inputs/selects so stray inline
+   font-size:10px overrides (e.g. exempt-add-sel) match the Payout Settings example.
+   .tbl and .filterbar keep their own (more-specific / !important) sizing. */
+.inp:not(.inp-inline),select.inp{font-size:11px}
+.card>.form-grid .inp,.card>.form-grid .sel,.form-group .inp,.form-group .sel{font-size:11px !important;min-height:28px;padding:4px 8px !important}
+</style>
+</head>
+<body>
+<nav class="nav">
+<div class="nav-brand">&#x1F4B0; <span class="brand-txt">Cash Flow Planner <span style='font-size:9px;color:var(--text3)'>v245</span></span></div>
+<button class="sb-toggle" id="sb-toggle" title="Collapse / expand menu" onclick="sidebarToggle()"><i class="fa-solid fa-angles-left"></i></button>
+<div id="sb-today" style="font-size:10px;color:var(--text2);padding:4px 8px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:5px" title="Today's date"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i><span class="sb-today-txt"></span></div>
+<div class="nav-tabs" id="nav-tabs">
+<div class="nav-group">Overview</div>
+<button class="nav-tab active" data-tab="dashboard" title="Dashboard"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></button>
+<div class="nav-group">Money In &amp; Out</div>
+<button class="nav-tab" data-tab="paytax" title="Payroll & Tax"><i class="fa-solid fa-money-check-dollar"></i><span>Payroll &amp; Tax</span></button>
+<div class="nav-subwrap" data-parent="paytax"><button class="nav-sub" data-tab="paytax" data-sub="payroll-setup"><span>Payroll Setup</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-earn"><span>Monthly Earnings</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-calc"><span>Tax Calculator</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-exempt"><span>Tax Exemptions</span></button></div>
+<button class="nav-tab" data-tab="bills" title="Bills & Plans"><i class="fa-solid fa-receipt"></i><span>Bills &amp; Plans</span></button>
+<div class="nav-subwrap" data-parent="bills"><button class="nav-sub" data-tab="bills" data-sub="recurring"><span>Recurring</span></button><button class="nav-sub" data-tab="bills" data-sub="installments"><span>Installments</span></button><button class="nav-sub" data-tab="bills" data-sub="planned"><span>Planned</span></button><button class="nav-sub" data-tab="bills" data-sub="cardbills"><span>Card Bills</span></button></div>
+<button class="nav-tab" data-tab="billreminder" title="Bills Reminder"><i class="fa-solid fa-bell"></i><span>Bills Reminder</span></button>
+<button class="nav-tab" data-tab="creditcards" title="Credit Cards"><i class="fa-solid fa-credit-card"></i><span>Credit Cards</span></button>
+<div class="nav-group">Planning</div>
+<button class="nav-tab" data-tab="todos" title="To-Do"><i class="fa-solid fa-list-check"></i><span>To-Do</span></button>
+<button class="nav-tab" data-tab="wishlist" title="Wishlist"><i class="fa-solid fa-star"></i><span>Wishlist</span></button>
+<div class="nav-group">Wealth &amp; Future</div>
+<button class="nav-tab" data-tab="assets" title="Assets"><i class="fa-solid fa-piggy-bank"></i><span>Assets</span></button>
+<button class="nav-tab" data-tab="retirement" title="Retirement"><i class="fa-solid fa-umbrella-beach"></i><span>Retirement</span></button>
+<div class="nav-subwrap" data-parent="retirement"><button class="nav-sub" data-tab="retirement" data-sub="setup"><span>Scenario Setup</span></button><button class="nav-sub" data-tab="retirement" data-sub="assets"><span>Pension & Funds</span></button><button class="nav-sub" data-tab="retirement" data-sub="calc"><span>Severance Calculator</span></button><button class="nav-sub" data-tab="retirement" data-sub="summary"><span>Summary</span></button></div>
+<div class="nav-group">Insights</div>
+<button class="nav-tab" data-tab="timeline" title="Timeline"><i class="fa-solid fa-list-ol"></i><span>Timeline</span></button>
+<button class="nav-tab" data-tab="analysis" title="Analysis"><i class="fa-solid fa-chart-pie"></i><span>Analysis</span></button>
+<div class="nav-subwrap" data-parent="analysis"><button class="nav-sub" data-tab="analysis" data-sub="type"><span>By Type</span></button><button class="nav-sub" data-tab="analysis" data-sub="card"><span>By Card</span></button></div>
+<div class="nav-group">Configuration</div>
+<button class="nav-tab" data-tab="setup" title="Setup"><i class="fa-solid fa-gear"></i><span>Setup</span></button>
+<button class="nav-tab" data-tab="help" title="Help"><i class="fa-solid fa-circle-question"></i><span>Help</span></button>
+</div>
+<div class="nav-right"><button class="theme-btn" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon"></i><span>Dark</span></button></div>
+</nav>
+<div class="main">
+<div id="toast" class="toast"></div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="tab-dashboard" class="tab-content active">
+<div id="dash-period" style="margin-bottom:10px"></div>
+<div class="kpi-grid" id="kpi-area"></div>
+<div id="dash-bills"></div>
+<div id="dash-todos"></div>
+<div id="dash-calendar"></div>
+<div id="dash-cards"></div>
+<div class="card"><div class="chart-box" id="chart-balance"></div></div>
+<div class="card"><div class="chart-box" id="chart-monthly"></div></div>
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h2 style="flex:1"><i class="fa-solid fa-bars-staggered"></i> Installment Timeline</h2><span style="font-size:10px;color:var(--text3)">Sort:</span><select id="gantt-sort" class="sel" style="font-size:10px;padding:2px 6px" onchange="setGanttSort(this.value)"><option value="start">Start date</option><option value="end">End date</option><option value="name">Name</option><option value="amount">Amount (high→low)</option></select></div><div class="chart-box" id="chart-gantt" style="height:auto;min-height:200px"></div></div>
+</div>
+
+<!-- ===== BILLS REMINDER ===== -->
+<div id="tab-billreminder" class="tab-content">
+<div id="billreminder-content"></div>
+</div>
+
+<!-- ===== CREDIT CARDS ===== -->
+<div id="tab-creditcards" class="tab-content">
+<div id="creditcards-content"></div>
+</div>
+
+<!-- ===== ANALYSIS ===== -->
+<div id="tab-analysis" class="tab-content">
+<div id="analysis-period" style="margin-bottom:10px"></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swAn(this,'type')">By Type</span><span class="sub-tab" onclick="swAn(this,'card')">By Card</span></div>
+<div id="an-type" class="sub-panel active">
+<div class="card"><h2><i class="fa-solid fa-chart-pie"></i> Expense by Type</h2><div class="chart-box" id="chart-pie"></div></div>
+<div class="card"><h2><i class="fa-solid fa-chart-bar"></i> Monthly by Type</h2><div class="chart-box" id="chart-type-bar" style="height:360px"></div></div>
+<div class="card"><h2><i class="fa-solid fa-table"></i> Type Summary</h2><table class="tbl"><thead><tr><th>Type</th><th class="r">Total</th><th class="r">%</th><th class="r">Mo. Avg</th></tr></thead><tbody id="type-summary-body"></tbody></table></div>
+</div>
+<div id="an-card" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-credit-card"></i> Expense by Card</h2><div class="chart-box" id="chart-card-pie"></div></div>
+<div class="card"><h2><i class="fa-solid fa-chart-bar"></i> Monthly by Card</h2><div class="chart-box" id="chart-card-bar" style="height:360px"></div></div>
+<div class="card"><h2><i class="fa-solid fa-table"></i> Card Summary</h2><table class="tbl"><thead><tr><th>Card</th><th class="r">Total</th><th class="r">%</th><th class="r">Mo. Avg</th></tr></thead><tbody id="card-summary-body"></tbody></table></div>
+</div>
+</div>
+
+<!-- ===== SETUP ===== -->
+<div id="tab-setup" class="tab-content">
+
+<div id="setup-profile" class="sub-panel active">
+<div class="card" style="border-color:var(--primary)"><h2><i class="fa-solid fa-cloud-arrow-up"></i> Backup &amp; Restore</h2><p class="text-muted" style="font-size:10px;margin-bottom:8px">Save all your data to a file, or load it on another device (e.g. move from computer to phone). Data lives in this browser only — export to move it.</p><div class="filterbar" style="margin-bottom:0"><button class="btn btn-primary" onclick="exportData()"><i class="fa-solid fa-download"></i> Export (JSON)</button><button class="btn btn-ghost" onclick="document.getElementById('imp').click()"><i class="fa-solid fa-upload"></i> Import (JSON)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="exportTrxExcel('all')"><i class="fa-solid fa-file-excel"></i> Export (Excel)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="document.getElementById('imp-all-xlsx').click()"><i class="fa-solid fa-file-excel"></i> Import (Excel)</button></div><p class="text-muted" style="font-size:9px;margin-top:6px;margin-bottom:0"><i class="fa-solid fa-circle-info"></i> Import replaces ALL current data with the file's contents.</p></div>
+<div class="card"><h2><i class="fa-solid fa-user"></i> Profile &amp; Income</h2><div class="form-grid">
+<div class="form-group"><label>Profile Name</label><input type="text" class="inp" id="f-name" placeholder="Your name"></div>
+<div class="form-group"><label>Date of Birth</label><input type="date" class="inp" id="f-dob"></div>
+<div class="form-group"><label>Starting Cash</label><input type="text" class="inp inp-num" id="f-cash"></div>
+<div class="form-group"><label>"Due soon" lead time (days)</label><input type="number" min="1" max="60" class="inp" id="f-due-soon" placeholder="7" title="Bills within this many days show as 'Due soon' in Bills Reminder" onchange="var v=parseInt(this.value);if(v>0){D.due_soon_days=v;saveD();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}}"></div>
+</div></div>
+<div class="card"><h2><i class="fa-solid fa-tags"></i> Transaction Types</h2><div class="types-list" id="types-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-users"></i> Owners</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">People who own or are responsible for items. Used in Installments and Planned expenses.</p><div class="types-list" id="owners-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-box-open"></i> Asset Types</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for retirement assets. Used in the Retirement &rarr; Assets page.</p><div class="types-list" id="asset-types-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-building-columns"></i> Banks</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Bank issuers for the Bank dropdown in Credit Cards &rarr; Card Details.</p><div class="types-list" id="banks-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-list-check"></i> To-Do Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for the To-Do module (Planning &rarr; To-Do).</p><div class="types-list" id="todocats-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-star"></i> Wishlist Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for the Wishlist module (Planning &rarr; Wishlist).</p><div class="types-list" id="wishcats-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-table-columns"></i> Dashboard Layout</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Choose which cards show on the Dashboard and their order. Toggle to show/hide; use ▲▼ to reorder.</p><div id="dashlayout-list"></div></div>
+<div class="flex gap-2 flex-wrap" style="margin-top:8px">
+<button class="btn btn-primary" onclick="saveAll()"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+<button class="btn btn-ghost" onclick="resetAll()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+<button class="btn btn-ghost" onclick="exportData()"><i class="fa-solid fa-download"></i> Export</button>
+<button class="btn btn-ghost" onclick="document.getElementById('imp').click()"><i class="fa-solid fa-upload"></i> Import</button>
+<input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
+<button class="btn btn-ghost" style="color:var(--success)" onclick="exportTrxExcel('all')"><i class="fa-solid fa-file-excel"></i> Export All (Excel)</button>
+<button class="btn btn-ghost" style="color:var(--success)" onclick="document.getElementById('imp-all-xlsx').click()"><i class="fa-solid fa-file-excel"></i> Import Excel</button>
+<input type="file" id="imp-all-xlsx" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel('all',event)">
+</div>
+</div>
+</div>
+
+<!-- ===== PAYROLL & TAX ===== -->
+<div id="tab-paytax" class="tab-content">
+<div class="sub-tabs"><span class="sub-tab active" onclick="swPayTax(this,'payroll-setup')">Payroll Setup</span><span class="sub-tab" onclick="swPayTax(this,'monthly-earn')">Monthly Earnings</span><span class="sub-tab" onclick="swPayTax(this,'tax-calc')">Tax Calculator</span><span class="sub-tab" onclick="swPayTax(this,'tax-exempt')">Tax Exemptions</span></div>
+<div id="pt-payroll-setup" class="sub-panel active">
+<div class="card" style="margin-bottom:10px"><h2><i class="fa-solid fa-calendar-day"></i> Payout Settings</h2>
+<div class="form-grid">
+<div class="form-group"><label>Payout Day</label><select class="inp" id="f-payday"><option value="last">Last day of month</option></select></div>
+<div class="form-group"><label>Weekend Rule</label><select class="inp" id="f-wr"><option value="before">Before (Fri)</option><option value="after">After (Mon)</option></select></div>
+</div></div>
+<div class="card" style="background:var(--primary-bg);border-color:var(--primary)">
+<h2 style="cursor:pointer" onclick="var b=document.getElementById('payroll-summary-wrap');b.style.display=b.style.display==='none'?'':'none'"><i class="fa-solid fa-chart-column"></i> Payroll Summary <span style="font-size:9px;color:var(--text3);margin-left:4px">click to toggle</span></h2>
+<div id="payroll-summary-wrap">
+<div class="kpi-grid" id="payroll-kpis" style="margin-bottom:12px"></div>
+<div id="payroll-summary-tbl" style="margin-bottom:12px"></div>
+</div></div>
+<div class="card"><h2><i class="fa-solid fa-pen-to-square"></i> Payroll Setup</h2>
+<p class="text-muted mb-3" style="font-size:10px">Define your income and deduction components. Net pay is calculated automatically.</p>
+<h3 style="font-size:12px;color:var(--success);margin:10px 0 8px;padding:6px 10px;background:var(--success-bg);border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:5px"><i class="fa-solid fa-arrow-up"></i> Income Components</h3>
+<table class="tbl"><thead><tr><th style="cursor:pointer" onclick="readAll();sortPayroll('name')">Component</th><th class="r" style="cursor:pointer" onclick="readAll();sortPayroll('amount')">Amount</th><th>Calc Mode</th><th>Frequency</th><th>Month</th><th style="text-align:center;font-size:8px">EPF</th><th style="text-align:center;font-size:8px">SSO</th><th style="text-align:center;font-size:8px">Tax</th><th></th></tr></thead><tbody id="pay-income-body"></tbody></table>
+<div class="add-row" onclick="addPayItem('income')"><i class="fa-solid fa-plus"></i> Add Income</div>
+<h3 style="font-size:12px;color:var(--error);margin:18px 0 8px;padding:6px 10px;background:var(--error-bg);border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:5px"><i class="fa-solid fa-arrow-down"></i> Deductions</h3>
+<table class="tbl"><thead><tr><th style="cursor:pointer" onclick="readAll();sortPayroll('name')">Component</th><th class="r" style="cursor:pointer" onclick="readAll();sortPayroll('amount')">Amount</th><th>Calc Mode</th><th>Frequency</th><th>Month</th><th style="text-align:center;font-size:8px">EPF</th><th style="text-align:center;font-size:8px">SSO</th><th style="text-align:center;font-size:8px">Tax</th><th></th></tr></thead><tbody id="pay-deduct-body"></tbody></table>
+<div class="add-row" onclick="addPayItem('deduction')"><i class="fa-solid fa-plus"></i> Add Deduction</div>
+</div>
+<button class="btn btn-primary" onclick="saveAll()" style="margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+</div>
+<div id="pt-monthly-earn" class="sub-panel">
+<div id="earnings-year-selector" style="margin-bottom:10px"></div>
+<div class="card"><h2><i class="fa-solid fa-calendar-days"></i> Monthly Earnings Breakdown</h2>
+<p class="text-muted mb-3" style="font-size:10px">Click a month to drill down into payroll line items. Override amounts for specific months (e.g. variable bonus, OT).</p>
+<div class="kpi-grid" id="earnings-kpis" style="margin-bottom:10px"></div>
+<table class="tbl"><thead><tr><th>Month</th><th class="r">Gross</th><th class="r">Deductions</th><th class="r">Net</th><th class="r">Cum. Gross</th><th class="r">Est. Tax (YTD)</th><th></th></tr></thead><tbody id="tax-monthly-body"></tbody></table>
+</div></div>
+<div id="pt-tax-calc" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-calculator"></i> Thai Income Tax Calculator (<span id="tax-year-display"></span>)</h2>
+<div class="kpi-grid" id="tax-kpis"></div>
+<div id="tax-year-selector-area"></div>
+<div id="tax-override-area"></div>
+<div id="tax-refund-month-area"></div>
+<h3 style="font-size:11px;font-weight:600;margin:10px 0 6px">Tax Bracket Breakdown</h3>
+<table class="tbl"><thead><tr><th>Bracket</th><th class="r">Taxable Amount</th><th class="r">Rate</th><th class="r">Tax</th></tr></thead><tbody id="tax-brackets-body"></tbody></table>
+<div id="tax-recommendation"></div>
+</div></div>
+<div id="pt-tax-exempt" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-shield-halved"></i> Tax Exemptions &amp; Deductions</h2>
+<p class="text-muted mb-3" style="font-size:10px">Configure your tax deductions. These reduce your taxable income.</p>
+<table class="tbl"><thead><tr><th>Deduction</th><th class="r">Amount (&#x0E3F;)</th><th class="r">Max</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="tax-exempt-body"></tbody></table>
+<div id="tax-exempt-add-area"></div>
+<button class="btn btn-primary" onclick="saveAll()" style="margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+</div></div>
+</div>
+
+<!-- ===== BILLS & PLANS ===== -->
+<div id="tab-bills" class="tab-content">
+<div class="sub-tabs"><span class="sub-tab active" onclick="swBills(this,'recurring')">Recurring</span><span class="sub-tab" onclick="swBills(this,'installments')">Installments</span><span class="sub-tab" onclick="swBills(this,'planned')">Planned</span><span class="sub-tab" onclick="swBills(this,'cardbills')">Card Bills</span></div>
+<div class="card" style="margin-bottom:10px;background:var(--primary-bg);border:1px solid var(--primary)"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span style="font-size:11px;font-weight:600"><i class="fa-solid fa-calendar-day" style="margin-right:4px"></i>Set start date for all bills:</span><input type="date" class="inp" id="bulk-start-date" style="width:150px;padding:2px 6px;font-size:11px"><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-monthly" checked> Monthly</label><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-yearly" checked> Yearly</label><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-inst" checked> Installments</label><button class="btn btn-primary" style="font-size:10px;padding:4px 12px" onclick="applyBulkStartDate()"><i class="fa-solid fa-wand-magic-sparkles"></i> Apply</button><span style="font-size:9px;color:var(--text3)">Applies to Monthly &amp; Yearly (Starts) and Installments (Hide Before). Leave blank + Apply to clear. Overwrites existing per-bill start dates.</span></div></div>
+
+<!-- SUB: Recurring -->
+<div id="bp-recurring" class="sub-panel active">
+<div class="card" style="margin-bottom:10px"><h2><i class="fa-solid fa-utensils"></i> Daily Living &amp; Pets</h2>
+<div class="form-grid">
+<div class="form-group"><label>Daily Living (&#x0E3F;/day)</label><input type="text" class="inp inp-num" id="f-living" style="width:80px"></div>
+<div class="form-group"><label>Cat Expense (&#x0E3F;/mo)</label><input type="text" class="inp inp-num" id="f-cat" style="width:80px"></div>
+<div class="form-group"><label>Pet Names</label><input type="text" class="inp" id="f-catname" style="width:120px"></div>
+</div></div>
+<div class="card"><h2><i class="fa-solid fa-rotate"></i> Monthly Recurring</h2>
+<div class="filterbar flex gap-2 flex-wrap mb-3">
+<select class="sel" id="flt-m-type" onchange="filterMonthly()"><option value="">All Types</option></select>
+<select class="sel" id="flt-m-card" onchange="filterMonthly()"><option value="">All Cards</option></select>
+</div>
+<table class="tbl"><thead><tr id="monthly-hdr"></tr></thead><tbody id="monthly-body"></tbody></table>
+<div class="add-row" onclick="addMonthly()"><i class="fa-solid fa-plus"></i> Add Monthly</div>
+<div id="monthly-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedMonthly()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="m-sel-count">0</span>)</button></div>
+<div style="display:flex;gap:5px;margin-top:6px">
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('monthly')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-monthly').click()"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+<input type="file" id="imp-monthly" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrxExcel('monthly',event)">
+</div></div>
+<div class="card"><h2><i class="fa-solid fa-calendar"></i> Yearly Recurring</h2>
+<div class="filterbar flex gap-2 flex-wrap mb-3">
+<select class="sel" id="flt-y-type" onchange="filterYearly()"><option value="">All Types</option></select>
+<select class="sel" id="flt-y-mode" onchange="filterYearly()"><option value="">All Modes</option><option value="full">Full</option><option value="installment">Installment</option></select>
+<select class="sel" id="flt-y-card" onchange="filterYearly()"><option value="">All Cards</option></select>
+</div>
+<p class="text-muted mb-3" style="font-size:10px">Set "Installment" mode to split into monthly payments. These appear in the Installments tab too.</p>
+<table class="tbl"><thead><tr id="yearly-hdr"></tr></thead><tbody id="yearly-body"></tbody></table>
+<div class="add-row" onclick="addYearly()"><i class="fa-solid fa-plus"></i> Add Yearly</div>
+<div id="yearly-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedYearly()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="y-sel-count">0</span>)</button></div>
+<div style="display:flex;gap:5px;margin-top:6px">
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('yearly')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-yearly').click()"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+<input type="file" id="imp-yearly" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrxExcel('yearly',event)">
+</div>
+</div>
+<div class="flex gap-2 flex-wrap" style="margin-top:6px">
+<button class="btn btn-primary" onclick="saveAll()"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('recurring')"><i class="fa-solid fa-file-excel"></i> Export Recurring (Excel)</button>
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-recurring').click()"><i class="fa-solid fa-file-import"></i> Import Recurring</button>
+<input type="file" id="imp-recurring" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel('recurring',event)">
+</div>
+<!-- Recurring Summary -->
+<div class="card" style="margin-top:10px"><h2><i class="fa-solid fa-chart-pie"></i> Recurring Summary</h2>
+<div class="flex gap-2 items-center mb-3">
+<span class="text-muted" style="font-size:10px">Group by:</span>
+<select class="sel" id="summary-group" onchange="renderRecurringSummary()">
+<option value="type">Type</option><option value="card">Payment Method</option><option value="freq">Monthly / Yearly</option><option value="month">Month</option>
+</select></div>
+<div class="kpi-grid" id="recurring-kpis"></div>
+<div id="recurring-groups"></div>
+</div>
+</div><!-- /bp-recurring -->
+
+<!-- SUB: Installments -->
+<div id="bp-installments" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-calendar-check"></i> Installments</h2>
+<div class="filterbar flex gap-2 flex-wrap mb-3">
+<select class="sel" id="flt-i-type" onchange="filterInst()"><option value="">All Types</option></select>
+<select class="sel" id="flt-i-card" onchange="filterInst()"><option value="">All Cards</option></select>
+<select class="sel" id="flt-i-status" onchange="filterInst()"><option value="">All Status</option></select>
+<select class="sel" id="flt-i-source" onchange="filterInst()"><option value="">All Sources</option></select>
+<select class="sel" id="flt-i-owner" onchange="filterInst()"><option value="">All Owners</option></select>
+</div>
+<p class="text-muted mb-3" style="font-size:10px">Manual installments + auto-generated from yearly recurring (marked <span class="tag tag-auto">Auto</span>).</p>
+<div style="overflow-x:auto"><table class="tbl" style="min-width:900px"><thead><tr id="inst-hdr"></tr></thead><tbody id="inst-body"></tbody></table></div>
+<div id="inst-bulk-actions" style="display:none;margin-top:6px;margin-bottom:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer" onclick="deleteSelectedInst()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="inst-sel-count">0</span>)</button></div>
+<div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+<select id="inst-from-recurring" class="sel" style="flex:1;font-size:10px;padding:4px 6px"><option value="">&#x2014; Select from Recurring &#x2014;</option></select>
+<button class="btn btn-primary" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="addInstFromRecurring()"><i class="fa-solid fa-plus"></i> Add Selected</button>
+<span style="color:var(--text3);font-size:10px">or</span>
+<div class="add-row" style="margin:0;flex:0 0 auto" onclick="addInst()"><i class="fa-solid fa-plus"></i> Add Manual</div>
+</div>
+<div style="display:flex;gap:5px;margin-top:6px">
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('installments')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-inst').click()"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+<input type="file" id="imp-inst" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrxExcel('installments',event)">
+</div></div>
+<button class="btn btn-primary" onclick="saveAll()" style="margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+<!-- Installments Summary -->
+<div class="card" style="margin-top:10px"><h2><i class="fa-solid fa-chart-pie"></i> Installments Summary</h2><div class="kpi-grid" id="inst-kpis"></div><div id="inst-summary-groups"></div></div>
+<!-- Monthly Payment Schedule -->
+<div class="card"><h2 style="cursor:pointer" onclick="var w=document.getElementById('inst-monthly-wrap');w.style.display=w.style.display==='none'?'':'none';this.querySelector('.arr').classList.toggle('open')"><span class="arr" style="font-size:9px;color:var(--text3);margin-right:4px">&#9654;</span><i class="fa-solid fa-calendar-day"></i> Monthly Payment Schedule <span style="font-size:9px;color:var(--text3);font-weight:400;margin-left:4px">click to toggle</span></h2>
+<div id="inst-monthly-wrap" style="display:none">
+<div class="kpi-grid" id="inst-monthly-kpis"></div>
+<div id="inst-monthly-table"></div>
+</div></div>
+<!-- Installment Cross-Tab: Months × Items -->
+<div class="card"><h2><i class="fa-solid fa-table-cells"></i> Installment Payment Matrix</h2>
+<div class="flex gap-2 flex-wrap mb-3" style="align-items:center">
+<span class="text-muted" style="font-size:10px">Monthly threshold:</span>
+<input type="text" class="inp inp-num" id="inst-threshold" value="10,000.00" style="width:100px;font-size:10px;padding:3px 6px" onfocus="var v=parseFloat(this.value.replace(/,/g,''));this.value=v||'';" onblur="this.value=(parseFloat(this.value.replace(/,/g,''))||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});renderInstMatrix()">
+<span class="text-muted" style="font-size:9px">&#x0E3F; — months exceeding this will be highlighted</span>
+</div>
+<div id="inst-matrix-chart" style="width:100%;height:300px;margin-bottom:12px"></div><div id="inst-matrix" style="overflow-x:auto"></div></div>
+</div><!-- /bp-installments -->
+
+<!-- SUB: Planned -->
+<div id="bp-planned" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-calendar-check"></i> Planned Expenses</h2>
+<p class="text-muted mb-3" style="font-size:10px">One-time future expenses or income that are not recurring. These appear in the timeline on their specified date.</p>
+<div class="filterbar" style="gap:6px;margin-bottom:8px">
+<select class="sel" id="flt-p-type" onchange="filterPlanned()" style="font-size:10px;padding:2px 6px"><option value="">All Types</option></select>
+<select class="sel" id="flt-p-card" onchange="filterPlanned()" style="font-size:10px;padding:2px 6px"><option value="">All Cards</option></select>
+</div>
+<table class="tbl"><thead><tr id="planned-hdr"></tr></thead><tbody id="planned-body"></tbody></table>
+<div id="planned-window-warn"></div>
+<div class="add-row" onclick="addPlanned()"><i class="fa-solid fa-plus"></i> Add Planned Expense</div>
+<div id="planned-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedPlanned()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="pl-sel-count">0</span>)</button></div>
+<div style="display:flex;gap:5px;margin-top:6px">
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('planned')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-planned').click()"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+<input type="file" id="imp-planned" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrxExcel('planned',event)">
+</div>
+<button class="btn btn-primary" onclick="saveAll()" style="margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+</div></div><!-- /bp-planned -->
+<!-- SUB: Card Bills -->
+<div id="bp-cardbills" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-credit-card"></i> Credit Card Bills</h2><p class="text-muted mb-3" style="font-size:10px">Amount due per card per month — auto-summed from everything charged to each card (monthly, yearly, installments, planned). Set a manual override to use your actual statement figure.</p><div id="cardbills-content"></div></div>
+</div><!-- /bp-cardbills -->
+</div>
+
+<!-- ===== TIMELINE ===== -->
+<div id="tab-timeline" class="tab-content">
+<div class="card" style="margin-bottom:10px">
+<h2><i class="fa-solid fa-calendar-days"></i> Simulation Period</h2>
+<div class="flex gap-2 flex-wrap" style="align-items:flex-end">
+<div class="form-group"><label>Start Date</label><input type="date" class="inp" id="f-start" onchange="readAll();saveD();simulate();renderTimeline()"></div>
+<div class="form-group"><label>End Date</label><input type="date" class="inp" id="f-end" onchange="readAll();saveD();simulate();renderTimeline()"></div>
+<button class="btn btn-primary" onclick="readAll();saveAll();renderTimeline()"><i class="fa-solid fa-play"></i> Re-simulate</button>
+<span id="tl-period-info" style="font-size:10px;color:var(--text3);margin-left:4px"></span>
+</div>
+</div>
+<div class="card"><h2><i class="fa-solid fa-list-ol"></i> Day-by-Day Cash Flow</h2>
+<div class="flex gap-2 mb-3 flex-wrap">
+<button class="btn btn-ghost" onclick="tlToggleYears(true)"><i class="fa-solid fa-calendar"></i> Expand Years</button>
+<button class="btn btn-ghost" onclick="tlToggleYears(false)"><i class="fa-solid fa-calendar-xmark"></i> Collapse Years</button>
+<span style="border-left:1px solid var(--border);margin:0 4px"></span>
+<button class="btn btn-ghost" onclick="tlToggle(true)"><i class="fa-solid fa-angles-down"></i> Expand Months</button>
+<button class="btn btn-ghost" onclick="tlToggle(false)"><i class="fa-solid fa-angles-up"></i> Collapse Months</button>
+<span style="border-left:1px solid var(--border);margin:0 4px"></span>
+<button class="btn btn-ghost" onclick="tlToggleGroups(true)"><i class="fa-solid fa-credit-card"></i> Expand Card Groups</button>
+<button class="btn btn-ghost" onclick="tlToggleGroups(false)"><i class="fa-solid fa-layer-group"></i> Collapse Card Groups</button>
+</div>
+<div id="timeline-months"></div></div>
+</div>
+
+<!-- ===== RETIREMENT ===== -->
+<div id="tab-retirement" class="tab-content">
+<div class="sub-tabs">
+<span class="sub-tab active" onclick="swRetire(this,'setup')">Scenario Setup</span>
+<span class="sub-tab" onclick="swRetire(this,'assets')">Pension &amp; Funds</span>
+<span class="sub-tab" onclick="swRetire(this,'calc')">Severance Calculator</span>
+<span class="sub-tab" onclick="swRetire(this,'summary')">Summary</span>
+</div>
+<div id="ret-setup" class="sub-panel active">
+<div class="card"><h2><i class="fa-solid fa-gear"></i> Scenario Setup</h2>
+<p class="text-muted mb-3" style="font-size:10px">Configure your separation scenario. Calculations follow Thai Labour Protection Act B.E. 2541.</p>
+<div id="ret-setup-content"></div>
+</div>
+</div>
+<div id="ret-assets" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-building-columns"></i> Pension &amp; Funds</h2>
+<p class="text-muted mb-3" style="font-size:10px">Configure your Provident Fund (EPF) and Social Security old-age pension (บำนาญชราภาพ) for retirement income planning.</p>
+<div id="ret-assets-content"></div>
+</div>
+</div>
+<div id="ret-calc" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-calculator"></i> Severance Calculator</h2>
+<p class="text-muted mb-3" style="font-size:10px">Computed severance pay, special severance, notice pay, SSO benefits, and EPF payout based on Thai labour law.</p>
+<div id="ret-calc-content"></div>
+</div>
+</div>
+<div id="ret-summary" class="sub-panel">
+<div class="card"><h2><i class="fa-solid fa-chart-column"></i> Separation Summary</h2>
+<p class="text-muted mb-3" style="font-size:10px">Overview of all financial events from separation. Enable the simulation to reflect these in the Timeline.</p>
+<div id="ret-summary-content"></div>
+</div>
+</div>
+</div>
+
+<!-- ===== HELP ===== -->
+<div id="tab-assets" class="tab-content">
+<div class="card"><h2><i class="fa-solid fa-piggy-bank"></i> Assets &amp; Net Worth</h2>
+<p class="text-muted mb-3" style="font-size:10px">Track your assets — savings, investments, property, and more. Assets with a cash-out date appear on the Timeline. Linked to Retirement for separation planning.</p>
+<div id="assets-content"></div>
+</div>
+</div>
+<div id="tab-help" class="tab-content">
+<div class="card">
+<div class="flex items-center" style="justify-content:space-between;margin-bottom:10px">
+<h2 style="margin:0"><i class="fa-solid fa-circle-question"></i> <span id="help-title">Help &amp; Reference</span></h2>
+<div class="flex gap-2">
+<button class="btn btn-ghost btn-sm" onclick="setHelpLang('en')" id="hl-en" style="font-weight:700">EN</button>
+<button class="btn btn-ghost btn-sm" onclick="setHelpLang('th')" id="hl-th">TH</button>
+<button class="btn btn-ghost btn-sm" onclick="setHelpLang('ja')" id="hl-ja">JA</button>
+</div></div>
+<div id="help-content"></div>
+</div>
+</div>
+
+<div id="tab-todos" class="tab-content">
+<div id="todos-content"></div>
+</div>
+<div id="tab-wishlist" class="tab-content">
+<div id="wishlist-content"></div>
+</div>
+
+<div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
+</div><!-- /.main -->
+
+<script src="js/data.js?v=245"></script>
+</script>
+<script src="js/simulation.js?v=245"></script>
+
+<script src="js/ui-setup.js?v=245"></script>
+
+<script src="js/ui-payroll.js?v=245"></script>
+<script src="js/ui-bills.js?v=245"></script>
+<script src="js/ui-creditcards.js?v=245"></script>
+
+<script src="js/ui-timeline.js?v=245"></script>
+<script src="js/ui-dashboard.js?v=245"></script>
+<script src="js/help-data.js?v=245"></script>
+<script src="js/trx-io.js?v=245"></script>
+<script src="js/retirement-calc.js?v=245"></script>
+<script src="js/ui-retirement.js?v=245"></script>
+
+<script src="js/ui-billreminder.js?v=245"></script>
+<script src="js/ui-todos.js?v=245"></script>
+<script src="js/ui-wishlist.js?v=245"></script>
+<script src="js/app.js?v=245"></script>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
+<script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>
+<script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts-more.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts-more.js')"></script>
+<script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/modules/xrange.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xrange.js')"></script>
+<script>
+(function(){function _draw(){if(typeof Highcharts==='undefined')return false;try{if(typeof renderDash==='function')renderDash();}catch(e){console.warn('renderDash:',e);}return true;}
+if(!_draw()){var _n=0,_t=setInterval(function(){_n++;if(_draw()||_n>40)clearInterval(_t);},150);}
+})();
+</script>
+</body>
+</html>
