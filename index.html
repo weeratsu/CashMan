@@ -12,7 +12,7 @@ var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>Cash Flow Planner v246</title>
+<title>Cash Flow Planner v247</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="icon" type="image/png" href="images/Generated_Image_6gOkY3O5U4Iyp48k.png">
 <style>
@@ -105,10 +105,11 @@ body.sb-collapsed .nav-subwrap{display:none}
 /* ===== Mobile: sidebar becomes a fixed BOTTOM nav bar (icons, horizontally scrollable) ===== */
 .nav{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:56px;flex-direction:row;align-items:center;
  padding:0 4px;border-top:1px solid var(--border);border-right:none;box-shadow:0 -2px 8px rgba(0,0,0,.08);
- overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;z-index:1000;gap:2px}
+ overflow:visible;z-index:1000;gap:2px}
 .nav-brand,.sb-toggle,#sb-today,.nav-group,.nav-subwrap{display:none !important}
-.nav-tabs{display:flex;flex-direction:row;gap:2px;flex:1;height:100%;align-items:center}
-.nav-tab{flex:0 0 auto;flex-direction:column;justify-content:center;gap:2px;min-width:58px;height:48px;padding:4px 6px;border-radius:8px}
+/* nav-tabs is the horizontal SCROLL container: flex row + overflow-x + min-width:0 so children can overflow & scroll */
+.nav-tabs{display:flex !important;flex-direction:row;gap:2px;flex:1 1 auto;min-width:0;height:100%;align-items:center;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.nav-tab{flex:0 0 auto !important;width:auto !important;flex-direction:column;justify-content:center;gap:2px;min-width:56px;height:48px;padding:4px 6px;border-radius:8px}
 .nav-tab span{display:block !important;font-size:8px;line-height:1;white-space:nowrap;max-width:56px;overflow:hidden;text-overflow:ellipsis}
 .nav-tab i{font-size:16px;width:auto}
 .nav-right{flex-direction:row;margin-top:0;padding-top:0;border-top:none;flex:0 0 auto}
@@ -181,7 +182,7 @@ select.inp{font-size:11px;padding:2px 4px}
 </head>
 <body>
 <nav class="nav">
-<div class="nav-brand">&#x1F4B0; <span class="brand-txt">Cash Flow Planner <span style='font-size:9px;color:var(--text3)'>v246</span></span></div>
+<div class="nav-brand">&#x1F4B0; <span class="brand-txt">Cash Flow Planner <span style='font-size:9px;color:var(--text3)'>v247</span></span></div>
 <button class="sb-toggle" id="sb-toggle" title="Collapse / expand menu" onclick="sidebarToggle()"><i class="fa-solid fa-angles-left"></i></button>
 <div id="sb-today" style="font-size:10px;color:var(--text2);padding:4px 8px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:5px" title="Today's date"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i><span class="sb-today-txt"></span></div>
 <div class="nav-tabs" id="nav-tabs">
@@ -553,27 +554,27 @@ select.inp{font-size:11px;padding:2px 4px}
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
-<script src="js/data.js?v=246"></script>
+<script src="js/data.js?v=247"></script>
 </script>
-<script src="js/simulation.js?v=246"></script>
+<script src="js/simulation.js?v=247"></script>
 
-<script src="js/ui-setup.js?v=246"></script>
+<script src="js/ui-setup.js?v=247"></script>
 
-<script src="js/ui-payroll.js?v=246"></script>
-<script src="js/ui-bills.js?v=246"></script>
-<script src="js/ui-creditcards.js?v=246"></script>
+<script src="js/ui-payroll.js?v=247"></script>
+<script src="js/ui-bills.js?v=247"></script>
+<script src="js/ui-creditcards.js?v=247"></script>
 
-<script src="js/ui-timeline.js?v=246"></script>
-<script src="js/ui-dashboard.js?v=246"></script>
-<script src="js/help-data.js?v=246"></script>
-<script src="js/trx-io.js?v=246"></script>
-<script src="js/retirement-calc.js?v=246"></script>
-<script src="js/ui-retirement.js?v=246"></script>
+<script src="js/ui-timeline.js?v=247"></script>
+<script src="js/ui-dashboard.js?v=247"></script>
+<script src="js/help-data.js?v=247"></script>
+<script src="js/trx-io.js?v=247"></script>
+<script src="js/retirement-calc.js?v=247"></script>
+<script src="js/ui-retirement.js?v=247"></script>
 
-<script src="js/ui-billreminder.js?v=246"></script>
-<script src="js/ui-todos.js?v=246"></script>
-<script src="js/ui-wishlist.js?v=246"></script>
-<script src="js/app.js?v=246"></script>
+<script src="js/ui-billreminder.js?v=247"></script>
+<script src="js/ui-todos.js?v=247"></script>
+<script src="js/ui-wishlist.js?v=247"></script>
+<script src="js/app.js?v=247"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>
