@@ -12,7 +12,7 @@ var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>Cash Flow Planner v245</title>
+<title>Cash Flow Planner v246</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="icon" type="image/png" href="images/Generated_Image_6gOkY3O5U4Iyp48k.png">
 <style>
@@ -30,7 +30,7 @@ html.dark{--bg:#0f1117;--bg2:#1a1d27;--bg3:#252833;--surface:#2a2d3a;--border:#3
 body.sb-collapsed .nav-subwrap{display:none}
 /* Hide the old horizontal sub-tab bars — nav now lives in the sidebar */
 .sub-tabs{display:none !important}
-.main{max-width:1240px;margin:0 auto;padding:16px;margin-left:190px;transition:margin-left .18s ease}body.sb-collapsed .main{margin-left:56px}@media(max-width:720px){.nav{width:56px}.nav-tab span,.theme-btn span,.nav-brand .brand-txt,.nav-group{display:none}.nav-tab,.theme-btn{justify-content:center;gap:0}.main{margin-left:56px}.sb-toggle{display:none}}.tab-content{display:none}.tab-content.active{display:block}
+.main{max-width:1240px;margin:0 auto;padding:16px;margin-left:190px;transition:margin-left .18s ease}body.sb-collapsed .main{margin-left:56px}.tab-content{display:none}.tab-content.active{display:block}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}.card h2{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:10px}.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;box-shadow:var(--shadow)}.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)}.kpi-val{font-size:16px;font-weight:700;font-family:var(--mono)}.kpi-note{font-size:9px;color:var(--text3);margin-top:1px}
 .tbl{width:100%;border-collapse:collapse;font-size:11px}.tbl th{text-align:left;padding:5px 6px;background:var(--bg3);border-bottom:2px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);font-weight:600}.tbl th.r,.tbl td.r{text-align:right}.tbl td{padding:4px 6px;border-bottom:1px solid var(--border)}.tbl tr:hover{background:rgba(128,128,128,.04)}
@@ -102,18 +102,29 @@ body.sb-collapsed .nav-subwrap{display:none}
 .sub-tabs{display:flex;gap:2px;margin-bottom:10px}.sub-tab{padding:5px 12px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text2)}.sub-tab:hover{background:var(--surface)}.sub-tab:active{transform:scale(0.95);opacity:.7}.sub-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .sub-panel{display:none}.sub-panel.active{display:block}
 @media(max-width:768px){
+/* ===== Mobile: sidebar becomes a fixed BOTTOM nav bar (icons, horizontally scrollable) ===== */
+.nav{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:56px;flex-direction:row;align-items:center;
+ padding:0 4px;border-top:1px solid var(--border);border-right:none;box-shadow:0 -2px 8px rgba(0,0,0,.08);
+ overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;z-index:1000;gap:2px}
+.nav-brand,.sb-toggle,#sb-today,.nav-group,.nav-subwrap{display:none !important}
+.nav-tabs{display:flex;flex-direction:row;gap:2px;flex:1;height:100%;align-items:center}
+.nav-tab{flex:0 0 auto;flex-direction:column;justify-content:center;gap:2px;min-width:58px;height:48px;padding:4px 6px;border-radius:8px}
+.nav-tab span{display:block !important;font-size:8px;line-height:1;white-space:nowrap;max-width:56px;overflow:hidden;text-overflow:ellipsis}
+.nav-tab i{font-size:16px;width:auto}
+.nav-right{flex-direction:row;margin-top:0;padding-top:0;border-top:none;flex:0 0 auto}
+.theme-btn{flex-direction:column;gap:2px;min-width:52px;height:48px;padding:4px 6px;border:none}
+.theme-btn span{display:block !important;font-size:8px;line-height:1}
+/* Main content takes full width; leave room for the bottom bar */
+.main{margin-left:0;padding:10px 10px 72px 10px;max-width:100%}
+body.sb-collapsed .main{margin-left:0}
+/* Layout tweaks */
 .form-grid{grid-template-columns:1fr}
 .kpi-grid{grid-template-columns:repeat(2,1fr)}
-.nav-tab span{display:none}
-/* Mobile: tighter page padding, cards full-bleed, tables scroll horizontally so nothing overflows */
-.main{padding:10px}
 .card{padding:10px;border-radius:8px}
 .sub-panel>.card,.tab-content>.card{overflow-x:auto}
 .tbl{font-size:11px}
-/* Bigger tap targets for buttons + selects on touch */
 .btn{padding:7px 12px}
 .sel,.inp,select.inp{min-height:34px}
-/* Filter bars wrap and stay readable */
 .filterbar{gap:6px}
 }
 @media(max-width:480px){
@@ -170,7 +181,7 @@ select.inp{font-size:11px;padding:2px 4px}
 </head>
 <body>
 <nav class="nav">
-<div class="nav-brand">&#x1F4B0; <span class="brand-txt">Cash Flow Planner <span style='font-size:9px;color:var(--text3)'>v245</span></span></div>
+<div class="nav-brand">&#x1F4B0; <span class="brand-txt">Cash Flow Planner <span style='font-size:9px;color:var(--text3)'>v246</span></span></div>
 <button class="sb-toggle" id="sb-toggle" title="Collapse / expand menu" onclick="sidebarToggle()"><i class="fa-solid fa-angles-left"></i></button>
 <div id="sb-today" style="font-size:10px;color:var(--text2);padding:4px 8px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:5px" title="Today's date"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i><span class="sb-today-txt"></span></div>
 <div class="nav-tabs" id="nav-tabs">
@@ -542,27 +553,27 @@ select.inp{font-size:11px;padding:2px 4px}
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
-<script src="js/data.js?v=245"></script>
+<script src="js/data.js?v=246"></script>
 </script>
-<script src="js/simulation.js?v=245"></script>
+<script src="js/simulation.js?v=246"></script>
 
-<script src="js/ui-setup.js?v=245"></script>
+<script src="js/ui-setup.js?v=246"></script>
 
-<script src="js/ui-payroll.js?v=245"></script>
-<script src="js/ui-bills.js?v=245"></script>
-<script src="js/ui-creditcards.js?v=245"></script>
+<script src="js/ui-payroll.js?v=246"></script>
+<script src="js/ui-bills.js?v=246"></script>
+<script src="js/ui-creditcards.js?v=246"></script>
 
-<script src="js/ui-timeline.js?v=245"></script>
-<script src="js/ui-dashboard.js?v=245"></script>
-<script src="js/help-data.js?v=245"></script>
-<script src="js/trx-io.js?v=245"></script>
-<script src="js/retirement-calc.js?v=245"></script>
-<script src="js/ui-retirement.js?v=245"></script>
+<script src="js/ui-timeline.js?v=246"></script>
+<script src="js/ui-dashboard.js?v=246"></script>
+<script src="js/help-data.js?v=246"></script>
+<script src="js/trx-io.js?v=246"></script>
+<script src="js/retirement-calc.js?v=246"></script>
+<script src="js/ui-retirement.js?v=246"></script>
 
-<script src="js/ui-billreminder.js?v=245"></script>
-<script src="js/ui-todos.js?v=245"></script>
-<script src="js/ui-wishlist.js?v=245"></script>
-<script src="js/app.js?v=245"></script>
+<script src="js/ui-billreminder.js?v=246"></script>
+<script src="js/ui-todos.js?v=246"></script>
+<script src="js/ui-wishlist.js?v=246"></script>
+<script src="js/app.js?v=246"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>
