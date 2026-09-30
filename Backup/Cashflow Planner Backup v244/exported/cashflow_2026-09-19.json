@@ -1,0 +1,781 @@
+{
+  "profile": {
+    "starting_cash": 24111.91,
+    "payout_day": 25,
+    "weekend_rule": "before",
+    "daily_living": 500,
+    "cat_expense": 3367.36,
+    "cat_names": "Nana, Hachi & Hana",
+    "start_date": "2026-09-18",
+    "end_date": "2037-12-31",
+    "name": "Weerat",
+    "dob": "1981-11-12"
+  },
+  "payroll": [
+    {
+      "name": "BN",
+      "type": "income",
+      "amount": 71046.21,
+      "freq": "specific_month",
+      "month": 12,
+      "notes": "",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": true,
+      "calc_mode": "fixed",
+      "_gi": 0
+    },
+    {
+      "name": "BSAL",
+      "type": "income",
+      "amount": 71046.21,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": true,
+      "affects_sso": true,
+      "affects_tax": true,
+      "calc_mode": "fixed",
+      "_gi": 1
+    },
+    {
+      "name": "EPF",
+      "type": "deduction",
+      "amount": 0,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "percent_epf",
+      "_gi": 2,
+      "epf_pct": 5
+    },
+    {
+      "name": "SOCSO",
+      "type": "deduction",
+      "amount": 0,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "percent_sso",
+      "_gi": 3,
+      "sso_pct": 5,
+      "sso_cap": 875
+    },
+    {
+      "name": "TAX",
+      "type": "deduction",
+      "amount": 4008.25,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "fixed",
+      "_gi": 4
+    },
+    {
+      "name": "TAX (BN)",
+      "type": "deduction",
+      "amount": 10701.93,
+      "freq": "specific_month",
+      "month": 12,
+      "notes": "",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "fixed",
+      "_gi": 5
+    }
+  ],
+  "owners": [
+    "Me",
+    "Mum",
+    "Toey"
+  ],
+  "types": [
+    "Auto",
+    "Credit Card Debt",
+    "Entertainment",
+    "Family",
+    "Food",
+    "Health",
+    "Home",
+    "Insurance",
+    "Investments",
+    "Other",
+    "Receivable",
+    "Savings",
+    "Subscription",
+    "Transport",
+    "Utilities"
+  ],
+  "cards": [
+    {
+      "name": "BAY",
+      "statement_day": 9,
+      "payment_day": 10,
+      "deadline": 29
+    },
+    {
+      "name": "BAY AIA",
+      "statement_day": 25,
+      "payment_day": 26,
+      "deadline": 9
+    },
+    {
+      "name": "BAY JCB",
+      "statement_day": 9,
+      "payment_day": 10,
+      "deadline": 29
+    },
+    {
+      "name": "BBL",
+      "statement_day": 7,
+      "payment_day": 8,
+      "deadline": 22
+    },
+    {
+      "name": "KBank",
+      "statement_day": 5,
+      "payment_day": 6,
+      "deadline": 20
+    },
+    {
+      "name": "UOB",
+      "statement_day": 12,
+      "payment_day": 13,
+      "deadline": 3
+    },
+    {
+      "name": "ttb",
+      "statement_day": 22,
+      "payment_day": 23,
+      "deadline": 11
+    }
+  ],
+  "monthly": [
+    {
+      "name": "AIS Fiber",
+      "type": "Utilities",
+      "amount": 854.93,
+      "billing_day": 28,
+      "card": "BAY JCB",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "AIS Mobile",
+      "type": "Utilities",
+      "amount": 588.5,
+      "billing_day": 28,
+      "card": "BAY JCB",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "B-INNOTECHRMF",
+      "type": "Investments",
+      "amount": 1000,
+      "billing_day": 25,
+      "card": "Cash/Direct",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "BAY Kept - Growing",
+      "type": "Savings",
+      "amount": 1000,
+      "billing_day": 25,
+      "card": "Cash/Direct",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "BAY Kept - Happy Tax Free",
+      "type": "Savings",
+      "amount": 500,
+      "billing_day": 25,
+      "card": "Cash/Direct",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "Electricity",
+      "type": "Utilities",
+      "amount": 3000,
+      "billing_day": 4,
+      "card": "Cash/Direct",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "iCloud",
+      "type": "Subscription",
+      "amount": 399,
+      "billing_day": 8,
+      "card": "UOB",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "KHT's Debt",
+      "type": "Receivable",
+      "amount": 3000,
+      "billing_day": 13,
+      "card": "Cash/Direct",
+      "direction": "income",
+      "status": "Active",
+      "end_mode": "date",
+      "end_date": "2026-10-12"
+    },
+    {
+      "name": "Netflix",
+      "type": "Subscription",
+      "amount": 617,
+      "billing_day": 2,
+      "card": "UOB",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "Savings",
+      "type": "Savings",
+      "amount": 5000,
+      "billing_day": 25,
+      "card": "Cash/Direct",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    },
+    {
+      "name": "Water",
+      "type": "Utilities",
+      "amount": 500,
+      "billing_day": 20,
+      "card": "Cash/Direct",
+      "direction": "expense",
+      "status": "Active",
+      "end_mode": "forever",
+      "end_date": ""
+    }
+  ],
+  "yearly": [
+    {
+      "name": "Cluster Haus Common Fee",
+      "type": "Home",
+      "amount": 3000,
+      "billing_day": 1,
+      "month": 1,
+      "card": "Cash/Direct",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "Google One",
+      "type": "Subscription",
+      "amount": 990,
+      "billing_day": 6,
+      "month": 1,
+      "card": "UOB",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "Hornet Premium",
+      "type": "Subscription",
+      "amount": 1100,
+      "billing_day": 6,
+      "month": 1,
+      "card": "UOB",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "AIA Insurance - Mum",
+      "type": "Insurance",
+      "amount": 20990,
+      "billing_day": 26,
+      "month": 1,
+      "card": "BAY AIA",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "AIA Accident Insurance - Mum",
+      "type": "Insurance",
+      "amount": 4500,
+      "billing_day": 23,
+      "month": 2,
+      "card": "ttb",
+      "pay_mode": "installment",
+      "inst_periods": 3,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "Car Tax - Weerat",
+      "type": "Auto",
+      "amount": 1920.65,
+      "billing_day": 1,
+      "month": 3,
+      "card": "Cash/Direct",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "X Premium",
+      "type": "Subscription",
+      "amount": 1920,
+      "billing_day": 5,
+      "month": 5,
+      "card": "UOB",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "Car Insurance - Mum",
+      "type": "Family",
+      "amount": 11180.43,
+      "billing_day": 6,
+      "month": 7,
+      "card": "KBank",
+      "pay_mode": "installment",
+      "inst_periods": 6,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "Water Filter",
+      "type": "Home",
+      "amount": 4000,
+      "billing_day": 23,
+      "month": 8,
+      "card": "ttb",
+      "pay_mode": "installment",
+      "inst_periods": 3,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027,
+      "status": "Active"
+    },
+    {
+      "name": "Allianz Ayudhya Insurance - Weerat",
+      "type": "Insurance",
+      "amount": 20652,
+      "billing_day": 10,
+      "month": 11,
+      "card": "BAY",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2026,
+      "status": "Active"
+    },
+    {
+      "name": "Car Insurance - Weerat",
+      "type": "Auto",
+      "amount": 22700,
+      "billing_day": 23,
+      "month": 11,
+      "card": "ttb",
+      "pay_mode": "installment",
+      "inst_periods": 3,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2026,
+      "status": "Active"
+    },
+    {
+      "name": "AIA Insurance - Toey",
+      "type": "Insurance",
+      "amount": 5816.52,
+      "billing_day": 23,
+      "month": 12,
+      "card": "ttb",
+      "pay_mode": "installment",
+      "inst_periods": 3,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2026,
+      "status": "Active"
+    },
+    {
+      "name": "AIA Insurance - Weerat",
+      "type": "Insurance",
+      "amount": 28068.65,
+      "billing_day": 26,
+      "month": 12,
+      "card": "BAY AIA",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2026,
+      "status": "Active"
+    }
+  ],
+  "installments": [
+    {
+      "name": "Sony Bravia 5 55\"",
+      "type": "Entertainment",
+      "card": "BAY",
+      "own_by": "Me",
+      "total": 31615,
+      "per_period": 3161.5,
+      "periods": 10,
+      "start_start_month": 9,
+      "start_day": 28,
+      "status": "Active",
+      "start_year": 2026,
+      "start_month": 7,
+      "billing_day": 28
+    },
+    {
+      "name": "Car Insurance - Mum",
+      "type": "Insurance",
+      "card": "KBank",
+      "own_by": "Mum",
+      "total": 11180.43,
+      "per_period": 1863.41,
+      "periods": 6,
+      "start_start_month": 9,
+      "start_day": 31,
+      "status": "Active",
+      "start_year": 2026,
+      "start_month": 7,
+      "billing_day": 31
+    },
+    {
+      "name": "FGONA 9th Anniversary",
+      "type": "Entertainment",
+      "card": "ttb",
+      "own_by": "Me",
+      "total": 2900,
+      "per_period": 966.67,
+      "periods": 3,
+      "start_start_month": 9,
+      "start_day": 5,
+      "status": "Active",
+      "start_year": 2026,
+      "start_month": 7,
+      "billing_day": 5
+    },
+    {
+      "name": "Water Filter",
+      "type": "Home",
+      "card": "ttb",
+      "own_by": "Me",
+      "total": 2480,
+      "per_period": 826.67,
+      "periods": 3,
+      "start_start_month": 9,
+      "start_day": 11,
+      "status": "Active",
+      "start_year": 2026,
+      "start_month": 8,
+      "billing_day": 11
+    },
+    {
+      "name": "Silfah - New Retainer",
+      "type": "Health",
+      "card": "ttb",
+      "own_by": "Me",
+      "total": 6699,
+      "per_period": 2233,
+      "periods": 3,
+      "start_start_month": 9,
+      "start_day": 15,
+      "status": "Active",
+      "start_year": 2026,
+      "start_month": 8,
+      "billing_day": 15
+    },
+    {
+      "name": "Hana's Sterilization",
+      "type": "Family",
+      "card": "ttb",
+      "own_by": "Me",
+      "total": 7034,
+      "per_period": 2344.67,
+      "periods": 3,
+      "start_start_month": 9,
+      "start_day": 31,
+      "status": "Active",
+      "start_year": 2026,
+      "start_month": 8,
+      "billing_day": 31
+    },
+    {
+      "name": "FFVII Revelation Deluxe Edition",
+      "type": "Entertainment",
+      "card": "ttb",
+      "own_by": "Me",
+      "total": 3726.83,
+      "per_period": 1242.28,
+      "periods": 3,
+      "start_start_month": 9,
+      "start_day": 5,
+      "status": "Active",
+      "start_year": 2026,
+      "start_month": 9,
+      "billing_day": 5
+    }
+  ],
+  "payroll_overrides": {},
+  "tax_exemptions": [
+    {
+      "name": "Personal Allowance",
+      "amount": 60000,
+      "max": 60000,
+      "notes": "Every taxpayer",
+      "source": "fixed",
+      "editable": false,
+      "_autoVal": 60000,
+      "_autoNote": "Every taxpayer",
+      "id": "personal"
+    },
+    {
+      "name": "Expense Deduction (50%)",
+      "amount": 100000,
+      "max": 100000,
+      "notes": "50% of ฿923,600.73, max ฿100K",
+      "source": "auto_expense",
+      "editable": false,
+      "_autoVal": 100000,
+      "_autoNote": "50% of ฿923,600.73, max ฿100K",
+      "id": "auto_expense"
+    },
+    {
+      "name": "Social Security (SSO)",
+      "amount": 10500,
+      "max": 10500,
+      "notes": "SSO ฿875.00/mo × 12 = ฿10,500.00",
+      "source": "auto_sso",
+      "editable": false,
+      "_autoVal": 10500,
+      "_autoNote": "SSO ฿875.00/mo × 12 = ฿10,500.00",
+      "id": "auto_sso"
+    },
+    {
+      "name": "Provident Fund (PVD)",
+      "amount": 42627.72,
+      "max": 500000,
+      "notes": "EPF ฿3,552.31/mo × 12",
+      "source": "auto_epf",
+      "editable": false,
+      "_autoVal": 42627.72,
+      "_autoNote": "EPF ฿3,552.31/mo × 12",
+      "id": "auto_epf",
+      "override": null
+    },
+    {
+      "id": "home_loan",
+      "amount": 50000,
+      "source": "manual",
+      "max": 100000,
+      "name": "Home Loan Interest",
+      "editable": true
+    },
+    {
+      "id": "donation",
+      "amount": 18,
+      "source": "manual",
+      "max": 0,
+      "name": "Donation",
+      "editable": true
+    }
+  ],
+  "tax_ins_selections": {
+    "life_ins::Allianz Ayudhya Insurance - Weerat": true,
+    "life_ins::AIA Insurance - Weerat": true
+  },
+  "tax_refund_month": 3,
+  "tax_year": 2026,
+  "tax_actual_override": null,
+  "planned": [
+    {
+      "name": "Credit Card Debt - BAY JCB",
+      "type": "Credit Card Debt",
+      "amount": 8858.14,
+      "date": "2026-10-10",
+      "card": "BAY JCB",
+      "direction": "expense",
+      "own_by": "Me",
+      "notes": ""
+    },
+    {
+      "name": "Credit Card Debt - KBank",
+      "type": "Credit Card Debt",
+      "amount": 169,
+      "date": "2026-10-06",
+      "card": "KBank",
+      "direction": "expense",
+      "own_by": "Me",
+      "notes": ""
+    },
+    {
+      "name": "Credit Card Debt - UOB",
+      "type": "Credit Card Debt",
+      "amount": 8328.05,
+      "date": "2026-10-03",
+      "card": "UOB",
+      "direction": "expense",
+      "own_by": "Me",
+      "notes": ""
+    },
+    {
+      "name": "Credit Card Debt - ttb",
+      "type": "Credit Card Debt",
+      "amount": 14000,
+      "date": "2026-09-23",
+      "card": "ttb",
+      "direction": "expense",
+      "own_by": "Me",
+      "notes": ""
+    },
+    {
+      "name": "Credit Card Debt - ttb",
+      "type": "Credit Card Debt",
+      "amount": 14000,
+      "date": "2026-10-23",
+      "card": "ttb",
+      "direction": "expense",
+      "own_by": "Me",
+      "notes": ""
+    }
+  ],
+  "last_modified": "2026-09-19T05:06:53.719Z",
+  "retirement": {
+    "enabled": true,
+    "scenario": "layoff",
+    "separation_date": "2026-10-31",
+    "hire_date": "2017-04-01",
+    "years_of_service": 9.582477754962355,
+    "last_salary": 71046.21,
+    "age_at_separation": 44,
+    "dob": "1981-11-12",
+    "epf_balance": 894072.07,
+    "epf_action": "move_rmf",
+    "epf_cashout_date": "2036-11-12",
+    "epf_vesting_pct": 100,
+    "sso_accumulated": 199991.12,
+    "assets": [
+      {
+        "name": "test asset",
+        "type": "Insurance Surrender",
+        "value": 99999,
+        "cashout_date": "2026-12-31",
+        "notes": ""
+      }
+    ],
+    "leave_cash_enabled": true,
+    "leave_balance_days": 30,
+    "notice_already_given": false,
+    "company_special_pay": [],
+    "include_severance": true,
+    "include_special": true,
+    "include_notice": true,
+    "include_sso": true,
+    "include_epf": true,
+    "include_company_special": true,
+    "epf_vesting_schedule": [
+      {
+        "min_years": 0,
+        "max_years": 3,
+        "pct": 0
+      },
+      {
+        "min_years": 3,
+        "max_years": 4,
+        "pct": 20
+      },
+      {
+        "min_years": 4,
+        "max_years": 5,
+        "pct": 40
+      },
+      {
+        "min_years": 5,
+        "max_years": 6,
+        "pct": 60
+      },
+      {
+        "min_years": 6,
+        "max_years": 7,
+        "pct": 80
+      },
+      {
+        "min_years": 7,
+        "max_years": 99,
+        "pct": 100
+      }
+    ],
+    "sso_contribution_months": 234,
+    "sso_avg_salary": 0,
+    "sso_start_date": "",
+    "include_sso_pension": true
+  },
+  "asset_types": [
+    "Savings",
+    "Investment",
+    "Property",
+    "Vehicle",
+    "Insurance Surrender",
+    "Gold",
+    "Crypto",
+    "Other"
+  ]
+}

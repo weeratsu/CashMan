@@ -1,0 +1,113 @@
+{
+  "termType": "layoff",
+  "name": "Weerat Sukhaviriya",
+  "empNo": "70001365",
+  "company": "DXC Technology Thailand",
+  "dob": "1981-11-12",
+  "startDate": "2017-04-01",
+  "sepDate": "2026-09-11",
+  "salary": 71046.21,
+  "leaveDays": 10,
+  "expense": 10000,
+  "ssBalance": 199991.12,
+  "ssMonths": 234,
+  "epfTotal": 916341,
+  "epfChoice": "rmf",
+  "epfGrowth": 0,
+  "epfAge": 55,
+  "noticePay": true,
+  "specialSev": false,
+  "assets": [
+    {
+      "type": "Savings",
+      "name": "",
+      "amount": 89126.76,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Bonds",
+      "name": "",
+      "amount": 8000,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Receivable",
+      "name": "KHT's Debt",
+      "amount": 64914.05,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Stocks",
+      "name": "Thai Stocks",
+      "amount": 30099.72,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Stocks",
+      "name": "US Stocks",
+      "amount": 69740.98,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Crypto",
+      "name": "",
+      "amount": 20244.02,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Gold",
+      "name": "",
+      "amount": 9048.82,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Funds",
+      "name": "Funds",
+      "amount": 153158.57,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "RMF",
+      "name": "",
+      "amount": 103096.63,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "SSF",
+      "name": "",
+      "amount": 1053.11,
+      "growth": 0,
+      "liquidateAge": 55
+    },
+    {
+      "type": "Thai ESG",
+      "name": "",
+      "amount": 5657.68,
+      "growth": 0,
+      "liquidateAge": 55
+    }
+  ],
+  "insurances": [
+    {
+      "company": "AIA Thailand",
+      "name": "20 Pay Life",
+      "amount": 600000,
+      "payoutAge": 98
+    },
+    {
+      "company": "Allianz Ayudhya",
+      "name": "มาย ดับเบิล พลัส 25/20 (มีเงินปันผล)",
+      "amount": 578256,
+      "payoutAge": 63
+    }
+  ]
+}

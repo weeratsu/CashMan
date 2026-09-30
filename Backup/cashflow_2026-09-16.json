@@ -1,0 +1,461 @@
+{
+  "profile": {
+    "starting_cash": 24111.91,
+    "payout_day": 25,
+    "weekend_rule": "before",
+    "daily_living": 500,
+    "cat_expense": 3367.36,
+    "cat_names": "Hana & Hachi",
+    "start_date": "2027-01-15",
+    "end_date": "2027-05-31"
+  },
+  "payroll": [
+    {
+      "name": "Base Salary",
+      "type": "income",
+      "amount": 62565.65,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": true,
+      "affects_sso": true,
+      "affects_tax": true,
+      "calc_mode": "fixed",
+      "_gi": 0
+    },
+    {
+      "name": "Annual Bonus",
+      "type": "income",
+      "amount": 60389.28,
+      "freq": "specific_month",
+      "month": 12,
+      "notes": "December",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": true,
+      "calc_mode": "fixed",
+      "_gi": 1
+    },
+    {
+      "name": "Income Tax",
+      "type": "deduction",
+      "amount": 0,
+      "freq": "every_month",
+      "month": null,
+      "notes": "Withholding",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "fixed",
+      "_gi": 2
+    },
+    {
+      "name": "Social Security (SSO)",
+      "type": "deduction",
+      "amount": 875,
+      "freq": "every_month",
+      "month": null,
+      "notes": "Sec.33 5% cap 875",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "percent_sso",
+      "sso_pct": 5,
+      "sso_cap": 875,
+      "_gi": 3
+    },
+    {
+      "name": "Provident Fund",
+      "type": "deduction",
+      "amount": 0,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "fixed",
+      "epf_pct": 0,
+      "_gi": 4
+    }
+  ],
+  "types": [
+    "Entertainment",
+    "Home",
+    "Insurance",
+    "Investment",
+    "Other",
+    "Savings",
+    "Subscription",
+    "Utilities"
+  ],
+  "cards": [
+    {
+      "name": "BAY",
+      "statement_day": 10,
+      "payment_day": 11,
+      "deadline": 29
+    },
+    {
+      "name": "BAY AIA",
+      "statement_day": 26,
+      "payment_day": 27,
+      "deadline": 9
+    },
+    {
+      "name": "BAY JCB",
+      "statement_day": 10,
+      "payment_day": 11,
+      "deadline": 29
+    },
+    {
+      "name": "BBL Platinum",
+      "statement_day": 8,
+      "payment_day": 9,
+      "deadline": 22
+    },
+    {
+      "name": "Kbank",
+      "statement_day": 6,
+      "payment_day": 7,
+      "deadline": 20
+    },
+    {
+      "name": "TTB So Smart",
+      "statement_day": 23,
+      "payment_day": 24,
+      "deadline": 11
+    },
+    {
+      "name": "UOB",
+      "statement_day": 13,
+      "payment_day": 14,
+      "deadline": 3
+    }
+  ],
+  "monthly": [
+    {
+      "name": "AIS Fiber",
+      "type": "Utilities",
+      "amount": 854.93,
+      "billing_day": 28,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "AIS Mobile",
+      "type": "Utilities",
+      "amount": 588.5,
+      "billing_day": 28,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "Electricity",
+      "type": "Utilities",
+      "amount": 3000,
+      "billing_day": 4,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "Google One",
+      "type": "Subscription",
+      "amount": 990,
+      "billing_day": 2,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "iCloud",
+      "type": "Subscription",
+      "amount": 399,
+      "billing_day": 8,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "Netflix",
+      "type": "Entertainment",
+      "amount": 617,
+      "billing_day": 2,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "Water",
+      "type": "Utilities",
+      "amount": 500,
+      "billing_day": 20,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    }
+  ],
+  "yearly": [
+    {
+      "name": "Car Tax",
+      "type": "Insurance",
+      "amount": 1920.65,
+      "billing_day": 25,
+      "month": 3,
+      "card": "Cash/Direct",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "Cluster Haus Common Fee",
+      "type": "Home",
+      "amount": 3000,
+      "billing_day": 25,
+      "month": 1,
+      "card": "Cash/Direct",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "Hornet Premium",
+      "type": "Subscription",
+      "amount": 1100,
+      "billing_day": 6,
+      "month": 1,
+      "card": "Cash/Direct",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "X Premium",
+      "type": "Subscription",
+      "amount": 1920,
+      "billing_day": 5,
+      "month": 5,
+      "card": "Cash/Direct",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "YouTube Premium",
+      "type": "Subscription",
+      "amount": 2154,
+      "billing_day": 20,
+      "month": 2,
+      "card": "Cash/Direct",
+      "pay_mode": "full",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "Mum's AIA Life Insurance",
+      "type": "Insurance",
+      "amount": 20990,
+      "billing_day": 25,
+      "month": 2,
+      "card": "BAY AIA",
+      "pay_mode": "installment",
+      "inst_periods": 1,
+      "own_by": "Mum",
+      "cashback_rate": 50,
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "Mum's AIA Accident Insurance",
+      "type": "Insurance",
+      "amount": 4500,
+      "billing_day": 25,
+      "month": 1,
+      "card": "TTB So Smart",
+      "pay_mode": "installment",
+      "inst_periods": 3,
+      "own_by": "Mum",
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "Mum's Car Insurance",
+      "type": "Insurance",
+      "amount": 11180.43,
+      "billing_day": 25,
+      "month": 7,
+      "card": "Kbank",
+      "pay_mode": "installment",
+      "inst_periods": 6,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "My AIA Life Insurance",
+      "type": "Insurance",
+      "amount": 28068.65,
+      "billing_day": 25,
+      "month": 1,
+      "card": "BAY AIA",
+      "pay_mode": "installment",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "cashback_rate": 50,
+      "direction": "expense",
+      "year": 2027
+    },
+    {
+      "name": "My Allianz Life Insurance",
+      "type": "Insurance",
+      "amount": 20652,
+      "billing_day": 25,
+      "month": 12,
+      "card": "BAY",
+      "pay_mode": "installment",
+      "inst_periods": 1,
+      "own_by": "Me",
+      "cashback_rate": 70,
+      "direction": "expense",
+      "year": 2026
+    },
+    {
+      "name": "My Honda Civic Insurance",
+      "type": "Insurance",
+      "amount": 22700,
+      "billing_day": 25,
+      "month": 12,
+      "card": "TTB So Smart",
+      "pay_mode": "installment",
+      "inst_periods": 3,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2026
+    },
+    {
+      "name": "Toey's AIA Life Insurance",
+      "type": "Insurance",
+      "amount": 5816.52,
+      "billing_day": 25,
+      "month": 1,
+      "card": "TTB So Smart",
+      "pay_mode": "installment",
+      "inst_periods": 3,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2027
+    }
+  ],
+  "payroll_overrides": {},
+  "tax_exemptions": [
+    {
+      "name": "Personal Allowance",
+      "amount": 60000,
+      "max": 60000,
+      "notes": "Taxpayer",
+      "source": "fixed",
+      "editable": false,
+      "_autoVal": 60000,
+      "_autoNote": "Taxpayer"
+    },
+    {
+      "name": "Expense Deduction (50%)",
+      "amount": 100000,
+      "max": 100000,
+      "notes": "50% of ฿811,177.08, max ฿100K",
+      "source": "auto_expense",
+      "editable": false,
+      "_autoVal": 100000,
+      "_autoNote": "50% of ฿811,177.08, max ฿100K"
+    },
+    {
+      "name": "Social Security (SSO)",
+      "amount": 10500,
+      "max": 10500,
+      "notes": "SSO ฿875.00/mo × 12 = ฿10,500.00",
+      "source": "auto_sso",
+      "editable": false,
+      "_autoVal": 10500,
+      "_autoNote": "SSO ฿875.00/mo × 12 = ฿10,500.00"
+    },
+    {
+      "name": "Provident Fund (PVD)",
+      "amount": 0,
+      "max": 500000,
+      "notes": "No EPF in Payroll",
+      "source": "auto_epf",
+      "editable": false,
+      "_autoVal": 0,
+      "_autoNote": "No EPF in Payroll"
+    },
+    {
+      "name": "Life Insurance",
+      "amount": 75527.17,
+      "max": 100000,
+      "notes": "Selected life policies below",
+      "source": "auto_life_ins",
+      "editable": false,
+      "_autoVal": 75527.17,
+      "_autoNote": "Selected life policies below"
+    },
+    {
+      "name": "Health Insurance",
+      "amount": 0,
+      "max": 25000,
+      "notes": "Manual entry",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "RMF",
+      "amount": 0,
+      "max": 500000,
+      "notes": "30% of income, max ฿500K",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "SSF",
+      "amount": 0,
+      "max": 200000,
+      "notes": "30% of income, max ฿200K",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "Thai ESG",
+      "amount": 0,
+      "max": 300000,
+      "notes": "30% of income, max ฿300K",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "Home Loan Interest",
+      "amount": 0,
+      "max": 100000,
+      "notes": "",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "Donation",
+      "amount": 0,
+      "max": 0,
+      "notes": "Up to 10% of net income",
+      "source": "manual",
+      "editable": true
+    }
+  ],
+  "tax_ins_selections": {},
+  "tax_refund_month": 3,
+  "planned": [],
+  "installments": [],
+  "tax_actual_override": null
+}

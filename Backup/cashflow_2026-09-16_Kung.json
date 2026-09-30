@@ -1,0 +1,273 @@
+{
+  "profile": {
+    "starting_cash": 24111.91,
+    "payout_day": 30,
+    "weekend_rule": "before",
+    "daily_living": 400,
+    "cat_expense": 0,
+    "cat_names": "",
+    "start_date": "2026-09-16",
+    "end_date": "2029-12-31"
+  },
+  "payroll": [
+    {
+      "name": "Base Salary",
+      "type": "income",
+      "amount": 24385,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": true,
+      "affects_sso": true,
+      "affects_tax": true,
+      "calc_mode": "fixed",
+      "_gi": 0
+    },
+    {
+      "name": "Annual Bonus",
+      "type": "income",
+      "amount": 24385,
+      "freq": "specific_month",
+      "month": 2,
+      "notes": "December",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": true,
+      "calc_mode": "fixed",
+      "_gi": 1
+    },
+    {
+      "name": "SOCSO",
+      "type": "deduction",
+      "amount": 0,
+      "freq": "every_month",
+      "month": null,
+      "notes": "",
+      "affects_epf": false,
+      "affects_sso": false,
+      "affects_tax": false,
+      "calc_mode": "percent_sso",
+      "_gi": 2,
+      "sso_pct": 5,
+      "sso_cap": 875
+    }
+  ],
+  "types": [
+    "Entertainment",
+    "Home",
+    "Insurance",
+    "Investment",
+    "Other",
+    "Savings",
+    "Subscription",
+    "Utilities"
+  ],
+  "cards": [
+    {
+      "name": "BAY",
+      "statement_day": 10,
+      "payment_day": 11,
+      "deadline": 29
+    },
+    {
+      "name": "BAY AIA",
+      "statement_day": 26,
+      "payment_day": 27,
+      "deadline": 9
+    },
+    {
+      "name": "BAY JCB",
+      "statement_day": 10,
+      "payment_day": 11,
+      "deadline": 29
+    },
+    {
+      "name": "BBL Platinum",
+      "statement_day": 8,
+      "payment_day": 9,
+      "deadline": 22
+    },
+    {
+      "name": "Kbank",
+      "statement_day": 6,
+      "payment_day": 7,
+      "deadline": 20
+    },
+    {
+      "name": "The One",
+      "statement_day": 10,
+      "payment_day": 11,
+      "deadline": 29
+    },
+    {
+      "name": "TTB So Smart",
+      "statement_day": 23,
+      "payment_day": 24,
+      "deadline": 11
+    },
+    {
+      "name": "UOB",
+      "statement_day": 13,
+      "payment_day": 14,
+      "deadline": 3
+    }
+  ],
+  "monthly": [
+    {
+      "name": "น้ำมัน",
+      "type": "Other",
+      "amount": 3000,
+      "billing_day": 30,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "ของใช้จำเป็น",
+      "type": "Other",
+      "amount": 1500,
+      "billing_day": 30,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    },
+    {
+      "name": "ฝากเงิน",
+      "type": "Savings",
+      "amount": 500,
+      "billing_day": 30,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    }
+  ],
+  "yearly": [
+    {
+      "name": "ประกันรถ",
+      "type": "Insurance",
+      "amount": 13000,
+      "billing_day": 11,
+      "month": 12,
+      "card": "The One",
+      "pay_mode": "installment",
+      "inst_periods": 10,
+      "own_by": "Me",
+      "direction": "expense",
+      "year": 2026
+    }
+  ],
+  "payroll_overrides": {},
+  "tax_exemptions": [
+    {
+      "name": "Personal Allowance",
+      "amount": 60000,
+      "max": 60000,
+      "notes": "Taxpayer",
+      "source": "fixed",
+      "editable": false,
+      "_autoVal": 60000,
+      "_autoNote": "Taxpayer"
+    },
+    {
+      "name": "Expense Deduction (50%)",
+      "amount": 100000,
+      "max": 100000,
+      "notes": "50% of ฿317,005.00, max ฿100K",
+      "source": "auto_expense",
+      "editable": false,
+      "_autoVal": 100000,
+      "_autoNote": "50% of ฿317,005.00, max ฿100K"
+    },
+    {
+      "name": "Social Security (SSO)",
+      "amount": 10500,
+      "max": 10500,
+      "notes": "SSO ฿875.00/mo × 12 = ฿10,500.00",
+      "source": "auto_sso",
+      "editable": false,
+      "_autoVal": 10500,
+      "_autoNote": "SSO ฿875.00/mo × 12 = ฿10,500.00"
+    },
+    {
+      "name": "Provident Fund (PVD)",
+      "amount": 0,
+      "max": 500000,
+      "notes": "No EPF in Payroll",
+      "source": "auto_epf",
+      "editable": false,
+      "_autoVal": 0,
+      "_autoNote": "No EPF in Payroll"
+    },
+    {
+      "name": "Life Insurance",
+      "amount": 0,
+      "max": 100000,
+      "notes": "Select policies below",
+      "source": "auto_life_ins",
+      "editable": false,
+      "_autoVal": 0,
+      "_autoNote": "Select policies below"
+    },
+    {
+      "name": "Health Insurance",
+      "amount": 0,
+      "max": 25000,
+      "notes": "Manual entry",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "RMF",
+      "amount": 0,
+      "max": 500000,
+      "notes": "30% of income, max ฿500K",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "SSF",
+      "amount": 0,
+      "max": 200000,
+      "notes": "30% of income, max ฿200K",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "Thai ESG",
+      "amount": 0,
+      "max": 300000,
+      "notes": "30% of income, max ฿300K",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "Home Loan Interest",
+      "amount": 50000,
+      "max": 100000,
+      "notes": "",
+      "source": "manual",
+      "editable": true
+    },
+    {
+      "name": "Donation",
+      "amount": 0,
+      "max": 0,
+      "notes": "Up to 10% of net income",
+      "source": "manual",
+      "editable": true
+    }
+  ],
+  "tax_ins_selections": {},
+  "tax_refund_month": 3,
+  "planned": [
+    {
+      "name": "งานพิเศษ",
+      "type": "Other",
+      "amount": 5000,
+      "date": "",
+      "card": "Cash/Direct",
+      "direction": "income",
+      "own_by": "Me",
+      "notes": ""
+    }
+  ],
+  "installments": [],
+  "tax_actual_override": null
+}

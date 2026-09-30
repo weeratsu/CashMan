@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Financial Separation Plan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root,body.dark{--bg:#0f1117;--bg2:#1a1d27;--bg3:#242734;--bg4:#2e3245;--text:#e4e6f0;--text2:#9ca0b4;--text3:#6b6f85;--primary:#4f8cff;--primary2:#3a6fd8;--green:#22c55e;--green2:#16a34a;--red:#ef4444;--red2:#dc2626;--amber:#f59e0b;--purple:#a855f7;--cyan:#06b6d4;--border:#2e3245;--shadow:0 2px 8px rgba(0,0,0,.3);font-family:'Inter','Segoe UI',system-ui,sans-serif}
+body.light{--bg:#f8f9fb;--bg2:#ffffff;--bg3:#f0f1f4;--bg4:#e4e6eb;--text:#172b4d;--text2:#44546f;--text3:#8993a4;--primary:#0065ff;--primary2:#0052cc;--green:#16a34a;--green2:#15803d;--red:#dc2626;--red2:#b91c1c;--amber:#d97706;--purple:#7c3aed;--cyan:#0891b2;--border:#dfe1e6;--shadow:0 2px 8px rgba(0,0,0,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-size:11px;line-height:1.4;min-height:100vh}
+.wrap{max-width:1400px;margin:0 auto;padding:8px}
+.tabs{display:flex;gap:2px;background:var(--bg2);border-radius:8px;padding:3px;margin-bottom:10px;position:sticky;top:0;z-index:100}
+.tab-btn{flex:1;padding:8px 16px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;border-radius:6px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab-btn.active{background:var(--primary);color:#fff}
+.tab-btn:hover:not(.active){background:var(--bg3)}
+.tab-btn:active{transform:scale(.96);transition:.05s}
+.tab-content{display:none}.tab-content.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.card-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:2px}
+.field label{font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:4px;font-size:11px;font-family:inherit;outline:none;transition:.2s}
+.field input:focus,.field select:focus{border-color:var(--primary)}
+.field input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary)}
+.toggle-group{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px;margin-bottom:8px}
+.toggle-btn{flex:1;padding:10px;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;transition:.2s;text-align:center}
+.toggle-btn.layoff{background:transparent;color:var(--text3)}
+.toggle-btn.layoff.active{background:var(--red);color:#fff}
+.toggle-btn.resign{background:transparent;color:var(--text3)}
+.toggle-btn.resign.active{background:var(--amber);color:#000}
+.toggle-btn.retire{background:transparent;color:var(--text3)}
+.toggle-btn.retire.active{background:var(--green);color:#fff}
+.toggle-btn:active{transform:scale(.95);transition:.05s}
+.btn{padding:6px 14px;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:4px;user-select:none}
+.btn:active{transform:scale(.94);opacity:.8;transition:.05s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary2)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green2)}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:var(--red2)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:4px 8px;font-size:9px}
+.btn-sm:active{transform:scale(.9);opacity:.7;transition:.05s}
+.dyn-row{display:flex;gap:6px;align-items:end;padding:6px;background:var(--bg);border-radius:4px;margin-bottom:4px}
+.dyn-row .field{flex:1;min-width:0}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:10px}
+.summary-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.summary-card .label{font-size:9px;color:var(--text3);text-transform:uppercase;font-weight:600;letter-spacing:.3px}
+.summary-card .value{font-size:20px;font-weight:800;margin:4px 0}
+.summary-card .sub{font-size:9px;color:var(--text2)}
+.summary-card.green .value{color:var(--green)}
+.summary-card.blue .value{color:var(--primary)}
+.summary-card.purple .value{color:var(--purple)}
+.summary-card.red .value{color:var(--red)}
+.summary-card.amber .value{color:var(--amber)}
+table.cf{width:100%;border-collapse:collapse;font-size:10px}
+table.cf th{background:var(--bg3);color:var(--text2);padding:6px 8px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.3px;position:sticky;top:0;z-index:10;box-shadow:0 1px 0 var(--border)}
+table.cf td{padding:4px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.cf tr:hover{background:var(--bg3)}
+table.cf tr.sep-row{background:rgba(79,140,255,.08)}
+table.cf tr.pension-row{background:rgba(34,197,94,.06)}
+table.cf tr.insurance-row{background:rgba(168,85,247,.06)}
+table.cf tr.asset-row{background:rgba(6,182,212,.06)}
+table.cf tr.expense-row td{color:var(--text3)}
+table.cf tr.year-header td{background:var(--bg);font-weight:700;color:var(--text2);border-top:2px solid var(--border)}
+.pos{color:var(--green)}.neg{color:var(--red)}.info{color:var(--primary)}.warn{color:var(--amber)}
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+.tag-green{background:rgba(34,197,94,.15);color:var(--green)}
+.tag-red{background:rgba(239,68,68,.15);color:var(--red)}
+.tag-blue{background:rgba(79,140,255,.15);color:var(--primary)}
+.tag-purple{background:rgba(168,85,247,.15);color:var(--purple)}
+.tag-amber{background:rgba(245,158,11,.15);color:var(--amber)}
+.tag-cyan{background:rgba(6,182,212,.15);color:var(--cyan)}
+.ref-table{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0}
+.ref-table th{background:var(--bg3);padding:5px 8px;text-align:left;font-size:9px;color:var(--text2)}
+.ref-table td{padding:4px 8px;border-bottom:1px solid var(--border)}
+.ref-table tr.active-tier{background:rgba(79,140,255,.12);font-weight:700}
+.checklist{list-style:none;padding:0}
+.checklist li{padding:4px 0;display:flex;align-items:start;gap:6px;font-size:10px}
+.checklist li i{color:var(--primary);margin-top:2px;min-width:14px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;width:90%;max-width:500px;max-height:80vh;overflow:auto}
+.modal h3{font-size:13px;margin-bottom:10px}
+.modal textarea{width:100%;height:200px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:4px;font-family:'Courier New',monospace;font-size:9px;resize:vertical}
+.conditional{display:none}.conditional.show{display:block}
+.profile-bar{display:flex;gap:12px;align-items:center;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:10px;flex-wrap:wrap}
+.profile-bar .item{font-size:10px;color:var(--text2)}.profile-bar .item b{color:var(--text)}
+.section-divider{border:none;border-top:1px solid var(--border);margin:10px 0}
+.scroll-table{max-height:70vh;overflow:auto;border-radius:8px;border:1px solid var(--border);position:relative}
+.quota-danger{color:var(--red);font-weight:700}
+.quota-warning{color:var(--amber);font-weight:600}
+.quota-ok{color:var(--green)}
+@media(max-width:768px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.dyn-row{flex-wrap:wrap}}
+
+.theme-toggle{position:fixed;top:8px;right:12px;z-index:200;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:10px;color:var(--text2);display:flex;align-items:center;gap:4px;transition:.15s}
+.theme-toggle:hover{border-color:var(--primary);color:var(--primary)}
+.theme-toggle:active{transform:scale(.93);transition:.05s}
+
+.dyn-row{position:relative;transition:background .15s}
+.dyn-row:hover{background:var(--bg3)}
+.move-btns{display:flex;flex-direction:column;gap:1px;margin-bottom:2px}
+.move-btn{background:var(--bg3);border:1px solid var(--border);border-radius:3px;width:20px;height:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:8px;padding:0;transition:.15s}
+.move-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.move-btn:active{transform:scale(.9);transition:.05s}
+
+.dyn-row[draggable=true]{cursor:grab}
+.dyn-row[draggable=true]:active{cursor:grabbing}
+.dyn-row.dragging{opacity:0.4;border:1px dashed var(--primary)}
+.dyn-row.drag-over{border-top:2px solid var(--primary);margin-top:-1px}
+.drag-handle{cursor:grab;color:var(--text3);font-size:11px;padding:0 4px;user-select:none;display:flex;align-items:center}
+.drag-handle:active{cursor:grabbing}
+
+.reg-badge{display:inline-block;font-size:9px;padding:2px 8px;border-radius:12px;font-weight:600;margin-left:8px;vertical-align:middle}
+
+.lang-toggle{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px;margin-bottom:10px;width:fit-content}
+.lang-btn{padding:6px 14px;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;transition:.15s;background:transparent;color:var(--text3)}
+.lang-btn.active{background:var(--primary);color:#fff}
+.lang-btn:active{transform:scale(.95)}
+.help-en .lang-th,.help-en .lang-ja,.help-en .lang-fr,.help-en .lang-es,.help-en .lang-it{display:none}
+.help-th .lang-en,.help-th .lang-ja,.help-th .lang-fr,.help-th .lang-es,.help-th .lang-it{display:none}
+.help-ja .lang-en,.help-ja .lang-th,.help-ja .lang-fr,.help-ja .lang-es,.help-ja .lang-it{display:none}
+.help-fr .lang-en,.help-fr .lang-th,.help-fr .lang-ja,.help-fr .lang-es,.help-fr .lang-it{display:none}
+.help-es .lang-en,.help-es .lang-th,.help-es .lang-ja,.help-es .lang-fr,.help-es .lang-it{display:none}
+.help-it .lang-en,.help-it .lang-th,.help-it .lang-ja,.help-it .lang-fr,.help-it .lang-es{display:none}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"><i class="fa-solid fa-circle-half-stroke"></i> <span id="themeLabel">Light</span></button>
+<div class="wrap">
+<div class="tabs">
+<button class="tab-btn active" onclick="switchTab('settings')"><i class="fas fa-cog"></i> Settings</button>
+<button class="tab-btn" onclick="switchTab('cashflow')"><i class="fas fa-chart-line"></i> Cash Flow</button>
+<button class="tab-btn" onclick="switchTab('help')"><i class="fas fa-book"></i> Help / Appendix</button>
+</div>
+
+<!-- SETTINGS TAB -->
+<div id="tab-settings" class="tab-content active">
+
+<div class="card">
+<div class="card-title"><i class="fas fa-exchange-alt"></i> Termination Type</div>
+<div class="toggle-group">
+<button class="toggle-btn layoff active" onclick="setTermType('layoff')"><i class="fas fa-user-slash"></i> Laid Off (เลิกจ้าง)</button>
+<button class="toggle-btn resign" onclick="setTermType('resign')"><i class="fas fa-door-open"></i> Self-Resign (ลาออก)</button>
+<button class="toggle-btn retire" onclick="setTermType('retire')"><i class="fas fa-umbrella-beach"></i> Retire (เกษียณ)</button>
+</div>
+<div id="term-desc" style="font-size:10px;color:var(--text2);padding:4px 8px;background:var(--bg);border-radius:4px">
+<i class="fas fa-info-circle info"></i> <span id="term-desc-text">Laid off: Full severance + notice pay + 6mo unemployment benefits</span>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title"><i class="fas fa-user"></i> Employee Profile</div>
+<div class="grid3">
+<div class="field"><label>Full Name</label><input id="f-name" value=""></div>
+<div class="field"><label>Employee No.</label><input id="f-empno" value=""></div>
+<div class="field"><label>Company</label><input id="f-company" value=""></div>
+</div>
+<div class="grid3" style="margin-top:8px">
+<div class="field"><label>Date of Birth</label><input type="date" id="f-dob" value="1990-01-01"></div>
+<div class="field"><label>Start Date</label><input type="date" id="f-start" value="2020-01-01"></div>
+<div class="field"><label>Separation Date</label><input type="date" id="f-sep" value="2026-09-11"></div>
+</div>
+<div class="grid3" style="margin-top:8px">
+<div class="field"><label>Base Salary (฿/mo)</label><input type="number" id="f-salary" value="15000" step="0.01"></div>
+<div class="field"><label>Annual Leave (unused days)</label><input type="number" id="f-leave" value="10" step="0.5"></div>
+<div class="field"><label>Monthly Expense (฿)</label><input type="number" id="f-expense" value="15000" step="100"></div>
+</div>
+</div>
+
+<div class="grid2">
+<div class="card">
+<div class="card-title"><i class="fas fa-shield-alt"></i> Social Security</div>
+<div class="grid2">
+<div class="field"><label>SS Balance (฿)</label><input type="number" id="f-ssbal" value="0" step="0.01"></div>
+<div class="field"><label>SS Contribution Months</label><input type="number" id="f-ssmo" value="0"></div>
+</div>
+</div>
+<div class="card">
+<div class="card-title"><i class="fas fa-piggy-bank"></i> EPF / Provident Fund</div>
+<div class="grid2">
+<div class="field"><label>EPF Total Balance (฿)</label><input type="number" id="f-epf" value="0" step="1"></div>
+<div class="field"><label>EPF Choice</label>
+<select id="f-epfchoice" onchange="validateEpfAge(document.getElementById('f-epfage'))">
+<option value="cashout">Cash Out at Separation</option>
+<option value="keep">Keep in Fund → Withdraw Later</option>
+<option value="rmf">Transfer to RMF</option>
+</select></div>
+</div>
+<div class="field" style="margin-top:6px"><label>EPF/RMF Growth Rate (%/yr, if kept)</label><input type="number" id="f-epfgrowth" value="0" step="0.1"></div>
+<div class="field" style="flex:0 0 90px"><label>Withdraw Age</label><input type="number" id="f-epfage" class="int-field" value="55" min="55" max="99" onblur="validateEpfAge(this)"></div>
+</div>
+</div>
+
+<div class="card conditional" id="box-special-sev">
+<div class="card-title"><i class="fas fa-gavel"></i> Optional Payments</div>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+<input type="checkbox" id="f-notice" checked>
+<label for="f-notice" style="font-size:10px;color:var(--text2)">Notice Pay — 1 month salary in lieu of advance notice (Section 17)</label>
+</div>
+<div style="display:flex;align-items:center;gap:8px">
+<input type="checkbox" id="f-specsev">
+<label for="f-specsev" style="font-size:10px;color:var(--text2)">Special Severance — restructuring/relocation only (Section 122): 15 days × years, max 360 days</label>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title"><i class="fas fa-coins"></i> Other Assets <button class="btn btn-sm btn-outline" onclick="addAsset()" style="margin-left:auto"><i class="fas fa-plus"></i> Add</button></div>
+<div id="asset-list"></div>
+<div id="asset-empty" style="font-size:10px;color:var(--text3);text-align:center;padding:8px">No assets added. Click + Add to include savings, investments, property, etc.</div>
+</div>
+
+<div class="card">
+<div class="card-title"><i class="fas fa-heartbeat"></i> Insurance Contracts <button class="btn btn-sm btn-outline" onclick="addInsurance()" style="margin-left:auto"><i class="fas fa-plus"></i> Add</button></div>
+<div id="ins-list"></div>
+<div id="ins-empty" style="font-size:10px;color:var(--text3);text-align:center;padding:8px">No insurance contracts. Click + Add to include life insurance, endowment, etc.</div>
+</div>
+
+<div class="card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<button class="btn btn-primary" onclick="const _b=this;_b.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Calculating...';_b.disabled=true;recalculate._userTriggered=true;requestAnimationFrame(()=>{recalculate();_b.innerHTML='<i class=\'fas fa-calculator\'></i> Recalculate';_b.disabled=false;})"><i class="fas fa-calculator"></i> Recalculate</button>
+<button class="btn btn-outline" onclick="showExport()"><i class="fas fa-download"></i> Export JSON</button>
+<button class="btn btn-outline" onclick="showImport()"><i class="fas fa-upload"></i> Import JSON</button>
+<span style="font-size:9px;color:var(--text3);margin-left:auto"><i class="fas fa-info-circle"></i> Data is NOT auto-saved. Use Export to backup your settings.</span>
+</div>
+</div>
+
+<!-- CASH FLOW TAB -->
+<div id="tab-cashflow" class="tab-content">
+<div id="cf-profile" class="profile-bar"></div>
+<div id="cf-summary" class="summary-grid"></div>
+<div id="cf-table-wrap" class="scroll-table"></div>
+
+<div style="margin-top:16px" class="grid2">
+<div class="card">
+<div class="card-title"><i class="fas fa-layer-group"></i> Severance Tier Reference (Section 118)</div>
+<table class="ref-table" id="sev-ref-table">
+</table>
+</div>
+<div class="card">
+<div class="card-title"><i class="fas fa-umbrella"></i> SS Pension Scenarios at Age 55</div>
+<table class="ref-table" id="ss-ref-table">
+<tr><th>Scenario</th><th>Months</th><th>Monthly ฿</th></tr>
+</table>
+<div style="font-size:9px;color:var(--text3);margin-top:4px">
+Formula: 20% × ฿15,000 for first 15yr + 1.5% × ฿15,000 per additional year. Requires ≥ 180 months.
+</div>
+</div>
+</div>
+<div class="grid2">
+<div class="card">
+<div class="card-title"><i class="fas fa-piggy-bank"></i> EPF Options Comparison</div>
+<table class="ref-table" id="epf-ref-table">
+<tr><th>Option</th><th>Amount Now</th><th>At 55</th><th>Tax</th></tr>
+</table>
+</div>
+<div class="card">
+<div class="card-title"><i class="fas fa-clipboard-check"></i> Action Checklist</div>
+<ul class="checklist" id="checklist"></ul>
+</div>
+</div>
+</div>
+
+<!-- HELP / APPENDIX TAB -->
+<div id="tab-help" class="tab-content help-en">
+
+<div style="padding:4px 0 12px 0">
+<h2 style="font-size:16px;font-weight:700;margin-bottom:4px"><i class="fas fa-book"></i> Help / Appendix — Regulations & Calculation Guide</h2>
+<p style="font-size:10px;color:var(--text2);margin-bottom:6px">คู่มืออ้างอิงกฎหมายและวิธีคำนวณ</p>
+<div class="lang-toggle" style="flex-wrap:wrap">
+<button class="lang-btn active" onclick="setLang('en')">🇬🇧 English</button>
+<button class="lang-btn" onclick="setLang('th')">🇹🇭 ภาษาไทย</button>
+<button class="lang-btn" onclick="setLang('ja')">🇯🇵 日本語</button>
+<button class="lang-btn" onclick="setLang('fr')">🇫🇷 Français</button>
+<button class="lang-btn" onclick="setLang('es')">🇪🇸 Español</button>
+<button class="lang-btn" onclick="setLang('it')">🇮🇹 Italiano</button>
+</div>
+</div>
+
+
+<!-- REGULATION SOURCE LEGEND -->
+<div class="card" style="margin-bottom:8px">
+<div class="card-title"><i class="fas fa-tags"></i> Regulation Source Legend / แหล่งที่มาของกฎระเบียบ</div>
+<div style="font-size:10px;display:flex;flex-wrap:wrap;gap:8px;line-height:2">
+<span class="reg-badge" style="background:var(--red);color:#fff">📜 กฎหมายแรงงาน / Labour Protection Act</span> <span style="color:var(--text3)">— applies to ALL employees in Thailand / บังคับใช้กับลูกจ้างทุกคน</span>
+<span class="reg-badge" style="background:var(--amber);color:#fff">💰 ประมวลรัษฎากร / Revenue Code</span> <span style="color:var(--text3)">— tax law, applies to all taxpayers / กฎหมายภาษี</span>
+<span class="reg-badge" style="background:var(--primary);color:#fff">🏛️ กฎหมายประกันสังคม / Social Security Act</span> <span style="color:var(--text3)">— applies to all insured persons / ผู้ประกันตนทุกคน</span>
+<span class="reg-badge" style="background:var(--cyan);color:#fff">📊 กฎ ก.ล.ต. + กรมสรรพากร / SEC + Revenue Dept</span> <span style="color:var(--text3)">— investment fund rules, applies to all investors / กฎระเบียบกองทุน</span>
+<span class="reg-badge" style="background:var(--purple);color:#fff">📜🏢 กฎหมาย + ระเบียบบริษัท / Law + Company Policy</span> <span style="color:var(--text3)">— legal minimum + company-specific benefits (varies by employer) / ขั้นต่ำตามกฎหมาย + สิทธิประโยชน์ตามบริษัท (แตกต่างตามนายจ้าง)</span>
+</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="card" style="margin-bottom:12px">
+<div class="card-title"><i class="fas fa-list"></i> Table of Contents / สารบัญ</div>
+<ol style="font-size:11px;padding-left:20px;columns:2;column-gap:24px;line-height:2">
+<li><a href="#h-sev" style="color:var(--primary)">Severance Pay / ค่าชดเชย</a></li>
+<li><a href="#h-specsev" style="color:var(--primary)">Special Severance / ค่าชดเชยพิเศษ</a></li>
+<li><a href="#h-notice" style="color:var(--primary)">Notice Pay / ค่าบอกกล่าวล่วงหน้า</a></li>
+<li><a href="#h-tax" style="color:var(--primary)">Tax Calculation §48(5) / การคำนวณภาษี</a></li>
+<li><a href="#h-epf" style="color:var(--primary)">Provident Fund (EPF) / กองทุนสำรองเลี้ยงชีพ</a></li>
+<li><a href="#h-rmf" style="color:var(--primary)">RMF / กองทุนรวมเพื่อการเลี้ยงชีพ</a></li>
+<li><a href="#h-ssf" style="color:var(--primary)">SSF / กองทุนรวมเพื่อการออม</a></li>
+<li><a href="#h-esg" style="color:var(--primary)">Thai ESG / กองทุน Thai ESG</a></li>
+<li><a href="#h-ss" style="color:var(--primary)">Social Security Old-Age / ประกันสังคม ชราภาพ</a></li>
+<li><a href="#h-unemp" style="color:var(--primary)">Unemployment Benefit / ว่างงาน</a></li>
+<li><a href="#h-taxrate" style="color:var(--primary)">Income Tax Rates / อัตราภาษี</a></li>
+<li><a href="#h-leave" style="color:var(--primary)">Annual Leave Cash-out / ค่าวันลา</a></li>
+</ol>
+</div>
+
+<!-- 1. SEVERANCE PAY -->
+<div class="card" id="h-sev">
+<div class="card-title" style="color:var(--red)"><i class="fas fa-gavel"></i> 1. Severance Pay — Section 118 <span class="reg-badge" style="background:var(--red);color:#fff;opacity:0.85">📜 กฎหมายแรงงาน / Labour Protection Act</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p><b>Labour Protection Act B.E. 2541, Section 118</b> — When an employer terminates employment (layoff, redundancy, retirement), the employee is entitled to severance pay based on length of continuous service. This does <b>NOT</b> apply to resignation.</p>
+<p style="margin-top:6px"><b>Calculation:</b> Severance days × (Monthly salary ÷ 30)</p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Years of Service</th><th>Severance (days)</th></tr></thead>
+<tbody>
+<tr><td>120 days – less than 1 year</td><td>30 days</td></tr>
+<tr><td>1 – less than 3 years</td><td>90 days</td></tr>
+<tr><td>3 – less than 6 years</td><td>180 days</td></tr>
+<tr><td>6 – less than 10 years</td><td>240 days</td></tr>
+<tr><td>10 – less than 20 years</td><td>300 days</td></tr>
+<tr><td>20 years or more</td><td>400 days</td></tr>
+</tbody></table>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p><b>พ.ร.บ.คุ้มครองแรงงาน พ.ศ. 2541 มาตรา 118</b> — เมื่อนายจ้างเลิกจ้างลูกจ้าง (ถูกเลิกจ้าง, เกษียณ) ลูกจ้างมีสิทธิได้รับค่าชดเชยตามระยะเวลาการทำงาน <b>ไม่รวมกรณีลาออกเอง</b></p>
+<p style="margin-top:4px"><b>สูตร:</b> จำนวนวันชดเชย × (เงินเดือน ÷ 30)</p>
+<table class="ref-table" style="margin:6px 0">
+<thead><tr><th>อายุงาน</th><th>ค่าชดเชย (วัน)</th></tr></thead>
+<tbody>
+<tr><td>120 วัน – ไม่ถึง 1 ปี</td><td>30 วัน</td></tr>
+<tr><td>1 – ไม่ถึง 3 ปี</td><td>90 วัน</td></tr>
+<tr><td>3 – ไม่ถึง 6 ปี</td><td>180 วัน</td></tr>
+<tr><td>6 – ไม่ถึง 10 ปี</td><td>240 วัน</td></tr>
+<tr><td>10 – ไม่ถึง 20 ปี</td><td>300 วัน</td></tr>
+<tr><td>20 ปีขึ้นไป</td><td>400 วัน</td></tr>
+</tbody></table>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>労働保護法 B.E. 2541 第118条</b> — 雇用主が解雇（リストラ、余剰人員整理、定年退職）を行う場合、従業員は継続勤務年数に基づく退職金を受け取る権利があります。自己都合退職には<b>適用されません</b>。</p>
+<p style="margin-top:6px"><b>計算式:</b> 退職金日数 × (月給 ÷ 30)</p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>勤続年数</th><th>退職金（日数）</th></tr></thead>
+<tbody>
+<tr><td>120日〜1年未満</td><td>30日</td></tr>
+<tr><td>1年〜3年未満</td><td>90日</td></tr>
+<tr><td>3年〜6年未満</td><td>180日</td></tr>
+<tr><td>6年〜10年未満</td><td>240日</td></tr>
+<tr><td>10年〜20年未満</td><td>300日</td></tr>
+<tr><td>20年以上</td><td>400日</td></tr>
+</tbody></table>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Loi sur la protection du travail B.E. 2541, Article 118</b> — Lorsque l'employeur met fin au contrat de travail (licenciement, restructuration, retraite), l'employé a droit à une indemnité de licenciement basée sur l'ancienneté. Cela ne s'applique <b>PAS</b> à la démission.</p>
+<p style="margin-top:6px"><b>Calcul :</b> Jours d'indemnité × (Salaire mensuel ÷ 30)</p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Ancienneté</th><th>Indemnité (jours)</th></tr></thead>
+<tbody>
+<tr><td>120 jours – moins d'1 an</td><td>30 jours</td></tr>
+<tr><td>1 – moins de 3 ans</td><td>90 jours</td></tr>
+<tr><td>3 – moins de 6 ans</td><td>180 jours</td></tr>
+<tr><td>6 – moins de 10 ans</td><td>240 jours</td></tr>
+<tr><td>10 – moins de 20 ans</td><td>300 jours</td></tr>
+<tr><td>20 ans ou plus</td><td>400 jours</td></tr>
+</tbody></table>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Ley de Protección Laboral B.E. 2541, Sección 118</b> — Cuando el empleador termina el empleo (despido, reestructuración, jubilación), el empleado tiene derecho a una indemnización basada en los años de servicio continuo. <b>NO</b> aplica a la renuncia voluntaria.</p>
+<p style="margin-top:6px"><b>Cálculo:</b> Días de indemnización × (Salario mensual ÷ 30)</p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Años de servicio</th><th>Indemnización (días)</th></tr></thead>
+<tbody>
+<tr><td>120 días – menos de 1 año</td><td>30 días</td></tr>
+<tr><td>1 – menos de 3 años</td><td>90 días</td></tr>
+<tr><td>3 – menos de 6 años</td><td>180 días</td></tr>
+<tr><td>6 – menos de 10 años</td><td>240 días</td></tr>
+<tr><td>10 – menos de 20 años</td><td>300 días</td></tr>
+<tr><td>20 años o más</td><td>400 días</td></tr>
+</tbody></table>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Legge sulla protezione del lavoro B.E. 2541, Sezione 118</b> — Quando il datore di lavoro termina il rapporto di lavoro (licenziamento, ristrutturazione, pensionamento), il dipendente ha diritto a un'indennità di licenziamento basata sugli anni di servizio continuativo. <b>NON</b> si applica alle dimissioni volontarie.</p>
+<p style="margin-top:6px"><b>Calcolo:</b> Giorni di indennità × (Stipendio mensile ÷ 30)</p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Anni di servizio</th><th>Indennità (giorni)</th></tr></thead>
+<tbody>
+<tr><td>120 giorni – meno di 1 anno</td><td>30 giorni</td></tr>
+<tr><td>1 – meno di 3 anni</td><td>90 giorni</td></tr>
+<tr><td>3 – meno di 6 anni</td><td>180 giorni</td></tr>
+<tr><td>6 – meno di 10 anni</td><td>240 giorni</td></tr>
+<tr><td>10 – meno di 20 anni</td><td>300 giorni</td></tr>
+<tr><td>20 anni o più</td><td>400 giorni</td></tr>
+</tbody></table>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://library.siam-legal.com/thai-law/labor-protection-act-severance-sections-118-122/" target="_blank" style="color:var(--primary)">Siam Legal — Labour Protection Act Sections 118-122</a></p>
+</div>
+
+<!-- 2. SPECIAL SEVERANCE -->
+<div class="card" id="h-specsev">
+<div class="card-title" style="color:var(--amber)"><i class="fas fa-industry"></i> 2. Special Severance — Section 122 <span class="reg-badge" style="background:var(--red);color:#fff;opacity:0.85">📜 กฎหมายแรงงาน / Labour Protection Act</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p><b>Section 122</b> — Additional compensation when termination is due to <b>restructuring, relocation, adoption of machinery, or technology change</b> that reduces the workforce.</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>Formula:</b> 15 days × full years of service (max 360 days)</li>
+<li><b>Requires:</b> 6+ years of continuous service</li>
+<li><b>Advance notice:</b> Employer must give 60 days written notice before the change</li>
+<li>If notice is not given: additional 15 days × years compensation in lieu</li>
+</ul>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p><b>มาตรา 122</b> — ค่าชดเชยพิเศษเพิ่มเติม กรณีเลิกจ้างเนื่องจาก<b>ปรับปรุงหน่วยงาน, ย้ายสถานประกอบการ, นำเครื่องจักร/เทคโนโลยีมาใช้</b>ทำให้ต้องลดจำนวนลูกจ้าง</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>สูตร:</b> 15 วัน × จำนวนปีที่ทำงาน (สูงสุด 360 วัน)</li>
+<li><b>เงื่อนไข:</b> ต้องทำงานต่อเนื่อง 6 ปีขึ้นไป</li>
+<li><b>การแจ้งล่วงหน้า:</b> นายจ้างต้องแจ้งเป็นหนังสือล่วงหน้า 60 วัน</li>
+<li>หากไม่แจ้ง: ต้องจ่ายค่าชดเชยพิเศษแทนการบอกกล่าวล่วงหน้าเพิ่มอีก 15 วัน × ปี</li>
+</ul>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>労働保護法 第122条</b> — 組織再編、設備の導入、技術変更、または事業所の移転による解雇の場合にのみ適用されます。勤続6年以上が必要です。</p>
+<p style="margin-top:6px"><b>計算式:</b> 15日 × 勤続年数（最大360日）</p>
+<p><b>60日前の事前通知</b>が必要です。通知なしの場合、通常の退職金に加えて60日分の追加補償が発生します。</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Loi sur la protection du travail, Article 122</b> — S'applique UNIQUEMENT en cas de licenciement dû à une restructuration, adoption de machines, changement technologique ou relocalisation. Nécessite 6+ ans d'ancienneté.</p>
+<p style="margin-top:6px"><b>Calcul :</b> 15 jours × années de service (maximum 360 jours)</p>
+<p>Un <b>préavis de 60 jours</b> est requis. Sans préavis, une compensation supplémentaire de 60 jours s'ajoute à l'indemnité normale.</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Ley de Protección Laboral, Sección 122</b> — Aplica SOLO cuando el despido se debe a reestructuración, adopción de maquinaria, cambio tecnológico o reubicación. Requiere 6+ años de servicio.</p>
+<p style="margin-top:6px"><b>Cálculo:</b> 15 días × años de servicio (máximo 360 días)</p>
+<p>Se requiere un <b>preaviso de 60 días</b>. Sin preaviso, se añaden 60 días adicionales de compensación.</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Legge sulla protezione del lavoro, Sezione 122</b> — Si applica SOLO in caso di licenziamento per ristrutturazione, adozione di macchinari, cambiamento tecnologico o trasferimento. Richiede 6+ anni di servizio.</p>
+<p style="margin-top:6px"><b>Calcolo:</b> 15 giorni × anni di servizio (massimo 360 giorni)</p>
+<p>È richiesto un <b>preavviso di 60 giorni</b>. Senza preavviso, si aggiunge un'indennità supplementare di 60 giorni.</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://library.siam-legal.com/thai-law/labor-protection-act-severance-sections-118-122/" target="_blank" style="color:var(--primary)">Siam Legal — Labour Protection Act Sections 118-122</a></p>
+</div>
+
+<!-- 3. NOTICE PAY -->
+<div class="card" id="h-notice">
+<div class="card-title" style="color:var(--green)"><i class="fas fa-bullhorn"></i> 3. Notice Pay — Section 17 <span class="reg-badge" style="background:var(--red);color:#fff;opacity:0.85">📜 กฎหมายแรงงาน / Labour Protection Act</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p><b>Section 17</b> — For indefinite-term contracts, the employer must give at least <b>one pay period</b> (typically 1 month) advance written notice. If the employer terminates immediately without notice, they must pay <b>wages in lieu of notice</b>.</p>
+<p style="margin-top:4px">This is separate from severance pay. Applies to layoff and retirement. Does <b>not</b> apply when the employee resigns.</p>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p><b>มาตรา 17</b> — สัญญาจ้างที่ไม่มีกำหนดระยะเวลา นายจ้างต้องบอกกล่าวล่วงหน้าอย่างน้อย <b>1 งวดการจ่ายค่าจ้าง</b> (ปกติ 1 เดือน) หากเลิกจ้างทันทีต้องจ่าย<b>ค่าจ้างแทนการบอกกล่าวล่วงหน้า</b></p>
+<p style="margin-top:4px">แยกต่างหากจากค่าชดเชย ใช้กับกรณีเลิกจ้างและเกษียณ <b>ไม่ใช้กับกรณีลาออก</b></p>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>労働保護法 第17条</b> — 雇用主は解雇の少なくとも1給与期間前（通常1ヶ月）に書面で通知しなければなりません。通知の代わりに1ヶ月分の給与を支払うことができます。</p>
+<p>自己都合退職の場合：従業員が通知を出す必要があり、通知手当は受け取れません。</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Loi sur la protection du travail, Article 17</b> — L'employeur doit donner un préavis écrit d'au moins une période de paie (généralement 1 mois) avant le licenciement. L'employeur peut payer un mois de salaire en lieu et place du préavis.</p>
+<p>En cas de démission : c'est l'employé qui doit donner le préavis, aucune indemnité de préavis n'est due.</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Ley de Protección Laboral, Sección 17</b> — El empleador debe dar aviso por escrito con al menos un período de pago de anticipación (generalmente 1 mes). El empleador puede pagar un mes de salario en lugar del aviso.</p>
+<p>En caso de renuncia: el empleado debe dar el aviso, no recibe compensación por preaviso.</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Legge sulla protezione del lavoro, Sezione 17</b> — Il datore di lavoro deve dare un preavviso scritto di almeno un periodo di paga (solitamente 1 mese). Il datore può pagare un mese di stipendio in sostituzione del preavviso.</p>
+<p>In caso di dimissioni: il dipendente deve dare il preavviso, non riceve indennità sostitutiva.</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://www.thailawonline.com/glossary/termination-of-employment/" target="_blank" style="color:var(--primary)">ThaiLawOnline — Termination of Employment</a></p>
+</div>
+
+<!-- 4. TAX CALCULATION -->
+<div class="card" id="h-tax">
+<div class="card-title" style="color:var(--purple)"><i class="fas fa-calculator"></i> 4. Tax on Termination Payments — Section 48(5) <span class="reg-badge" style="background:var(--amber);color:#fff;opacity:0.85">💰 ประมวลรัษฎากร / Revenue Code</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p><b>Tax exemption:</b> Severance pay up to <b>฿300,000</b> is exempt from income tax (Ministerial Regulation 126, Clause 2(51)), provided it does not exceed 10 months' salary.</p>
+<p style="margin-top:6px"><b>Section 48(5) Separate Calculation:</b> If you worked for the same employer for <b>5+ years</b>, one-time termination payments can be taxed separately (not combined with other income), resulting in lower tax:</p>
+<ol style="margin:6px 0 6px 16px">
+<li>Total one-time income = Special severance + Notice pay + Leave cash-out + EPF employer portion (excess over exempt amount)</li>
+<li>Deduct: ฿7,000 × years of service</li>
+<li>Divide the remainder by 2</li>
+<li>Apply progressive tax rates to that half</li>
+<li>The result is your total tax on termination payments</li>
+</ol>
+<p style="margin-top:4px"><b>EPF employee portion</b> (your own contributions) is always <b>100% tax-free</b>.</p>
+<p><b>EPF employer portion:</b> Exempt ฿7,000 × years of service. If PVD membership ≥ 5 years, remainder can use §48(5). If < 5 years, fully taxable as regular income.</p>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p><b>ยกเว้นภาษี:</b> ค่าชดเชยไม่เกิน <b>฿300,000</b> ได้รับยกเว้นภาษี (กฎกระทรวง ฉบับที่ 126 ข้อ 2(51)) โดยต้องไม่เกิน 10 เท่าของค่าจ้างรายเดือน</p>
+<p style="margin-top:6px"><b>มาตรา 48(5) แยกคำนวณ:</b> หากทำงานกับนายจ้างเดียวกัน <b>5 ปีขึ้นไป</b> เงินได้ที่จ่ายให้ครั้งเดียวสามารถแยกคำนวณภาษีได้ (ไม่นำไปรวมกับเงินได้อื่น) ทำให้เสียภาษีน้อยลง:</p>
+<ol style="margin:6px 0 6px 16px">
+<li>เงินได้ครั้งเดียวทั้งหมด = ค่าชดเชยพิเศษ + ค่าบอกกล่าว + ค่าวันลา + กองทุนฝั่งนายจ้าง (ส่วนเกินที่ยกเว้น)</li>
+<li>หัก: ฿7,000 × จำนวนปีที่ทำงาน</li>
+<li>หารเหลือด้วย 2</li>
+<li>นำครึ่งหนึ่งไปคำนวณตามอัตราภาษีก้าวหน้า</li>
+<li>ผลลัพธ์ = ภาษีทั้งหมดจากเงินได้เนื่องจากออกจากงาน</li>
+</ol>
+<p style="margin-top:4px"><b>กองทุนฝั่งลูกจ้าง</b> (เงินสะสมของคุณ) <b>ไม่เสียภาษี 100%</b></p>
+<p><b>กองทุนฝั่งนายจ้าง:</b> ยกเว้น ฿7,000 × ปี ส่วนที่เหลือถ้าเป็นสมาชิก ≥ 5 ปี ใช้ §48(5) ได้ ถ้า < 5 ปี ต้องนำไปรวมเป็นเงินได้ปกติ</p>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>歳入法典 第48条(5)</b> — 5年以上勤務の従業員は、退職時の一時金に対して「分離課税」方式を選択できます。これにより税負担が軽減されます。</p>
+<p style="margin-top:6px"><b>退職金の免税:</b> 300,000バーツまでは所得税非課税（大臣令126号 第2項(51)）</p>
+<p style="margin-top:6px"><b>第48条(5) 分離課税の計算手順:</b></p>
+<ol style="padding-left:18px;margin:6px 0">
+<li>一時所得の合計（特別退職金＋通知手当＋未消化休暇＋EPF雇用主負担超過分）</li>
+<li>7,000バーツ × 勤続年数 を控除</li>
+<li>残額を2で割る</li>
+<li>その半分に累進税率を適用</li>
+<li>それが総税額</li>
+</ol>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Code des revenus, Article 48(5)</b> — Les employés ayant plus de 5 ans d'ancienneté peuvent opter pour un « calcul séparé » de l'impôt sur les paiements uniques lors du départ. Cela réduit la charge fiscale.</p>
+<p style="margin-top:6px"><b>Exonération :</b> L'indemnité de licenciement jusqu'à 300 000 ฿ est exonérée (Règlement ministériel 126, Clause 2(51))</p>
+<p style="margin-top:6px"><b>Étapes du calcul selon l'Article 48(5) :</b></p>
+<ol style="padding-left:18px;margin:6px 0">
+<li>Total des revenus exceptionnels (indemnité spéciale + préavis + congés + excédent EPF employeur)</li>
+<li>Déduire 7 000 ฿ × années de service</li>
+<li>Diviser le reste par 2</li>
+<li>Appliquer le barème progressif à cette moitié</li>
+<li>C'est le montant total de l'impôt</li>
+</ol>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Código de Rentas, Sección 48(5)</b> — Los empleados con más de 5 años de servicio pueden optar por un « cálculo separado » del impuesto sobre pagos únicos al separarse. Esto reduce la carga fiscal.</p>
+<p style="margin-top:6px"><b>Exención:</b> La indemnización hasta 300,000 ฿ está exenta (Regulación Ministerial 126, Cláusula 2(51))</p>
+<p style="margin-top:6px"><b>Pasos del cálculo según Sección 48(5):</b></p>
+<ol style="padding-left:18px;margin:6px 0">
+<li>Total de ingresos únicos (indemnización especial + preaviso + vacaciones + excedente EPF empleador)</li>
+<li>Deducir 7,000 ฿ × años de servicio</li>
+<li>Dividir el resto entre 2</li>
+<li>Aplicar tasas progresivas a esa mitad</li>
+<li>Ese es el impuesto total</li>
+</ol>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Codice delle Entrate, Sezione 48(5)</b> — I dipendenti con più di 5 anni di servizio possono optare per un « calcolo separato » dell'imposta sui pagamenti una tantum alla cessazione. Questo riduce il carico fiscale.</p>
+<p style="margin-top:6px"><b>Esenzione:</b> L'indennità fino a 300.000 ฿ è esente (Regolamento Ministeriale 126, Clausola 2(51))</p>
+<p style="margin-top:6px"><b>Passaggi del calcolo secondo la Sezione 48(5):</b></p>
+<ol style="padding-left:18px;margin:6px 0">
+<li>Totale redditi una tantum (indennità speciale + preavviso + ferie + eccedenza EPF datore)</li>
+<li>Dedurre 7.000 ฿ × anni di servizio</li>
+<li>Dividere il resto per 2</li>
+<li>Applicare aliquote progressive a quella metà</li>
+<li>Questo è l'importo totale dell'imposta</li>
+</ol>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 References:<br>
+<a href="https://www.forvismazars.com/th/en/insights/doing-business-in-thailand/tax/tax-treatment-of-employee-termination-payments" target="_blank" style="color:var(--primary)">Forvis Mazars — Tax Treatment of Termination Payments</a><br>
+<a href="https://www.scb.co.th/en/personal-banking/stories/salary-man/severance-payment" target="_blank" style="color:var(--primary)">SCB — How to Pay Tax for Severance</a></p>
+</div>
+
+<!-- 5. PROVIDENT FUND -->
+<div class="card" id="h-epf">
+<div class="card-title" style="color:var(--cyan)"><i class="fas fa-piggy-bank"></i> 5. Provident Fund / EPF (กองทุนสำรองเลี้ยงชีพ) <span class="reg-badge" style="background:var(--purple);color:#fff;opacity:0.85">📜🏢 กฎหมายแรงงาน + ระเบียบบริษัท / Labour Law + Company Policy</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p>A <b>voluntary</b> retirement savings scheme. Both employee and employer contribute 2–15% of salary monthly. Managed by a licensed fund management company under SEC oversight.</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>Employee portion:</b> Always 100% yours. Tax-free on withdrawal.</li>
+<li><b>Employer portion:</b> Subject to vesting schedule (company-specific). Tax treatment depends on membership duration.</li>
+<li><b>Vesting:</b> Varies by company — typically 0% at 0–2 yrs, scaling to 100% at 5–7+ yrs.</li>
+</ul>
+<p style="margin-top:4px"><b>Options when leaving employment:</b></p>
+<ol style="margin:4px 0 4px 16px">
+<li><b>Cash Out</b> — Receive full amount immediately. Your portion tax-free; employer portion taxed per §48(5).</li>
+<li><b>Transfer to RMF</b> — Roll over to a Retirement Mutual Fund. Tax-free if held until age 55 + 5 yrs membership. PVD membership years carry over.</li>
+<li><b>Keep in Fund</b> — Maintain balance with the fund manager. Can transfer to new employer's PVD later.</li>
+</ol>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p>ระบบออมเงินเพื่อเกษียณ<b>แบบสมัครใจ</b> ลูกจ้างและนายจ้างร่วมกันสมทบ 2–15% ของเงินเดือนทุกเดือน บริหารโดยบลจ.ที่ได้รับอนุญาตจาก กลต.</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>เงินสะสม (ฝั่งลูกจ้าง):</b> เป็นของคุณ 100% ไม่เสียภาษีเมื่อถอน</li>
+<li><b>เงินสมทบ (ฝั่งนายจ้าง):</b> ขึ้นอยู่กับเงื่อนไขการได้รับ (vesting) ตามนโยบายบริษัท</li>
+</ul>
+<p style="margin-top:4px"><b>ทางเลือกเมื่อออกจากงาน:</b></p>
+<ol style="margin:4px 0 4px 16px">
+<li><b>ถอนเงินออก</b> — ได้รับทันที ฝั่งลูกจ้างไม่เสียภาษี ฝั่งนายจ้างเสียภาษีตาม §48(5)</li>
+<li><b>โอนไป RMF</b> — ไม่เสียภาษีหากถือจนอายุ 55 + สมาชิก 5 ปี อายุสมาชิกนับต่อเนื่อง</li>
+<li><b>คงเงินไว้ในกองทุน</b> — รอโอนไปกองทุนนายจ้างใหม่ภายหลัง</li>
+</ol>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>積立基金（กองทุนสำรองเลี้ยงชีพ）</b>— 従業員と雇用主が共同で拠出する任意の退職貯蓄制度です。</p>
+<p><b>従業員負担分:</b> 常に100%あなたのもの。引き出し時に非課税。</p>
+<p><b>雇用主負担分:</b> ベスティング（権利確定）スケジュールに基づきます。<span style="color:var(--amber)">⚠️ ベスティングスケジュールは会社ごとに異なります。</span></p>
+<p style="margin-top:6px"><b>退職時の選択肢:</b></p>
+<ul style="padding-left:18px"><li>💸 一括引き出し（即時現金化）</li><li>🔄 RMFへ移管（55歳以降に非課税引き出し）</li><li>🏦 基金に残す（新しい雇用主のPVDへ移管可能）</li></ul>
+<p style="margin-top:6px"><b>税務:</b> 加入5年以上の場合、第48条(5)の分離課税が利用可能。雇用主負担分は7,000バーツ×勤続年数まで免税。</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Fonds de prévoyance (กองทุนสำรองเลี้ยงชีพ)</b> — Régime d'épargne-retraite volontaire avec cotisations conjointes employé/employeur.</p>
+<p><b>Part salarié :</b> Toujours 100% à vous. Non imposable au retrait.</p>
+<p><b>Part employeur :</b> Selon le calendrier d'acquisition (vesting). <span style="color:var(--amber)">⚠️ Le calendrier varie selon l'entreprise.</span></p>
+<p style="margin-top:6px"><b>Options au départ :</b></p>
+<ul style="padding-left:18px"><li>💸 Retrait en espèces (immédiat)</li><li>🔄 Transfert vers un RMF (retrait non imposable à 55 ans)</li><li>🏦 Maintien dans le fonds (transférable vers le PVD du nouvel employeur)</li></ul>
+<p style="margin-top:6px"><b>Fiscalité :</b> Si adhésion ≥ 5 ans, calcul séparé Art. 48(5) possible. Part employeur exonérée jusqu'à 7 000 ฿ × années de service.</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Fondo de Previsión (กองทุนสำรองเลี้ยงชีพ)</b> — Plan de ahorro para la jubilación con aportes conjuntos empleado/empleador.</p>
+<p><b>Porción del empleado:</b> Siempre 100% suya. Libre de impuestos al retirar.</p>
+<p><b>Porción del empleador:</b> Según calendario de adquisición (vesting). <span style="color:var(--amber)">⚠️ El calendario varía según la empresa.</span></p>
+<p style="margin-top:6px"><b>Opciones al salir:</b></p>
+<ul style="padding-left:18px"><li>💸 Retiro en efectivo (inmediato)</li><li>🔄 Transferencia a RMF (retiro libre de impuestos a los 55)</li><li>🏦 Mantener en el fondo (transferible al PVD del nuevo empleador)</li></ul>
+<p style="margin-top:6px"><b>Impuestos:</b> Con membresía ≥ 5 años, cálculo separado Sec. 48(5) disponible. Porción empleador exenta hasta 7,000 ฿ × años de servicio.</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Fondo di Previdenza (กองทุนสำรองเลี้ยงชีพ)</b> — Piano di risparmio pensionistico volontario con contributi congiunti dipendente/datore.</p>
+<p><b>Quota dipendente:</b> Sempre 100% vostra. Esente da tasse al prelievo.</p>
+<p><b>Quota datore:</b> Secondo il piano di maturazione (vesting). <span style="color:var(--amber)">⚠️ Il piano varia da azienda ad azienda.</span></p>
+<p style="margin-top:6px"><b>Opzioni alla cessazione:</b></p>
+<ul style="padding-left:18px"><li>💸 Prelievo in contanti (immediato)</li><li>🔄 Trasferimento a RMF (prelievo esente a 55 anni)</li><li>🏦 Mantenere nel fondo (trasferibile al PVD del nuovo datore)</li></ul>
+<p style="margin-top:6px"><b>Tassazione:</b> Con adesione ≥ 5 anni, calcolo separato Sez. 48(5) disponibile. Quota datore esente fino a 7.000 ฿ × anni di servizio.</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://www.scb.co.th/en/personal-banking/stories/retirement-plan/pvd-benefits" target="_blank" style="color:var(--primary)">SCB — Provident Fund Benefits</a></p>
+</div>
+
+<!-- 6. RMF -->
+<div class="card" id="h-rmf">
+<div class="card-title" style="color:var(--primary)"><i class="fas fa-chart-pie"></i> 6. RMF — Retirement Mutual Fund (กองทุนรวมเพื่อการเลี้ยงชีพ) <span class="reg-badge" style="background:var(--cyan);color:#fff;opacity:0.85">📊 กฎ ก.ล.ต. + กรมสรรพากร / SEC + Revenue Dept</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p>A tax-advantaged mutual fund designed for retirement savings.</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>Tax deduction:</b> Up to 30% of assessable income, max ฿500,000 (combined with PVD, GPF, SSF, and other retirement funds)</li>
+<li><b>Tax-free withdrawal conditions:</b> Age <b>≥ 55</b> AND fund membership <b>≥ 5 years</b></li>
+<li><b>Investment continuity:</b> Must invest in at least 1 year out of every 2 consecutive years (no gap > 1 year)</li>
+<li><b>Penalty for early withdrawal:</b> Must return tax benefits received in the last 5 years + capital gains become taxable income</li>
+<li><b>PVD → RMF transfer:</b> Membership years carry over from provident fund</li>
+</ul>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p>กองทุนรวมเพื่อการเลี้ยงชีพ สิทธิประโยชน์ทางภาษีเพื่อการออมเกษียณ</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>ลดหย่อนภาษี:</b> ไม่เกิน 30% ของเงินได้ สูงสุด ฿500,000 (รวมกับ PVD, กบข., SSF และกองทุนเกษียณอื่น)</li>
+<li><b>เงื่อนไขถอนไม่เสียภาษี:</b> อายุ <b>≥ 55 ปี</b> และเป็นสมาชิก <b>≥ 5 ปี</b></li>
+<li><b>ต้องลงทุนต่อเนื่อง:</b> อย่างน้อย 1 ปีจาก 2 ปีติดต่อกัน (ห้ามเว้นเกิน 1 ปี)</li>
+<li><b>หากผิดเงื่อนไข:</b> ต้องคืนสิทธิลดหย่อน 5 ปีย้อนหลัง + กำไรต้องเสียภาษี</li>
+<li><b>โอนจาก PVD:</b> อายุสมาชิกนับต่อเนื่องจากกองทุนสำรองเลี้ยงชีพ</li>
+</ul>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>退職投資信託（RMF）</b>— 税制優遇のある退職貯蓄投資ファンドです。</p>
+<p><b>税控除:</b> 所得の30%まで、最大500,000バーツ（他の退職貯蓄と合算）</p>
+<p><b>非課税引き出し条件:</b> 55歳以上<b>かつ</b>加入5年以上</p>
+<p><b>条件違反の場合:</b> 過去5年分の税制優遇を返還、キャピタルゲインに課税</p>
+<p><b>PVDからRMFへの移管:</b> PVDの加入年数がRMFに引き継がれます（非課税条件の判定に有利）</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Fonds commun de placement pour la retraite (RMF)</b> — Fonds d'investissement d'épargne-retraite avec avantages fiscaux.</p>
+<p><b>Déduction fiscale :</b> Jusqu'à 30% du revenu, max 500 000 ฿ (combiné avec autres épargnes retraite)</p>
+<p><b>Conditions de retrait non imposable :</b> Âge ≥ 55 ans <b>ET</b> adhésion ≥ 5 ans</p>
+<p><b>En cas de non-respect :</b> Restitution des avantages fiscaux des 5 dernières années + plus-values imposables</p>
+<p><b>Transfert PVD vers RMF :</b> Les années d'adhésion PVD sont reprises (avantageux pour la condition d'exonération)</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Fondo Mutuo de Jubilación (RMF)</b> — Fondo de inversión con beneficios fiscales para el ahorro de jubilación.</p>
+<p><b>Deducción fiscal:</b> Hasta 30% del ingreso, máx. 500,000 ฿ (combinado con otros ahorros de jubilación)</p>
+<p><b>Condiciones de retiro libre de impuestos:</b> Edad ≥ 55 <b>Y</b> membresía ≥ 5 años</p>
+<p><b>Si se incumplen las condiciones:</b> Devolución de beneficios fiscales de los últimos 5 años + ganancias de capital gravadas</p>
+<p><b>Transferencia PVD a RMF:</b> Los años de membresía PVD se acumulan (ventajoso para la condición de exención)</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Fondo comune pensionistico (RMF)</b> — Fondo d'investimento per il risparmio previdenziale con agevolazioni fiscali.</p>
+<p><b>Deduzione fiscale:</b> Fino al 30% del reddito, max 500.000 ฿ (combinato con altri risparmi pensionistici)</p>
+<p><b>Condizioni per prelievo esente:</b> Età ≥ 55 <b>E</b> adesione ≥ 5 anni</p>
+<p><b>In caso di violazione:</b> Restituzione agevolazioni fiscali degli ultimi 5 anni + plusvalenze tassate</p>
+<p><b>Trasferimento PVD a RMF:</b> Gli anni di adesione PVD vengono conteggiati (vantaggioso per la condizione di esenzione)</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 References:<br>
+<a href="https://www.scb.co.th/en/personal-banking/stories/salary-man/trading-rmf/" target="_blank" style="color:var(--primary)">SCB — How to Trade RMF</a> · <a href="https://www.uobam.co.th/en/tax-benefit/rmf" target="_blank" style="color:var(--primary)">UOB AM — RMF Tax Benefits</a></p>
+</div>
+
+<!-- 7. SSF -->
+<div class="card" id="h-ssf">
+<div class="card-title" style="color:var(--green)"><i class="fas fa-seedling"></i> 7. SSF — Super Savings Fund (กองทุนรวมเพื่อการออม) <span class="reg-badge" style="background:var(--cyan);color:#fff;opacity:0.85">📊 กฎ ก.ล.ต. + กรมสรรพากร / SEC + Revenue Dept</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p>Replaced the LTF (Long-Term Equity Fund) from 2020. Designed to encourage long-term savings.</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>Tax deduction:</b> Up to 30% of income, max ฿200,000 (combined cap ฿500,000 with other retirement funds)</li>
+<li><b>Holding period:</b> <b>10 years</b> from date of each purchase</li>
+<li><b>⚠️ NO age restriction</b> — purely time-based (unlike RMF)</li>
+<li>No minimum purchase amount, no continuous investment required</li>
+<li><b>SSF tax deduction period:</b> 2020–2024</li>
+<li>Capital gains tax-free if held for the full 10 years</li>
+</ul>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p>มาแทน LTF ตั้งแต่ปี 2563 ส่งเสริมการออมระยะยาว</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>ลดหย่อนภาษี:</b> ไม่เกิน 30% ของเงินได้ สูงสุด ฿200,000 (รวมเพดาน ฿500,000 กับกองทุนเกษียณอื่น)</li>
+<li><b>ระยะเวลาถือครอง:</b> <b>10 ปี</b> นับจากวันที่ซื้อแต่ละครั้ง</li>
+<li><b>⚠️ ไม่มีเงื่อนไขอายุ</b> — นับเฉพาะระยะเวลา (ไม่เหมือน RMF)</li>
+<li>ไม่มีขั้นต่ำ ไม่ต้องซื้อต่อเนื่อง</li>
+<li><b>ช่วงลดหย่อน SSF:</b> ปี 2563–2567</li>
+<li>กำไรไม่เสียภาษีหากถือครบ 10 ปี</li>
+</ul>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>貯蓄型投資信託（SSF）</b>— 2020年にLTFに代わって導入されました。</p>
+<p><b>税控除:</b> 所得の30%まで、最大200,000バーツ（退職貯蓄合算上限500,000バーツ）</p>
+<p><b>保有期間:</b> 購入日から<b>10年間</b></p>
+<p><b>年齢制限:</b> なし（期間ベースのみ）</p>
+<p><b>最低投資額:</b> なし。継続投資の義務もなし。</p>
+<p><b>対象期間:</b> 2020年〜2024年（税控除対象期間）</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Fonds d'épargne (SSF)</b> — A remplacé le LTF depuis 2020.</p>
+<p><b>Déduction fiscale :</b> Jusqu'à 30% du revenu, max 200 000 ฿ (plafond combiné 500 000 ฿ avec fonds retraite)</p>
+<p><b>Période de détention :</b> <b>10 ans</b> à compter de la date d'achat</p>
+<p><b>Restriction d'âge :</b> Aucune (basé uniquement sur la durée)</p>
+<p><b>Investissement minimum :</b> Aucun. Pas d'obligation d'investissement continu.</p>
+<p><b>Disponibilité :</b> 2020–2024 (période de déduction fiscale)</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Fondo de Ahorro (SSF)</b> — Reemplazó al LTF desde 2020.</p>
+<p><b>Deducción fiscal:</b> Hasta 30% del ingreso, máx. 200,000 ฿ (tope combinado 500,000 ฿ con fondos de jubilación)</p>
+<p><b>Período de tenencia:</b> <b>10 años</b> desde la fecha de compra</p>
+<p><b>Restricción de edad:</b> Ninguna (solo basado en tiempo)</p>
+<p><b>Inversión mínima:</b> Ninguna. No se requiere inversión continua.</p>
+<p><b>Disponibilidad:</b> 2020–2024 (período de deducción fiscal)</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Fondo di Risparmio (SSF)</b> — Ha sostituito il LTF dal 2020.</p>
+<p><b>Deduzione fiscale:</b> Fino al 30% del reddito, max 200.000 ฿ (tetto combinato 500.000 ฿ con fondi pensione)</p>
+<p><b>Periodo di detenzione:</b> <b>10 anni</b> dalla data di acquisto</p>
+<p><b>Restrizione di età:</b> Nessuna (basato solo sul tempo)</p>
+<p><b>Investimento minimo:</b> Nessuno. Nessun obbligo di investimento continuo.</p>
+<p><b>Disponibilità:</b> 2020–2024 (periodo di deduzione fiscale)</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://www.uobam.co.th/en/tax-benefit/ssf" target="_blank" style="color:var(--primary)">UOB AM — SSF Tax Benefits</a></p>
+</div>
+
+<!-- 8. THAI ESG -->
+<div class="card" id="h-esg">
+<div class="card-title" style="color:var(--green2)"><i class="fas fa-leaf"></i> 8. Thai ESG Fund (กองทุน Thai ESG) <span class="reg-badge" style="background:var(--cyan);color:#fff;opacity:0.85">📊 กฎ ก.ล.ต. + กรมสรรพากร / SEC + Revenue Dept</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p>Thailand ESG (Environmental, Social, Governance) mutual fund with tax incentives to promote sustainable investment.</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>Tax deduction (2024–2026):</b> Up to 30% of income, max <b>฿300,000/year</b> (increased from ฿100,000 in 2023)</li>
+<li><b>Holding period (2024+ purchases):</b> <b>5 years</b> from date of purchase (reduced from 8 years for 2023 purchases)</li>
+<li><b>⚠️ NO age restriction</b> — purely time-based</li>
+<li><b>NOT included</b> in the ฿500,000 retirement fund cap — separate allowance</li>
+<li><b>Available:</b> 2023–2032 (purchases eligible for tax deduction)</li>
+<li>Capital gains tax-free if held for the full required period</li>
+</ul>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p>กองทุนรวมไทยเพื่อความยั่งยืน (Thai ESG) สิทธิลดหย่อนภาษีเพื่อส่งเสริมการลงทุนอย่างยั่งยืน</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>ลดหย่อนภาษี (2567–2569):</b> ไม่เกิน 30% ของเงินได้ สูงสุด <b>฿300,000/ปี</b> (เพิ่มจาก ฿100,000 ในปี 2566)</li>
+<li><b>ระยะเวลาถือครอง (ซื้อปี 2567+):</b> <b>5 ปี</b> นับจากวันซื้อ (ลดจาก 8 ปีสำหรับซื้อปี 2566)</li>
+<li><b>⚠️ ไม่มีเงื่อนไขอายุ</b> — นับเฉพาะระยะเวลา</li>
+<li><b>ไม่รวม</b>ในเพดาน ฿500,000 ของกองทุนเกษียณ — เป็นสิทธิแยกต่างหาก</li>
+<li><b>ช่วงลดหย่อน:</b> ปี 2566–2575</li>
+<li>กำไรไม่เสียภาษีหากถือครองครบกำหนด</li>
+</ul>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>Thai ESGファンド</b>— 持続可能投資を促進する税制優遇ファンドです。</p>
+<p><b>税控除:</b> 所得の30%まで、最大300,000バーツ/年（2024年以降。2023年は100,000バーツ）</p>
+<p><b>保有期間:</b> 2024年以降の購入：購入日から<b>5年間</b>（2023年購入は8年間）</p>
+<p><b>年齢制限:</b> なし（期間ベースのみ）</p>
+<p><b>重要:</b> 退職貯蓄の500,000バーツ上限とは<b>別枠</b>（独自の控除枠）</p>
+<p><b>対象期間:</b> 2023年〜2032年</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Fonds Thai ESG</b> — Fonds fiscalement avantageux promouvant l'investissement durable.</p>
+<p><b>Déduction fiscale :</b> Jusqu'à 30% du revenu, max 300 000 ฿/an (depuis 2024 ; 100 000 ฿ en 2023)</p>
+<p><b>Période de détention :</b> Achats 2024+ : <b>5 ans</b> (achats 2023 : 8 ans)</p>
+<p><b>Restriction d'âge :</b> Aucune (basé uniquement sur la durée)</p>
+<p><b>Important :</b> <b>Non inclus</b> dans le plafond retraite de 500 000 ฿ (allocation distincte)</p>
+<p><b>Disponibilité :</b> 2023–2032</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Fondo Thai ESG</b> — Fondo con beneficios fiscales que promueve la inversión sostenible.</p>
+<p><b>Deducción fiscal:</b> Hasta 30% del ingreso, máx. 300,000 ฿/año (desde 2024; 100,000 ฿ en 2023)</p>
+<p><b>Período de tenencia:</b> Compras 2024+: <b>5 años</b> (compras 2023: 8 años)</p>
+<p><b>Restricción de edad:</b> Ninguna (solo basado en tiempo)</p>
+<p><b>Importante:</b> <b>NO incluido</b> en el tope de jubilación de 500,000 ฿ (asignación separada)</p>
+<p><b>Disponibilidad:</b> 2023–2032</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Fondo Thai ESG</b> — Fondo con agevolazioni fiscali che promuove gli investimenti sostenibili.</p>
+<p><b>Deduzione fiscale:</b> Fino al 30% del reddito, max 300.000 ฿/anno (dal 2024; 100.000 ฿ nel 2023)</p>
+<p><b>Periodo di detenzione:</b> Acquisti 2024+: <b>5 anni</b> (acquisti 2023: 8 anni)</p>
+<p><b>Restrizione di età:</b> Nessuna (basato solo sul tempo)</p>
+<p><b>Importante:</b> <b>NON incluso</b> nel tetto pensionistico di 500.000 ฿ (allocazione separata)</p>
+<p><b>Disponibilità:</b> 2023–2032</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 References:<br>
+<a href="https://www.scb.co.th/en/personal-banking/stories/grow-your-wealth/update-new-tax-critieria-thai-esg.html" target="_blank" style="color:var(--primary)">SCB — Thai ESG Updated Criteria 2024</a> · <a href="https://www.bangkokbank.com/en/Personal/Save-And-Invest/Mutual-Funds/Thai-ESG-Funds" target="_blank" style="color:var(--primary)">Bangkok Bank — Thai ESG</a></p>
+</div>
+
+<!-- 9. SOCIAL SECURITY OLD-AGE -->
+<div class="card" id="h-ss">
+<div class="card-title" style="color:var(--primary)"><i class="fas fa-shield-halved"></i> 9. Social Security Old-Age Benefit (ประกันสังคม กรณีชราภาพ) <span class="reg-badge" style="background:var(--primary);color:#fff;opacity:0.85">🏛️ กฎหมายประกันสังคม / Social Security Act</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p>Payable at <b>age 55</b> after ceasing employment. Two paths depending on contribution months:</p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Condition</th><th>Benefit Type</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td><b>≥ 180 months</b> (15 years)</td><td>Monthly Pension<br>(บำนาญ)</td><td>20% of avg wage (last 60 months, capped) for first 15 years + 1.5% for each additional year. <b>Paid monthly for life.</b></td></tr>
+<tr><td><b>< 180 months</b></td><td>Lump Sum<br>(บำเหน็จ)</td><td>Accumulated contributions (employee + employer senescence portion) paid as one-time amount</td></tr>
+</tbody></table>
+<ul style="margin:6px 0 6px 16px">
+<li><b>Wage cap:</b> ฿15,000/month (pre-2026), <b>฿17,500/month</b> (from Jan 2026)</li>
+<li><b>Section 39 (voluntary):</b> Continue coverage at ฿432/month after leaving employment — but avg wage base drops to ฿4,800, potentially <b>lowering</b> your pension</li>
+</ul>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p>จ่ายเมื่อ<b>อายุ 55 ปี</b> หลังสิ้นสุดการจ้าง แบ่ง 2 กรณี:</p>
+<table class="ref-table" style="margin:6px 0">
+<thead><tr><th>เงื่อนไข</th><th>ประเภท</th><th>รายละเอียด</th></tr></thead>
+<tbody>
+<tr><td><b>≥ 180 เดือน</b> (15 ปี)</td><td>บำนาญ</td><td>20% ของค่าจ้างเฉลี่ย (60 เดือนสุดท้าย) สำหรับ 15 ปีแรก + 1.5% ต่อปีที่เกิน <b>จ่ายรายเดือนตลอดชีวิต</b></td></tr>
+<tr><td><b>< 180 เดือน</b></td><td>บำเหน็จ</td><td>เงินสมทบสะสม (ฝั่งลูกจ้าง + นายจ้าง ส่วนชราภาพ) จ่ายครั้งเดียว</td></tr>
+</tbody></table>
+<ul style="margin:6px 0 6px 16px">
+<li><b>เพดานค่าจ้าง:</b> ฿15,000/เดือน (ก่อน 2569), <b>฿17,500/เดือน</b> (ตั้งแต่ ม.ค. 2569)</li>
+<li><b>มาตรา 39 (สมัครใจ):</b> สมทบต่อ ฿432/เดือน แต่ฐานค่าจ้างลดลงเป็น ฿4,800 อาจทำให้บำนาญ<b>ลดลง</b></li>
+</ul>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>社会保険法 — 老齢給付</b></p>
+<p><b>年金（บำนาญ）:</b> 拠出180ヶ月以上 → 55歳から<b>終身月額年金</b></p>
+<p style="margin:4px 0"><b>計算式:</b> 最初の15年は平均賃金の20% ＋ 15年超の各年につき1.5%加算</p>
+<p><b>一時金（บำเหน็จ）:</b> 拠出180ヶ月未満 → 55歳時に<b>一括払い</b>（全拠出額を返還）</p>
+<p><b>賃金上限:</b> 15,000バーツ（2026年以前）、17,500バーツ（2026年以降）</p>
+<p style="color:var(--amber)"><b>⚠️ 第39条（任意継続）の注意:</b> 月432バーツで継続可能ですが、平均賃金基準が4,800バーツに低下し、年金額が<b>減少</b>する可能性があります。</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Loi sur la sécurité sociale — Prestations de vieillesse</b></p>
+<p><b>Pension (บำนาญ) :</b> ≥ 180 mois de cotisations → <b>pension mensuelle à vie</b> dès 55 ans</p>
+<p style="margin:4px 0"><b>Formule :</b> 20% du salaire moyen pour les 15 premières années + 1,5% par année supplémentaire</p>
+<p><b>Capital (บำเหน็จ) :</b> &lt; 180 mois → <b>versement unique</b> à 55 ans (remboursement des cotisations)</p>
+<p><b>Plafond salarial :</b> 15 000 ฿ (avant 2026), 17 500 ฿ (à partir de 2026)</p>
+<p style="color:var(--amber)"><b>⚠️ Attention Section 39 (continuation volontaire) :</b> 432 ฿/mois mais le salaire de référence tombe à 4 800 ฿, ce qui peut <b>réduire</b> votre pension.</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Ley de Seguridad Social — Prestaciones por vejez</b></p>
+<p><b>Pensión (บำนาญ):</b> ≥ 180 meses de contribuciones → <b>pensión mensual vitalicia</b> desde los 55 años</p>
+<p style="margin:4px 0"><b>Fórmula:</b> 20% del salario promedio por los primeros 15 años + 1.5% por cada año adicional</p>
+<p><b>Suma global (บำเหน็จ):</b> &lt; 180 meses → <b>pago único</b> a los 55 (devolución de contribuciones)</p>
+<p><b>Tope salarial:</b> 15,000 ฿ (antes de 2026), 17,500 ฿ (desde 2026)</p>
+<p style="color:var(--amber)"><b>⚠️ Precaución Sección 39 (continuación voluntaria):</b> 432 ฿/mes pero el salario base baja a 4,800 ฿, lo que puede <b>reducir</b> su pensión.</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Legge sulla Previdenza Sociale — Prestazioni di vecchiaia</b></p>
+<p><b>Pensione (บำนาญ):</b> ≥ 180 mesi di contributi → <b>pensione mensile a vita</b> dai 55 anni</p>
+<p style="margin:4px 0"><b>Formula:</b> 20% dello stipendio medio per i primi 15 anni + 1,5% per ogni anno aggiuntivo</p>
+<p><b>Liquidazione (บำเหน็จ):</b> &lt; 180 mesi → <b>pagamento una tantum</b> a 55 anni (restituzione dei contributi)</p>
+<p><b>Tetto salariale:</b> 15.000 ฿ (prima del 2026), 17.500 ฿ (dal 2026)</p>
+<p style="color:var(--amber)"><b>⚠️ Attenzione Sezione 39 (continuazione volontaria):</b> 432 ฿/mese ma la base salariale scende a 4.800 ฿, il che può <b>ridurre</b> la pensione.</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://www.oecd.org/en/publications/pensions-at-a-glance-asia-pacific-2024_d4146d12-en/full-report/thailand_eaeb7aea.html" target="_blank" style="color:var(--primary)">OECD — Thailand Pensions 2024</a></p>
+</div>
+
+<!-- 10. UNEMPLOYMENT -->
+<div class="card" id="h-unemp">
+<div class="card-title" style="color:var(--amber)"><i class="fas fa-briefcase"></i> 10. SSO Unemployment Benefit (ประกันสังคม กรณีว่างงาน) <span class="reg-badge" style="background:var(--primary);color:#fff;opacity:0.85">🏛️ กฎหมายประกันสังคม / Social Security Act</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<table class="ref-table" style="margin:4px 0">
+<thead><tr><th>Scenario</th><th>Rate</th><th>Cap</th><th>Duration</th></tr></thead>
+<tbody>
+<tr><td><b>Laid off</b> (เลิกจ้าง)</td><td>50% of salary</td><td>฿7,500/month</td><td>Up to 6 months</td></tr>
+<tr><td><b>Self-resign</b> (ลาออก)</td><td>30% of salary</td><td>฿4,500/month</td><td>Up to 3 months</td></tr>
+</tbody></table>
+<p style="margin-top:6px"><b>Important:</b> Must register at the employment office within <b>30 days</b> of separation.</p>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<table class="ref-table" style="margin:4px 0">
+<thead><tr><th>กรณี</th><th>อัตรา</th><th>เพดาน</th><th>ระยะเวลา</th></tr></thead>
+<tbody>
+<tr><td><b>เลิกจ้าง</b></td><td>50% ของเงินเดือน</td><td>฿7,500/เดือน</td><td>ไม่เกิน 6 เดือน</td></tr>
+<tr><td><b>ลาออก</b></td><td>30% ของเงินเดือน</td><td>฿4,500/เดือน</td><td>ไม่เกิน 3 เดือน</td></tr>
+</tbody></table>
+<p style="margin-top:6px"><b>สำคัญ:</b> ต้องขึ้นทะเบียนที่สำนักจัดหางานภายใน <b>30 วัน</b> หลังออกจากงาน</p>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>社会保険 — 失業給付</b></p>
+<p><b>解雇の場合:</b> 給与の50%（最大7,500バーツ/月）を最長<b>6ヶ月間</b></p>
+<p><b>自己都合退職の場合:</b> 給与の30%（最大4,500バーツ/月）を最長<b>3ヶ月間</b></p>
+<p><b>定年退職の場合:</b> 失業給付なし</p>
+<p><b>重要:</b> 退職後<b>30日以内</b>に職業紹介所で失業登録が必要です。</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Sécurité sociale — Allocation chômage</b></p>
+<p><b>Licenciement :</b> 50% du salaire (max 7 500 ฿/mois) pendant <b>6 mois</b> maximum</p>
+<p><b>Démission :</b> 30% du salaire (max 4 500 ฿/mois) pendant <b>3 mois</b> maximum</p>
+<p><b>Retraite :</b> Pas d'allocation chômage</p>
+<p><b>Important :</b> Inscription au bureau de l'emploi obligatoire dans les <b>30 jours</b> suivant le départ.</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Seguridad Social — Prestación por desempleo</b></p>
+<p><b>Despido:</b> 50% del salario (máx. 7,500 ฿/mes) por hasta <b>6 meses</b></p>
+<p><b>Renuncia:</b> 30% del salario (máx. 4,500 ฿/mes) por hasta <b>3 meses</b></p>
+<p><b>Jubilación:</b> Sin prestación por desempleo</p>
+<p><b>Importante:</b> Registro en la oficina de empleo obligatorio dentro de los <b>30 días</b> posteriores a la separación.</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Previdenza Sociale — Indennità di disoccupazione</b></p>
+<p><b>Licenziamento:</b> 50% dello stipendio (max 7.500 ฿/mese) per massimo <b>6 mesi</b></p>
+<p><b>Dimissioni:</b> 30% dello stipendio (max 4.500 ฿/mese) per massimo <b>3 mesi</b></p>
+<p><b>Pensionamento:</b> Nessuna indennità di disoccupazione</p>
+<p><b>Importante:</b> Registrazione obbligatoria all'ufficio di collocamento entro <b>30 giorni</b> dalla cessazione.</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://en.thairath.co.th/scoop/interview/2833619" target="_blank" style="color:var(--primary)">Thairath — Labor Laws Protecting Employee Rights</a></p>
+</div>
+
+<!-- 11. TAX RATES -->
+<div class="card" id="h-taxrate">
+<div class="card-title" style="color:var(--purple)"><i class="fas fa-percent"></i> 11. Progressive Income Tax Rates (อัตราภาษีเงินได้บุคคลธรรมดา) <span class="reg-badge" style="background:var(--amber);color:#fff;opacity:0.85">💰 ประมวลรัษฎากร / Revenue Code</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<table class="ref-table" style="margin:4px 0">
+<thead><tr><th>Taxable Income (฿)</th><th>Rate</th><th>เงินได้สุทธิ (฿)</th><th>อัตรา</th></tr></thead>
+<tbody>
+<tr><td>0 – 150,000</td><td>0% (exempt)</td><td>0 – 150,000</td><td>0% (ยกเว้น)</td></tr>
+<tr><td>150,001 – 300,000</td><td>5%</td><td>150,001 – 300,000</td><td>5%</td></tr>
+<tr><td>300,001 – 500,000</td><td>10%</td><td>300,001 – 500,000</td><td>10%</td></tr>
+<tr><td>500,001 – 750,000</td><td>15%</td><td>500,001 – 750,000</td><td>15%</td></tr>
+<tr><td>750,001 – 1,000,000</td><td>20%</td><td>750,001 – 1,000,000</td><td>20%</td></tr>
+<tr><td>1,000,001 – 2,000,000</td><td>25%</td><td>1,000,001 – 2,000,000</td><td>25%</td></tr>
+<tr><td>2,000,001 – 5,000,000</td><td>30%</td><td>2,000,001 – 5,000,000</td><td>30%</td></tr>
+<tr><td>Over 5,000,000</td><td>35%</td><td>5,000,001 ขึ้นไป</td><td>35%</td></tr>
+</tbody></table>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>タイ累進所得税率表（個人所得税）</b></p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>課税所得（バーツ）</th><th>税率</th></tr></thead>
+<tbody>
+<tr><td>0 – 150,000</td><td>免税</td></tr>
+<tr><td>150,001 – 300,000</td><td>5%</td></tr>
+<tr><td>300,001 – 500,000</td><td>10%</td></tr>
+<tr><td>500,001 – 750,000</td><td>15%</td></tr>
+<tr><td>750,001 – 1,000,000</td><td>20%</td></tr>
+<tr><td>1,000,001 – 2,000,000</td><td>25%</td></tr>
+<tr><td>2,000,001 – 5,000,000</td><td>30%</td></tr>
+<tr><td>5,000,001以上</td><td>35%</td></tr>
+</tbody></table>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Barème progressif de l'impôt sur le revenu en Thaïlande</b></p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Revenu imposable (฿)</th><th>Taux</th></tr></thead>
+<tbody>
+<tr><td>0 – 150 000</td><td>Exonéré</td></tr>
+<tr><td>150 001 – 300 000</td><td>5%</td></tr>
+<tr><td>300 001 – 500 000</td><td>10%</td></tr>
+<tr><td>500 001 – 750 000</td><td>15%</td></tr>
+<tr><td>750 001 – 1 000 000</td><td>20%</td></tr>
+<tr><td>1 000 001 – 2 000 000</td><td>25%</td></tr>
+<tr><td>2 000 001 – 5 000 000</td><td>30%</td></tr>
+<tr><td>Plus de 5 000 000</td><td>35%</td></tr>
+</tbody></table>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Tabla de tasas progresivas del impuesto sobre la renta en Tailandia</b></p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Ingreso gravable (฿)</th><th>Tasa</th></tr></thead>
+<tbody>
+<tr><td>0 – 150,000</td><td>Exento</td></tr>
+<tr><td>150,001 – 300,000</td><td>5%</td></tr>
+<tr><td>300,001 – 500,000</td><td>10%</td></tr>
+<tr><td>500,001 – 750,000</td><td>15%</td></tr>
+<tr><td>750,001 – 1,000,000</td><td>20%</td></tr>
+<tr><td>1,000,001 – 2,000,000</td><td>25%</td></tr>
+<tr><td>2,000,001 – 5,000,000</td><td>30%</td></tr>
+<tr><td>Más de 5,000,000</td><td>35%</td></tr>
+</tbody></table>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Tabella aliquote progressive dell'imposta sul reddito in Thailandia</b></p>
+<table class="ref-table" style="margin:8px 0">
+<thead><tr><th>Reddito imponibile (฿)</th><th>Aliquota</th></tr></thead>
+<tbody>
+<tr><td>0 – 150.000</td><td>Esente</td></tr>
+<tr><td>150.001 – 300.000</td><td>5%</td></tr>
+<tr><td>300.001 – 500.000</td><td>10%</td></tr>
+<tr><td>500.001 – 750.000</td><td>15%</td></tr>
+<tr><td>750.001 – 1.000.000</td><td>20%</td></tr>
+<tr><td>1.000.001 – 2.000.000</td><td>25%</td></tr>
+<tr><td>2.000.001 – 5.000.000</td><td>30%</td></tr>
+<tr><td>Oltre 5.000.000</td><td>35%</td></tr>
+</tbody></table>
+</div>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: <a href="https://taxsummaries.pwc.com/thailand/individual/taxes-on-personal-income" target="_blank" style="color:var(--primary)">PwC — Thailand Individual Taxes</a></p>
+</div>
+
+<!-- 12. ANNUAL LEAVE -->
+<div class="card" id="h-leave">
+<div class="card-title" style="color:var(--cyan)"><i class="fas fa-umbrella-beach"></i> 12. Annual Leave Cash-out (การจ่ายค่าวันหยุดพักผ่อนประจำปี) <span class="reg-badge" style="background:var(--purple);color:#fff;opacity:0.85">📜🏢 กฎหมายแรงงาน (ขั้นต่ำ) + ระเบียบบริษัท / Labour Law (minimum) + Company Policy</span></div>
+<div class="lang-en">
+<div style="font-size:11px;line-height:1.6">
+<p>Upon termination of employment, unused annual leave is <b>pro-rated</b> and paid out.</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>Calculation:</b> Unused days × (Monthly salary ÷ 30)</li>
+<li><b>Includes:</b> Current year (pro-rated) + carried-over from previous year</li>
+<li><b>Does NOT include:</b> Sick leave, business leave, compassionate leave, military leave, volunteer leave — these are <b>not</b> convertible to cash</li>
+</ul>
+</div>
+</div>
+<div class="lang-th" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇹🇭 ภาษาไทย:</b></p>
+<p>เมื่อสิ้นสุดการจ้าง วันหยุดพักผ่อนประจำปีที่ยังไม่ได้ใช้จะ<b>คำนวณตามสัดส่วน</b>และจ่ายเป็นเงิน</p>
+<ul style="margin:6px 0 6px 16px">
+<li><b>สูตร:</b> จำนวนวันที่เหลือ × (เงินเดือน ÷ 30)</li>
+<li><b>รวม:</b> ปีปัจจุบัน (ตามสัดส่วน) + ยกมาจากปีก่อน</li>
+<li><b>ไม่รวม:</b> ลาป่วย, ลากิจ, ลากรณีญาติเสียชีวิต, ลาทหาร, ลาจิตอาสา — <b>ไม่สามารถ</b>แปลงเป็นเงินได้</li>
+</ul>
+</div>
+<div class="lang-ja" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇯🇵 日本語:</b></p>
+<p><b>年次有給休暇の精算</b> — 退職時に未消化の年次休暇は日割りで現金化されます。</p>
+<p><b>計算式:</b> 未消化日数 ×（月給 ÷ 30）</p>
+<p style="margin-top:6px"><b>現金化可能:</b> 年次有給休暇（当年分＋繰越分）のみ</p>
+<p><b>現金化不可:</b> 病気休暇、私用休暇、慶弔休暇、ボランティア休暇、兵役休暇、産休、出家休暇</p>
+<p style="margin-top:6px;color:var(--amber)"><b>⚠️ 注意:</b> 法定最低の年次休暇（6日/年）は法律で定められていますが、多くの企業はそれ以上を付与しています。休暇日数は<b>会社ごとに異なります</b>。</p>
+</div>
+<div class="lang-fr" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇫🇷 Français:</b></p>
+<p><b>Liquidation des congés annuels</b> — Les congés non utilisés sont proratisés et payés lors du départ.</p>
+<p><b>Calcul :</b> Jours non utilisés × (Salaire mensuel ÷ 30)</p>
+<p style="margin-top:6px"><b>Liquidable :</b> Congés annuels uniquement (année en cours + report)</p>
+<p><b>Non liquidable :</b> Congé maladie, congé personnel, congé de deuil, bénévolat, service militaire, maternité, ordination</p>
+<p style="margin-top:6px;color:var(--amber)"><b>⚠️ Note :</b> Le minimum légal est de 6 jours/an, mais la plupart des entreprises accordent davantage. Le nombre de jours <b>varie selon l'employeur</b>.</p>
+</div>
+<div class="lang-es" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇪🇸 Español:</b></p>
+<p><b>Liquidación de vacaciones anuales</b> — Las vacaciones no utilizadas se prorratean y pagan al separarse.</p>
+<p><b>Cálculo:</b> Días no utilizados × (Salario mensual ÷ 30)</p>
+<p style="margin-top:6px"><b>Liquidable:</b> Solo vacaciones anuales (año actual + acumulado)</p>
+<p><b>No liquidable:</b> Licencia por enfermedad, permiso personal, licencia por duelo, voluntariado, servicio militar, maternidad, ordenación</p>
+<p style="margin-top:6px;color:var(--amber)"><b>⚠️ Nota:</b> El mínimo legal es 6 días/año, pero la mayoría de empresas otorgan más. La cantidad de días <b>varía según el empleador</b>.</p>
+</div>
+<div class="lang-it" style="background:var(--bg);padding:10px;border-radius:6px;margin-top:8px;font-size:11px;line-height:1.6">
+<p><b>🇮🇹 Italiano:</b></p>
+<p><b>Liquidazione delle ferie annuali</b> — Le ferie non godute vengono calcolate pro-rata e pagate alla cessazione.</p>
+<p><b>Calcolo:</b> Giorni non goduti × (Stipendio mensile ÷ 30)</p>
+<p style="margin-top:6px"><b>Liquidabile:</b> Solo ferie annuali (anno corrente + riporto)</p>
+<p><b>Non liquidabile:</b> Malattia, permesso personale, congedo per lutto, volontariato, servizio militare, maternità, ordinazione</p>
+<p style="margin-top:6px;color:var(--amber)"><b>⚠️ Nota:</b> Il minimo legale è di 6 giorni/anno, ma la maggior parte delle aziende ne concede di più. Il numero di giorni <b>varia da azienda ad azienda</b>.</p>
+</div>
+<p style="font-size:9px;margin-top:6px;color:var(--text3)">📎 Reference: DXC Thailand Work Regulations 2024, Chapter 3 & 6; Labour Protection Act B.E. 2541</p>
+</div>
+
+<!-- DISCLAIMER -->
+<div style="margin-top:16px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:10px;color:var(--text3);line-height:1.5">
+<p><b>⚠️ Disclaimer / ข้อจำกัดความรับผิดชอบ</b></p>
+<p style="margin-top:4px"><b>English:</b> This appendix is for informational purposes only and does not constitute legal or tax advice. Laws and regulations may change. Always consult a qualified Thai labor lawyer or tax advisor for your specific situation. All amounts calculated by this tool are estimates.</p>
+<p style="margin-top:4px"><b>ภาษาไทย:</b> ภาคผนวกนี้จัดทำเพื่อให้ข้อมูลเท่านั้น ไม่ถือเป็นคำแนะนำทางกฎหมายหรือภาษี กฎหมายและระเบียบอาจเปลี่ยนแปลง ควรปรึกษาทนายความด้านแรงงานหรือที่ปรึกษาภาษีสำหรับกรณีเฉพาะของท่าน จำนวนเงินทั้งหมดที่คำนวณโดยเครื่องมือนี้เป็นการประมาณการ</p>
+<p style="margin-top:6px;font-size:9px">Last updated: September 2026 | References verified as of publication date</p>
+</div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+<div class="modal">
+<h3 id="modal-title">Export</h3>
+<textarea id="modal-text"></textarea>
+<div style="margin-top:8px;display:flex;gap:6px">
+<button class="btn btn-primary" id="modal-action" onclick="modalAction()">Copy</button>
+<button class="btn btn-outline" onclick="closeModal()">Close</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// ===== STATE =====
+let S = {};
+let assets = [];
+let insurances = [];
+let modalMode = 'export';
+
+// ===== INIT =====
+function init() {
+  readForm();
+  updateTermUI();
+  recalculate();
+}
+
+function readForm() {
+  S = {
+    termType: document.querySelector('.toggle-btn.layoff.active') ? 'layoff' : document.querySelector('.toggle-btn.retire.active') ? 'retire' : 'resign',
+    name: v('f-name'),
+    empNo: v('f-empno'),
+    company: v('f-company'),
+    dob: v('f-dob'),
+    startDate: v('f-start'),
+    sepDate: v('f-sep'),
+    salary: n('f-salary'),
+    leaveDays: n('f-leave'),
+    expense: n('f-expense'),
+    ssBalance: n('f-ssbal'),
+    ssMonths: n('f-ssmo'),
+    epfTotal: n('f-epf'),
+    epfChoice: v('f-epfchoice'),
+    epfGrowth: n('f-epfgrowth'),
+    epfAge: Math.max(55, parseInt(n('f-epfage'))||55),
+    noticePay: document.getElementById('f-notice')?.checked !== false,
+    specialSev: document.getElementById('f-specsev').checked
+  };
+}
+function v(id){return document.getElementById(id).value}
+function n(id){const el=document.getElementById(id);return parseFloat(el?.dataset?.rawValue||el?.value?.replace(/,/g,''))||0}
+
+// ===== TABS =====
+function switchTab(t) {
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(el=>{if(el.textContent.toLowerCase().includes(t==='settings'?'settings':t==='help'?'help':'cash'))el.classList.add('active')});
+}
+
+// ===== TERMINATION TYPE =====
+function setTermType(t) {
+  S.termType = t;
+  document.querySelectorAll('.toggle-btn.layoff').forEach(b=>b.classList.toggle('active',t==='layoff'));
+  document.querySelectorAll('.toggle-btn.resign').forEach(b=>b.classList.toggle('active',t==='resign'));
+  document.querySelectorAll('.toggle-btn.retire').forEach(b=>b.classList.toggle('active',t==='retire'));
+  updateTermUI();
+}
+function updateTermUI() {
+  const t = S.termType;
+  const desc = {
+    layoff: 'Laid off: Full severance + notice pay + 6mo unemployment at 50% (max ฿7,500/mo)',
+    resign: 'Self-resign: No severance/notice. Unemployment 3mo at 30% (max ฿4,500/mo) only',
+    retire: 'Retire: Full severance (employer-initiated). No unemployment benefit. SS pension at 55.'
+  };
+  document.getElementById('term-desc-text').textContent = desc[t] || desc.layoff;
+  document.getElementById('box-special-sev').classList.toggle('show', t==='layoff');
+  const noticeBox = document.getElementById('f-notice');
+  if(noticeBox && t==='resign') noticeBox.checked = false;
+}
+
+// ===== ASSETS =====
+
+
+// === DRAG & DROP ===
+let dragType = null, dragIdx = null;
+function dStart(e, type, idx) {
+  dragType = type; dragIdx = idx;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const row = e.currentTarget.closest('.dyn-row');
+  // Remove all drag-over first
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  if(row) row.classList.add('drag-over');
+}
+function dDrop(e, type, dropIdx) {
+  e.preventDefault();
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  if(dragType !== type || dragIdx === null || dragIdx === dropIdx) return;
+  if(type === 'asset') {
+    readAssets();
+    const item = assets.splice(dragIdx, 1)[0];
+    assets.splice(dropIdx, 0, item);
+    renderAssets();
+    setTimeout(formatNumInputs, 50);
+  } else {
+    readInsurances();
+    const item = insurances.splice(dragIdx, 1)[0];
+    insurances.splice(dropIdx, 0, item);
+    renderInsurances();
+    setTimeout(formatNumInputs, 50);
+  }
+  dragType = null; dragIdx = null;
+}
+function dEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  dragType = null; dragIdx = null;
+}
+
+
+
+function validateEpfAge(input) {
+  let val;
+  if(input.type === 'number') {
+    val = parseInt(input.value) || 0;
+  } else {
+    val = parseInt(input.value?.replace(/,/g,'')) || 0;
+  }
+  const choice = document.getElementById('f-epfchoice')?.value;
+  if(choice !== 'cashout' && val < 55) {
+    alert('⚠️ EPF/RMF withdrawal age must be 55 or older.\nTax-free withdrawal requires age ≥ 55 with 5+ years membership.');
+    input.type = 'number';
+    input.value = 55;
+    input.dataset.rawValue = '55';
+    setTimeout(()=>{ input.type = 'text'; input.value = '55'; }, 10);
+  }
+}
+
+function validateAssetAge(input) {
+  const row = input.closest('.dyn-row');
+  if(!row) return;
+  const typeSelect = row.querySelector('.a-type');
+  if(!typeSelect) return;
+  const type = typeSelect.value;
+  // Read actual input value first (not stale rawValue)
+  let val;
+  if(input.type === 'number') {
+    val = parseInt(input.value) || 0;
+  } else {
+    val = parseInt(input.value?.replace(/,/g,'')) || 0;
+  }
+  if(type === 'RMF' && val < 55) {
+    alert('⚠️ RMF liquidation age must be 55 or older.\nRMF requires age ≥ 55 for tax-free withdrawal.');
+    input.type = 'number';
+    input.value = 55;
+    input.dataset.rawValue = '55';
+    setTimeout(()=>{ input.type = 'text'; input.value = '55'; }, 10);
+  }
+}
+
+function enforceMinAge(sel) {
+  const row = sel.closest('.dyn-row');
+  const ageInput = row.querySelector('.a-age');
+  if(sel.value === 'RMF') {
+    ageInput.min = 55;
+    const curAge = parseInt(ageInput.dataset?.rawValue || ageInput.value) || 0;
+    if(curAge < 55) {
+      ageInput.value = 55;
+      ageInput.dataset.rawValue = '55';
+      if(ageInput.type === 'text') ageInput.value = '55';
+    }
+  } else {
+    ageInput.min = 0;
+  }
+}
+function moveAsset(i, dir) {
+  readAssets();
+  const j = i + dir;
+  if(j < 0 || j >= assets.length) return;
+  const tmp = assets[i]; assets[i] = assets[j]; assets[j] = tmp;
+  renderAssets();
+  setTimeout(formatNumInputs, 50);
+}
+
+function moveInsurance(i, dir) {
+  readInsurances();
+  const j = i + dir;
+  if(j < 0 || j >= insurances.length) return;
+  const tmp = insurances[i]; insurances[i] = insurances[j]; insurances[j] = tmp;
+  renderInsurances();
+  setTimeout(formatNumInputs, 50);
+}
+
+function addAsset() {
+  readAssets();
+  assets.push({type:'Savings',name:'',amount:0,growth:0,liquidateAge:55});
+  renderAssets();
+  setTimeout(formatNumInputs, 50);
+}
+function removeAsset(i) { readAssets(); assets.splice(i,1); renderAssets(); setTimeout(formatNumInputs, 50); }
+function readAssets() {
+  const rows = document.querySelectorAll('#asset-list .dyn-row');
+  const minAge55 = ['RMF'];
+  assets = Array.from(rows).map(r => {
+    const type = r.querySelector('.a-type').value;
+    let age = parseInt(r.querySelector('.a-age')?.dataset?.rawValue||r.querySelector('.a-age')?.value)||55;
+    if(minAge55.includes(type) && age < 55) age = 55;
+    return {
+      type,
+      name: r.querySelector('.a-name').value,
+      amount: parseFloat(r.querySelector('.a-amt')?.dataset?.rawValue||r.querySelector('.a-amt')?.value)||0,
+      growth: parseFloat(r.querySelector('.a-grow')?.dataset?.rawValue||r.querySelector('.a-grow')?.value)||0,
+      liquidateAge: age
+    };
+  });
+}
+function renderAssets() {
+  const c = document.getElementById('asset-list');
+  const types = ['Bonds','Crypto','Deposit','Funds','Gold','Property','Receivable','RMF','Savings','SSF','Stocks','Thai ESG','Other'];
+  c.innerHTML = assets.map((a,i)=>`<div class="dyn-row" draggable="true" ondragstart="dStart(event,'asset',${i})" ondragover="dOver(event)" ondrop="dDrop(event,'asset',${i})" ondragend="dEnd(event)"><span class="drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></span>
+    <div class="field" style="flex:0 0 90px"><label>Type</label><select class="a-type" onchange="enforceMinAge(this);const ageInp=this.closest('.dyn-row').querySelector('.a-age');if(ageInp)validateAssetAge(ageInp)">${types.map(t=>`<option${t===a.type?' selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="field"><label>Name</label><input class="a-name" value="${esc(a.name)}" placeholder="Description"></div>
+    <div class="field" style="flex:0 0 100px"><label>Amount (฿)</label><input type="number" class="a-amt" value="${a.amount}" step="1000"></div>
+    <div class="field" style="flex:0 0 70px"><label>Growth %/yr</label><input type="number" class="a-grow" value="${a.growth}" step="0.1"></div>
+    <div class="field" style="flex:0 0 70px"><label>Liquidate Age</label><input type="number" class="a-age" onblur="validateAssetAge(this)" onchange="validateAssetAge(this)" value="${Math.max(a.type==='RMF'?55:0, a.liquidateAge)}" min="${a.type==='RMF'?55:0}"></div>
+    <button class="btn btn-sm btn-red" onclick="readAssets();removeAsset(${i})" style="margin-bottom:2px"><i class="fas fa-trash"></i></button>
+  </div>`).join('');
+  document.getElementById('asset-empty').style.display = assets.length ? 'none' : 'block';
+}
+
+// ===== INSURANCE =====
+function addInsurance() {
+  readInsurances();
+  insurances.push({company:'AIA Thailand',name:'',amount:0,payoutAge:60});
+  renderInsurances();
+  setTimeout(formatNumInputs, 50);
+}
+function removeInsurance(i) { readInsurances(); insurances.splice(i,1); renderInsurances(); setTimeout(formatNumInputs, 50); }
+function readInsurances() {
+  const rows = document.querySelectorAll('#ins-list .dyn-row');
+  insurances = Array.from(rows).map(r => ({
+    company: r.querySelector('.i-company')?.value||'Other',
+    name: r.querySelector('.i-name').value,
+    amount: parseFloat(r.querySelector('.i-amt')?.dataset?.rawValue||r.querySelector('.i-amt')?.value)||0,
+    payoutAge: parseInt(r.querySelector('.i-age')?.dataset?.rawValue||r.querySelector('.i-age')?.value)||60
+  }));
+}
+function renderInsurances() {
+  const c = document.getElementById('ins-list');
+  const companies = "AIA Thailand|Allianz Ayudhya|Bangkok Life Assurance|Chubb Life Thailand|FWD Insurance|Generali Thailand|Krungthai-AXA Life|Muang Thai Life|Phillip Life|Prudential Thailand|SCB Life|Southeast Life|Thai Life Insurance|Thai Samsung Life|Tokio Marine Life|Other".split('|');
+  c.innerHTML = insurances.map((ins,i)=>{
+    const companyOpts = companies.map(co => 
+      `<option value="${co}"${ins.company===co?' selected':''}>${co}</option>`
+    ).join('');
+    return `<div class="dyn-row" draggable="true" ondragstart="dStart(event,'ins',${i})" ondragover="dOver(event)" ondrop="dDrop(event,'ins',${i})" ondragend="dEnd(event)"><span class="drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></span>
+    <div class="field" style="flex:0 0 140px"><label>Company</label><select class="i-company" style="font-size:10px">${companyOpts}</select></div>
+    <div class="field"><label>Policy Name</label><input class="i-name" value="${esc(ins.name)}" placeholder="e.g. Endowment 20yr"></div>
+    <div class="field" style="flex:0 0 100px"><label>Payout (฿)</label><input type="number" class="i-amt" value="${ins.amount}"></div>
+    <div class="field" style="flex:0 0 60px"><label>Age</label><input type="number" class="i-age" value="${ins.payoutAge}" min="1" max="99"></div>
+    <div class="move-btns">
+      <button class="move-btn" onclick="moveInsurance(${i},-1)" title="Move up"><i class="fas fa-chevron-up"></i></button>
+      <button class="move-btn" onclick="moveInsurance(${i},1)" title="Move down"><i class="fas fa-chevron-down"></i></button>
+    </div>
+    <button class="btn btn-red btn-sm" onclick="removeInsurance(${i})" style="margin-bottom:2px"><i class="fas fa-trash"></i></button>
+  </div>`;
+  }).join('');
+  document.getElementById('ins-empty').style.display = insurances.length ? 'none' : 'block';
+}
+
+
+function pd(s){return new Date(s+'T00:00:00')}
+function yearsBetween(d1,d2){
+  let y=d2.getFullYear()-d1.getFullYear();
+  if(d2.getMonth()<d1.getMonth()||(d2.getMonth()===d1.getMonth()&&d2.getDate()<d1.getDate()))y--;
+  return y;
+}
+function yearsBetweenDec(d1,d2){return(d2-d1)/(365.25*24*3600000)}
+function ageAt(dob,date){return yearsBetween(pd(dob),pd(date))}
+
+function sevDays(yrs){
+  if(yrs<120/365)return 0;if(yrs<1)return 30;if(yrs<3)return 90;
+  if(yrs<6)return 180;if(yrs<10)return 240;if(yrs<20)return 300;return 400;
+}
+function sevTierLabel(yrs){
+  if(yrs<120/365)return'<120d';if(yrs<1)return'120d–<1yr';if(yrs<3)return'1–<3yr';
+  if(yrs<6)return'3–<6yr';if(yrs<10)return'6–<10yr';if(yrs<20)return'10–<20yr';return'≥20yr';
+}
+function epfVest(yrs){
+  if(yrs<3)return 0;if(yrs<4)return 0.2;if(yrs<5)return 0.4;
+  if(yrs<6)return 0.6;if(yrs<7)return 0.8;return 1;
+}
+function ssPension(months){
+  if(months<180)return 0;
+  let yrs=months/12, base=0.2*15000;
+  if(yrs>15) base+=(yrs-15)*0.015*15000;
+  return Math.round(base*100)/100;
+}
+
+function recalculate() {
+  // Validate RMF/EPF age >= 55
+  readForm(); readAssets(); readInsurances();
+  const epfWithdrawAge = S.epfAge || 55;
+  let ageError = '';
+  if(S.epfChoice !== 'cashout' && epfWithdrawAge < 55) {
+    ageError = 'EPF/RMF withdrawal age must be 55 or older (current: ' + epfWithdrawAge + '). Tax-free withdrawal requires age ≥ 55 with 5+ years of fund membership.';
+  }
+  assets.forEach((a,i) => {
+    if(a.type === 'RMF' && a.liquidateAge < 55) {
+      ageError += (ageError?'\n':'') + 'RMF asset "' + (a.name||'#'+(i+1)) + '" has liquidation age ' + a.liquidateAge + '. RMF must be age 55+ for tax-free withdrawal.';
+    }
+  });
+  if(ageError) {
+    recalculate._userTriggered = false;
+    alert('⚠️ Validation Error:\n\n' + ageError);
+    return;
+  }
+
+  const isLayoff = S.termType==='layoff';
+  const isRetire = S.termType==='retire';
+  const sepD = pd(S.sepDate), dobD = pd(S.dob), startD = pd(S.startDate);
+  const sepAge = ageAt(S.dob, S.sepDate);
+  const svcYrs = yearsBetweenDec(startD, sepD);
+  const svcYrsFull = Math.floor(svcYrs);
+  const daily = S.salary/30;
+
+  // Entitlements
+  const sevAmount = (isLayoff || isRetire) ? sevDays(svcYrs)*daily : 0;
+  const noticeAmount = ((isLayoff || isRetire) && S.noticePay) ? S.salary : 0;
+  const leaveAmount = S.leaveDays * daily;
+  const specSevDays = isLayoff && S.specialSev && svcYrs>=6 ? Math.min(15*svcYrsFull,360) : 0;
+  const specSevAmount = specSevDays * daily;
+
+  // EPF
+  const vestPct = epfVest(svcYrs);
+  const epfEmployee = S.epfTotal/2;
+  const epfEmployer = S.epfTotal/2;
+  const epfPayout = epfEmployee + epfEmployer*vestPct;
+  const epfNow = S.epfChoice==='cashout' ? epfPayout : 0;
+  const epfAge = S.epfAge || 55;
+  const epfAt55 = S.epfChoice!=='cashout' ? epfPayout*Math.pow(1+S.epfGrowth/100, Math.max(0,epfAge-sepAge)) : 0;
+
+  // SSO Unemployment
+  const ssoRate = isLayoff ? 0.5 : isRetire ? 0 : 0.3;
+  const ssoCap = isLayoff ? 7500 : isRetire ? 0 : 4500;
+  const ssoMonthly = isRetire ? 0 : Math.min(S.salary*ssoRate, ssoCap);
+  const ssoMonths = isLayoff ? 6 : isRetire ? 0 : 3;
+
+  // SS Pension
+  const pensionStop = ssPension(S.ssMonths);
+  const monthsTo55 = Math.max(0,(55-sepAge)*12);
+  const pensionS39 = ssPension(S.ssMonths + monthsTo55);
+
+  // Cash at separation (one-time total)
+  const cashAtSep = sevAmount + noticeAmount + leaveAmount + specSevAmount + epfNow;
+  const totalEntitle = cashAtSep + ssoMonthly*ssoMonths;
+
+  // ===== BUILD CASH FLOW ROWS =====
+  let rows = [];
+  let cumulative = 0;
+  const me = S.expense;
+
+  function addRow(age, period, source, cashIn, expense, cls, tag) {
+    let net = cashIn - expense;
+    cumulative += net;
+    let mq = me>0 ? cumulative/me : 999;
+    rows.push({age,period,source,cashIn,expense,net,cumulative,mq,cls:cls||'',tag:tag||''});
+  }
+
+  // Month 0 - Separation month
+  const m0Label = monthLabel(sepD);
+  if((isLayoff||isRetire) && sevAmount>0) addRow(sepAge, m0Label, 'Severance Pay (Sec.118)', sevAmount, 0, 'sep-row', 'green');
+  if(noticeAmount>0) addRow(sepAge, m0Label, 'Notice Pay (1 month)', noticeAmount, 0, 'sep-row', 'green');
+  if(leaveAmount>0) addRow(sepAge, m0Label, `Leave Cash-out (${S.leaveDays}d)`, leaveAmount, 0, 'sep-row', 'blue');
+  if(specSevAmount>0) addRow(sepAge, m0Label, `Special Sev. Sec.122 (${specSevDays}d)`, specSevAmount, 0, 'sep-row', 'amber');
+  if(epfNow>0) addRow(sepAge, m0Label, `EPF Cash Out (vest ${(vestPct*100).toFixed(0)}%)`, epfNow, 0, 'sep-row', 'cyan');
+  addRow(sepAge, m0Label, 'Monthly Expense', 0, me, 'expense-row', '');
+
+  // Months 1-11
+  for(let m=1; m<=11; m++) {
+    let md = new Date(sepD); md.setMonth(md.getMonth()+m);
+    let mAge = ageAt(S.dob, md.toISOString().slice(0,10));
+    let ml = monthLabel(md);
+    if(m<=ssoMonths) addRow(mAge, ml, `SSO Unemployment (${isLayoff?'50%':'30%'})`, ssoMonthly, 0, '', 'blue');
+    addRow(mAge, ml, 'Monthly Expense', 0, me, 'expense-row', '');
+  }
+
+  // Yearly from age (sepAge+1 or +2 depending on month overlap) to 99
+  // First 12 months covered above, so yearly starts at the age after those 12 months
+  // Start yearly from the age right after the 12 monthly rows
+  let postMonthDate = new Date(sepD); postMonthDate.setMonth(postMonthDate.getMonth()+12);
+  let yrAge = ageAt(S.dob, postMonthDate.toISOString().slice(0,10));
+
+  // But first add the "gap" period between month 11 and yearly start
+  // The gap = months from end of month 11 to start of yearly age
+  // Actually let me simplify: yearly from (sepAge+2) to 99, each year = 12 months expense
+  // Any SSO months not yet covered? SSO max is 6 months, all covered in months 1-6
+
+  for(let age = yrAge; age <= 99; age++) {
+    let yrExpense = me * 12;
+    let yr = pd(S.dob).getFullYear() + age;
+    let pLabel = `${yr} (Age ${age})`;
+    let hadIncome = false;
+
+    // Pension at 55+
+    if(age >= 55 && pensionStop > 0) {
+      addRow(age, pLabel, 'SS Pension (monthly×12)', pensionStop*12, 0, 'pension-row', 'green');
+      hadIncome = true;
+    }
+
+    // EPF/RMF at specified age
+    if(age === epfAge && epfAt55 > 0) {
+      addRow(age, pLabel, `${S.epfChoice==='rmf'?'EPF → RMF Withdrawal (PVD transfer'+(epfAge>=55?', tax-free':'')+')':'EPF Fund Withdrawal at '+epfAge}`, epfAt55, 0, 'sep-row', 'cyan');
+      hadIncome = true;
+    }
+
+    // Insurance payouts
+    insurances.filter(ins=>ins.payoutAge===age).forEach(ins=>{
+      addRow(age, pLabel, `🛡️ ${ins.company?ins.company+' — ':''}${ins.name||'Policy'}`, ins.amount, 0, 'insurance-row', 'purple');
+      hadIncome = true;
+    });
+
+    // Asset liquidation
+    assets.filter(a=>a.liquidateAge===age).forEach(a=>{
+      let yrsGrow = age - sepAge;
+      let val = a.amount * Math.pow(1+a.growth/100, yrsGrow);
+      addRow(age, pLabel, `${a.type}: ${a.name||'Asset'}`, Math.round(val), 0, 'asset-row', 'cyan');
+      hadIncome = true;
+    });
+
+    // Annual expense
+    addRow(age, pLabel, 'Annual Expense (12mo)', 0, yrExpense, 'expense-row', '');
+  }
+
+  // ===== RENDER =====
+  renderProfile(sepAge, svcYrs, svcYrsFull, isLayoff, isRetire);
+  renderSummary(cashAtSep, totalEntitle, pensionStop, pensionS39, epfPayout, epfAt55, cumulative, sepAge);
+  renderTable(rows);
+  renderRefTables(svcYrs, S.salary, daily, pensionStop, pensionS39, epfPayout, epfAt55, vestPct, sepAge, isLayoff, isRetire);
+  renderChecklist(isLayoff, S.epfChoice, isRetire);
+  if(recalculate._userTriggered) { recalculate._userTriggered = false; switchTab('cashflow'); }
+}
+
+function monthLabel(d){
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if(typeof d==='string')d=pd(d);
+  return m[d.getMonth()]+' '+d.getFullYear();
+}
+
+function renderProfile(sepAge, svcYrs, svcYrsFull, isLayoff, isRetire) {
+  document.getElementById('cf-profile').innerHTML = `
+    <div class="item"><i class="fas fa-user info"></i> <b>${esc(S.name)}</b></div>
+    <div class="item">ID: <b>${esc(S.empNo)}</b></div>
+    <div class="item"><i class="fas fa-building"></i> ${esc(S.company)}</div>
+    <div class="item">Age: <b>${sepAge}</b></div>
+    <div class="item">Service: <b>${svcYrs.toFixed(1)}yr</b></div>
+    <div class="item"><span class="tag ${isLayoff?'tag-red':'tag-amber'}">${isLayoff?'LAID OFF':'SELF-RESIGN'}</span></div>
+    <div class="item">Salary: <b>${fmt(S.salary)}</b></div>
+  `;
+}
+
+function renderSummary(cashSep, totalEnt, penStop, penS39, epfPay, epfAt55, finalCum, sepAge) {
+  const monthsToSurvive = S.expense>0 ? Math.floor(cashSep/S.expense) : 0;
+  document.getElementById('cf-summary').innerHTML = `
+    <div class="summary-card green"><div class="label"><i class="fas fa-hand-holding-usd"></i> Cash at Separation</div><div class="value">฿${fmt(Math.round(cashSep))}</div><div class="sub">${monthsToSurvive} months of expenses</div></div>
+    <div class="summary-card blue"><div class="label"><i class="fas fa-receipt"></i> Total Entitlement (incl. SSO)</div><div class="value">฿${fmt(Math.round(totalEnt))}</div><div class="sub">Lump sum + unemployment benefits</div></div>
+    <div class="summary-card purple"><div class="label"><i class="fas fa-umbrella"></i> SS Pension at 55 (stop)</div><div class="value">฿${fmt(Math.round(penStop))}/mo</div><div class="sub">Sec.39 option: ฿${fmt(Math.round(penS39))}/mo</div></div>
+    <div class="summary-card ${epfAt55>0?'amber':'blue'}"><div class="label"><i class="fas fa-piggy-bank"></i> EPF Payout</div><div class="value">฿${fmt(Math.round(epfAt55>0?epfAt55:epfPay))}</div><div class="sub">${epfAt55>0?'Projected at age '+(S.epfAge||55)+' ('+S.epfGrowth+'%/yr)':'Cash out now'}</div></div>
+    <div class="summary-card ${finalCum>=0?'green':'red'}"><div class="label"><i class="fas fa-flag-checkered"></i> Balance at 99</div><div class="value">฿${fmt(Math.round(finalCum))}</div><div class="sub">${finalCum>=0?'Surplus':'Shortfall — need more income'}</div></div>
+  `;
+}
+
+function renderTable(rows) {
+  let html = `<table class="cf"><thead><tr>
+    <th>Age</th><th>Period</th><th>Source</th><th style="text-align:right">Cash In</th>
+    <th style="text-align:right">Expenses</th><th style="text-align:right">Net</th>
+    <th style="text-align:right">Cumulative</th><th style="text-align:right">Monthly Quota</th>
+  </tr></thead><tbody>`;
+
+  let prevAge = -1;
+  rows.forEach(r => {
+    let isNewAge = r.age !== prevAge && prevAge !== -1;
+    if(isNewAge) html += `<tr class="year-header"><td colspan="8"><i class="fas fa-calendar-alt" style="color:var(--text3)"></i> Age ${r.age}</td></tr>`;
+    prevAge = r.age;
+
+    let mqClass = r.mq < 12 ? 'quota-danger' : r.mq < 36 ? 'quota-warning' : 'quota-ok';
+    let tagHtml = r.tag ? `<span class="tag tag-${r.tag}">${r.source}</span>` : r.source;
+
+    html += `<tr class="${r.cls}">
+      <td>${r.age}</td>
+      <td style="font-size:9px">${r.period}</td>
+      <td>${tagHtml}</td>
+      <td style="text-align:right">${r.cashIn>0?'<span class="pos">'+fmt(Math.round(r.cashIn))+'</span>':''}</td>
+      <td style="text-align:right">${r.expense>0?'<span class="neg">-'+fmt(Math.round(r.expense))+'</span>':''}</td>
+      <td style="text-align:right"><span class="${r.net>=0?'pos':'neg'}">${r.net>=0?'+':''}${fmt(Math.round(r.net))}</span></td>
+      <td style="text-align:right;font-weight:600"><span class="${r.cumulative>=0?'':'neg'}">${fmt(Math.round(r.cumulative))}</span></td>
+      <td style="text-align:right" class="${mqClass}">${r.mq>=999?'∞':r.mq.toFixed(1)}mo</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('cf-table-wrap').innerHTML = html;
+}
+
+function renderRefTables(svcYrs, salary, daily, penStop, penS39, epfPay, epfAt55, vest, sepAge, isLayoff) {
+  // Dynamic severance table
+  const tiers = [
+    ['< 120 days',0],['120d – < 1 yr',30],['1 – < 3 yr',90],
+    ['3 – < 6 yr',180],['6 – < 10 yr',240],['10 – < 20 yr',300],['≥ 20 yr',400]
+  ];
+  const tierThresh = [120/365,1,3,6,10,20,999];
+  let activeTier = 0;
+  for(let i=0;i<tierThresh.length;i++){if(svcYrs<tierThresh[i]){activeTier=i;break;}}
+  let sevHtml = `<tr><th>Service Duration</th><th>Days</th><th>At ฿${fmt(Math.round(salary))}/mo</th></tr>`;
+  tiers.forEach((t,i)=>{
+    let amt = t[1]*daily;
+    let cls = i===activeTier ? ' class="active-tier"' : '';
+    sevHtml += `<tr${cls}><td>${t[0]}</td><td>${t[1]}</td><td>฿${fmt(Math.round(amt))}</td></tr>`;
+  });
+  document.getElementById('sev-ref-table').innerHTML = sevHtml;
+
+  // SS Pension scenarios
+  const monthsTo55 = Math.max(0,(55-sepAge)*12);
+  const scA = ssPension(S.ssMonths);
+  // Sec.39: voluntary ฿432/mo, counts toward pension months
+  const s39months = Math.min(monthsTo55, Math.floor(monthsTo55));
+  const scB = ssPension(S.ssMonths + s39months);
+  const s39cost = s39months * 432;
+  // Re-employed: full contributions, same months but employer shares cost
+  const scC = ssPension(S.ssMonths + monthsTo55);
+  document.getElementById('ss-ref-table').innerHTML = `
+    <tr><th>Scenario</th><th>Total Months</th><th>Monthly Pension</th><th>Note</th></tr>
+    <tr><td><span class="tag tag-red">A: Stop now</span></td><td>${S.ssMonths}</td><td>฿${fmt(Math.round(scA))}</td><td>No further cost</td></tr>
+    <tr><td><span class="tag tag-amber">B: Sec.39 voluntary</span></td><td>${S.ssMonths}+${s39months}=${S.ssMonths+s39months}</td><td>฿${fmt(Math.round(scB))}</td><td>Cost: ฿432/mo (฿${fmt(s39cost)} total)</td></tr>
+    <tr><td><span class="tag tag-green">C: Re-employed</span></td><td>${S.ssMonths}+${monthsTo55}=${S.ssMonths+monthsTo55}</td><td>฿${fmt(Math.round(scC))}</td><td>Employer shares cost</td></tr>
+  `;
+
+  // EPF comparison
+  const epfEmp = S.epfTotal/2, epfEr = S.epfTotal/2;
+  const epfCashNow = epfEmp + epfEr*vest;
+  const yrsTo55 = Math.max(0,55-sepAge);
+  const epfKeep55 = epfCashNow * Math.pow(1+S.epfGrowth/100, yrsTo55);
+  document.getElementById('epf-ref-table').innerHTML = `
+    <tr><th>Option</th><th>Now</th><th>At 55 (${S.epfGrowth}%/yr)</th><th>Tax Note</th></tr>
+    <tr><td><span class="tag tag-green">Cash Out</span></td><td>฿${fmt(Math.round(epfCashNow))}</td><td>—</td><td>Taxable as income</td></tr>
+    <tr><td><span class="tag tag-blue">Transfer to RMF</span></td><td>—</td><td>฿${fmt(Math.round(epfKeep55))}</td><td>Tax-free if held 5yr+age≥55</td></tr>
+    <tr><td><span class="tag tag-purple">Keep in Fund</span></td><td>—</td><td>฿${fmt(Math.round(epfKeep55))}</td><td>Per fund rules</td></tr>
+    <tr><td colspan="4" style="font-size:9px;color:var(--text3)">Employee: ฿${fmt(Math.round(epfEmp))} (100%) + Employer: ฿${fmt(Math.round(epfEr))} × ${(vest*100).toFixed(0)}% vesting = ฿${fmt(Math.round(epfCashNow))}</td></tr>
+  `;
+}
+
+function renderChecklist(isLayoff, epfChoice, isRetire) {
+  const items = [];
+  if(isLayoff) {
+    items.push(['fas fa-file-contract','Request written termination letter (หนังสือเลิกจ้าง)']);
+    items.push(['fas fa-calculator','Verify severance calculation with HR']);
+    items.push(['fas fa-money-bill','Confirm notice pay + leave cash-out on final payslip']);
+  } else {
+    items.push(['fas fa-envelope','Submit resignation letter 30 days in advance']);
+  }
+  items.push(['fas fa-id-card','Register at SSO office within 30 days for unemployment']);
+  items.push(['fas fa-piggy-bank', epfChoice==='cashout'?'Request EPF cash-out from fund manager':'Arrange EPF '+epfChoice.toUpperCase()+' transfer']);
+  items.push(['fas fa-hospital','Arrange health insurance (COBRA or private) within 6 months']);
+  items.push(['fas fa-file-alt','File Bor Ngor Dor 91 tax form if applicable']);
+  items.push(['fas fa-landmark','Update bank account for final salary transfer']);
+  items.push(['fas fa-shield-alt','Consider continuing SS via Section 39 (฿432/mo) for pension boost']);
+  items.push(['fas fa-briefcase','Begin job search / freelance planning']);
+  items.push(['fas fa-wallet','Review and trim monthly expenses']);
+
+  document.getElementById('checklist').innerHTML = items.map(([icon,text])=>
+    `<li><i class="${icon}"></i> ${text}</li>`
+  ).join('');
+}
+
+
+// ===== EXPORT / IMPORT =====
+function showExport() {
+  readForm(); readAssets(); readInsurances();
+  const data = {...S, assets, insurances};
+  const json = JSON.stringify(data, null, 2);
+  // Try file download first
+  try {
+    const blob = new Blob([json], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const name = (S.name||'plan').replace(/[^a-zA-Z0-9]/g,'_');
+    a.download = 'retirement_plan_' + name + '_' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    // Fallback: show in modal for manual copy
+    modalMode = 'export';
+    document.getElementById('modal-title').textContent = 'Export Settings (JSON)';
+    document.getElementById('modal-text').value = json;
+    document.getElementById('modal-action').textContent = 'Copy to Clipboard';
+    document.getElementById('modal').classList.add('show');
+  }
+}
+function showImport() {
+  modalMode = 'import';
+  document.getElementById('modal-title').textContent = 'Import Settings (JSON)';
+  document.getElementById('modal-text').value = '';
+  document.getElementById('modal-action').textContent = 'Import & Apply';
+  document.getElementById('modal').classList.add('show');
+  // Also add file input if not exists
+  if(!document.getElementById('import-file-input')){
+    const wrap = document.getElementById('modal-text').parentNode;
+    const div = document.createElement('div');
+    div.style.cssText = 'margin-bottom:8px;display:flex;align-items:center;gap:8px';
+    div.innerHTML = '<label class="btn btn-outline" style="cursor:pointer"><i class="fas fa-file-import"></i> Load from file<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="loadImportFile(this)"></label><span style="font-size:9px;color:var(--text3)">or paste JSON below</span>';
+    wrap.insertBefore(div, document.getElementById('modal-text'));
+  }
+}
+function loadImportFile(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('modal-text').value = e.target.result;
+  };
+  reader.readAsText(file);
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+function modalAction() {
+  if(modalMode==='export') {
+    try { navigator.clipboard.writeText(document.getElementById('modal-text').value); } catch(e) {
+      document.getElementById('modal-text').select();
+    }
+  } else {
+    try {
+      const d = JSON.parse(document.getElementById('modal-text').value);
+      if(d.termType) { S.termType=d.termType; setTermType(d.termType); }
+      if(d.name) document.getElementById('f-name').value=d.name;
+      if(d.empNo) document.getElementById('f-empno').value=d.empNo;
+      if(d.company) document.getElementById('f-company').value=d.company;
+      if(d.dob) document.getElementById('f-dob').value=d.dob;
+      if(d.startDate) document.getElementById('f-start').value=d.startDate;
+      if(d.sepDate) document.getElementById('f-sep').value=d.sepDate;
+      if(d.salary!=null) document.getElementById('f-salary').value=d.salary;
+      if(d.leaveDays!=null) document.getElementById('f-leave').value=d.leaveDays;
+      if(d.expense!=null) document.getElementById('f-expense').value=d.expense;
+      if(d.ssBalance!=null) document.getElementById('f-ssbal').value=d.ssBalance;
+      if(d.ssMonths!=null) document.getElementById('f-ssmo').value=d.ssMonths;
+      if(d.epfTotal!=null) document.getElementById('f-epf').value=d.epfTotal;
+      if(d.epfChoice) document.getElementById('f-epfchoice').value=d.epfChoice;
+      if(d.epfGrowth!=null) document.getElementById('f-epfgrowth').value=d.epfGrowth;
+      if(d.epfAge!=null) document.getElementById('f-epfage').value=d.epfAge;
+      if(d.specialSev!=null) document.getElementById('f-specsev').checked=d.specialSev;
+      if(d.assets) { assets=d.assets; renderAssets(); }
+      if(d.noticePay !== undefined) { document.getElementById('f-notice').checked = d.noticePay; }
+      if(d.insurances) { insurances=d.insurances; renderInsurances(); }
+      // Clear stale rawValue so n() reads fresh .value
+      document.querySelectorAll('input[data-raw-value]').forEach(el=>{ delete el.dataset.rawValue; el.type='number'; });
+      formatNumInputs();
+      recalculate();
+      closeModal();
+    } catch(e) { alert('Invalid JSON: '+e.message); }
+  }
+}
+
+// ===== HELPERS =====
+function fmt(n) {
+  if(n==null||isNaN(n)) return '0';
+  let neg = n<0; n=Math.abs(n);
+  let s = n.toLocaleString('en-US',{maximumFractionDigits:0});
+  return neg?'-'+s:s;
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Boot
+init();
+
+
+// === THEME TOGGLE ===
+function toggleTheme(){
+  const body=document.body;
+  if(body.classList.contains('light')){
+    body.classList.remove('light');body.classList.add('dark');
+    document.getElementById('themeLabel').textContent='Light';
+  } else {
+    body.classList.remove('dark');body.classList.add('light');
+    document.getElementById('themeLabel').textContent='Dark';
+  }
+}
+// Default to dark
+document.body.classList.add('light');
+document.getElementById('themeLabel').textContent='Dark';
+
+// === NUMBER FORMAT FOR INPUTS ===
+
+// Helper to read numeric value from potentially formatted inputs
+function getVal(id, fallback){
+  const el = document.getElementById(id);
+  if(!el) return fallback;
+  if(el.dataset.rawValue !== undefined) return parseFloat(el.dataset.rawValue) || fallback;
+  return parseFloat(el.value) || fallback;
+}
+function formatNumInputs(){
+  document.querySelectorAll('input[type=number], input[data-raw-value]').forEach(inp=>{
+    // Skip if already formatted (type=text with rawValue)
+    if(inp.type === 'text' && inp.dataset.rawValue) return;
+    // Remove old listeners by cloning (prevents duplicates)
+    const isNew = !inp.dataset.fmtBound;
+    if(isNew){
+      inp.dataset.fmtBound = '1';
+      inp.addEventListener('blur', function(){
+        if(!this.value || this.value.trim() === '') this.value = '0';
+        if(!isNaN(+this.value)){
+          this.dataset.rawValue = this.value;
+          const isInt = this.classList.contains('int-field') || this.classList.contains('a-age') || this.classList.contains('i-age') || this.id==='f-ssmo' || this.id==='f-leave' || this.id==='f-epfage';
+          this.type = 'text';
+          if(isInt){
+            this.value = parseInt(this.dataset.rawValue).toLocaleString('en-US');
+          } else {
+            this.value = parseFloat(this.dataset.rawValue).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+          }
+        }
+      });
+      inp.addEventListener('focus', function(){
+        if(this.type === 'text' && this.dataset.rawValue !== undefined){
+          this.type = 'number';
+          this.value = this.dataset.rawValue;
+        }
+        if(this.value === '0' || this.value === '0.00' || parseFloat(this.value) === 0){
+          this.value = '';
+        }
+      });
+    }
+    // Format immediately if has a value
+    if(inp.type === 'number' && inp.value && !isNaN(+inp.value)){
+      inp.dataset.rawValue = inp.value;
+      const isInt = inp.classList.contains('int-field') || inp.classList.contains('a-age') || inp.classList.contains('i-age') || inp.id==='f-ssmo' || inp.id==='f-leave';
+      inp.type = 'text';
+      if(isInt){
+        inp.value = parseInt(inp.dataset.rawValue).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+      } else {
+        inp.value = parseFloat(inp.dataset.rawValue).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      }
+    }
+  });
+}
+// Run once after initial render, then re-run when dynamic rows are added
+formatNumInputs();
+// Override add functions to re-bind
+// (override removed - formatNumInputs called directly in add functions)
+
+// === LANGUAGE TOGGLE ===
+function setLang(lang) {
+  const helpTab = document.getElementById('tab-help');
+  helpTab.classList.remove('help-en','help-th','help-ja','help-fr','help-es','help-it');
+  helpTab.classList.add('help-' + lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+// Default to English
+document.addEventListener('DOMContentLoaded', function(){
+  const h = document.getElementById('tab-help');
+  if(h) h.classList.add('help-en');
+});
+</script>
+</body>
+</html>

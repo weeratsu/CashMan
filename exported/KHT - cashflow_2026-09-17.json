@@ -1,0 +1,115 @@
+{
+  "profile": {
+    "starting_cash": 0,
+    "payout_day": 25,
+    "weekend_rule": "before",
+    "daily_living": 0,
+    "cat_expense": 0,
+    "cat_names": "",
+    "start_date": "2026-01-01",
+    "end_date": "2026-12-31"
+  },
+  "payroll": [],
+  "owners": [
+    "Me"
+  ],
+  "types": [
+    "Debt",
+    "Entertainment",
+    "Food",
+    "Health",
+    "Home",
+    "Insurance",
+    "Loan",
+    "Other",
+    "Subscription",
+    "Transport",
+    "Utilities"
+  ],
+  "cards": [
+    {
+      "name": "Cash",
+      "statement_day": 1,
+      "payment_day": 2,
+      "deadline": 15
+    }
+  ],
+  "monthly": [
+    {
+      "name": "Condo",
+      "type": "Other",
+      "amount": 20000,
+      "billing_day": 1,
+      "card": "Cash/Direct",
+      "direction": "expense"
+    }
+  ],
+  "yearly": [],
+  "installments": [
+    {
+      "name": "Debt to Weerat",
+      "type": "Debt",
+      "card": "Cash",
+      "own_by": "Me",
+      "total": 71887.64,
+      "per_period": 2995.32,
+      "periods": 24,
+      "start_year": 2026,
+      "start_month": 9,
+      "start_day": 21,
+      "billing_day": 21,
+      "status": "Active"
+    }
+  ],
+  "payroll_overrides": {},
+  "tax_exemptions": [
+    {
+      "id": "personal",
+      "amount": 60000,
+      "source": "fixed",
+      "max": 60000,
+      "name": "Personal Allowance",
+      "editable": false,
+      "_autoVal": 60000,
+      "_autoNote": ""
+    },
+    {
+      "id": "auto_expense",
+      "amount": 0,
+      "source": "auto_expense",
+      "max": 100000,
+      "name": "Expense Deduction (50%)",
+      "editable": false,
+      "_autoVal": 0,
+      "_autoNote": "50% of ฿0.00, max ฿100K",
+      "notes": "50% of ฿0.00, max ฿100K"
+    },
+    {
+      "id": "auto_sso",
+      "amount": 0,
+      "source": "auto_sso",
+      "max": 10500,
+      "name": "Social Security (SSO)",
+      "editable": false,
+      "_autoVal": 0,
+      "_autoNote": "SSO ฿0.00/mo × 12 = ฿0.00",
+      "notes": "SSO ฿0.00/mo × 12 = ฿0.00"
+    },
+    {
+      "id": "auto_epf",
+      "amount": 0,
+      "source": "auto_epf",
+      "max": 500000,
+      "name": "Provident Fund (PVD)",
+      "editable": false,
+      "_autoVal": 0,
+      "_autoNote": "No EPF in Payroll",
+      "notes": "No EPF in Payroll"
+    }
+  ],
+  "tax_ins_selections": {},
+  "tax_refund_month": 3,
+  "tax_year": 2026,
+  "tax_actual_override": null,
+  "planned": []
+}

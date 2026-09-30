@@ -1,0 +1,37 @@
+{
+  "termType": "resign",
+  "name": "Kung",
+  "empNo": "123",
+  "company": "123",
+  "dob": "1986-04-18",
+  "startDate": "2016-04-01",
+  "sepDate": "2026-10-30",
+  "salary": 24385,
+  "leaveDays": 0,
+  "expense": 20000,
+  "ssBalance": 129189,
+  "ssMonths": 215,
+  "epfTotal": 0,
+  "epfChoice": "cashout",
+  "epfGrowth": 0,
+  "epfAge": 55,
+  "noticePay": false,
+  "specialSev": false,
+  "assets": [
+    {
+      "type": "Savings",
+      "name": "last salary",
+      "amount": 24385,
+      "growth": 0,
+      "liquidateAge": 41
+    },
+    {
+      "type": "Funds",
+      "name": "KBank",
+      "amount": 21000,
+      "growth": 0,
+      "liquidateAge": 45
+    }
+  ],
+  "insurances": []
+}
