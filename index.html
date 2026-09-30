@@ -12,7 +12,7 @@ var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>Cash Flow Planner v247</title>
+<title>Cash Flow Planner v248</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="icon" type="image/png" href="images/Generated_Image_6gOkY3O5U4Iyp48k.png">
 <style>
@@ -127,6 +127,11 @@ body.sb-collapsed .main{margin-left:0}
 .btn{padding:7px 12px}
 .sel,.inp,select.inp{min-height:34px}
 .filterbar{gap:6px}
+/* Sub-pages: on desktop these live in the sidebar (.nav-subwrap); on MOBILE the sidebar is a
+   bottom bar with no room for sub-items, so re-show the top .sub-tabs bar as a scrollable pill row. */
+.sub-tabs{display:flex !important;flex-direction:row;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;padding-bottom:2px}
+.sub-tabs .sub-tab{flex:0 0 auto;white-space:nowrap;padding:6px 12px;border:1px solid var(--border);border-radius:16px;font-size:11px;background:var(--bg2);color:var(--text2);cursor:pointer}
+.sub-tabs .sub-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
 }
 @media(max-width:480px){
 .kpi-grid{grid-template-columns:1fr}
@@ -182,7 +187,7 @@ select.inp{font-size:11px;padding:2px 4px}
 </head>
 <body>
 <nav class="nav">
-<div class="nav-brand">&#x1F4B0; <span class="brand-txt">Cash Flow Planner <span style='font-size:9px;color:var(--text3)'>v247</span></span></div>
+<div class="nav-brand">&#x1F4B0; <span class="brand-txt">Cash Flow Planner <span style='font-size:9px;color:var(--text3)'>v248</span></span></div>
 <button class="sb-toggle" id="sb-toggle" title="Collapse / expand menu" onclick="sidebarToggle()"><i class="fa-solid fa-angles-left"></i></button>
 <div id="sb-today" style="font-size:10px;color:var(--text2);padding:4px 8px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:5px" title="Today's date"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i><span class="sb-today-txt"></span></div>
 <div class="nav-tabs" id="nav-tabs">
@@ -554,27 +559,27 @@ select.inp{font-size:11px;padding:2px 4px}
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
-<script src="js/data.js?v=247"></script>
+<script src="js/data.js?v=248"></script>
 </script>
-<script src="js/simulation.js?v=247"></script>
+<script src="js/simulation.js?v=248"></script>
 
-<script src="js/ui-setup.js?v=247"></script>
+<script src="js/ui-setup.js?v=248"></script>
 
-<script src="js/ui-payroll.js?v=247"></script>
-<script src="js/ui-bills.js?v=247"></script>
-<script src="js/ui-creditcards.js?v=247"></script>
+<script src="js/ui-payroll.js?v=248"></script>
+<script src="js/ui-bills.js?v=248"></script>
+<script src="js/ui-creditcards.js?v=248"></script>
 
-<script src="js/ui-timeline.js?v=247"></script>
-<script src="js/ui-dashboard.js?v=247"></script>
-<script src="js/help-data.js?v=247"></script>
-<script src="js/trx-io.js?v=247"></script>
-<script src="js/retirement-calc.js?v=247"></script>
-<script src="js/ui-retirement.js?v=247"></script>
+<script src="js/ui-timeline.js?v=248"></script>
+<script src="js/ui-dashboard.js?v=248"></script>
+<script src="js/help-data.js?v=248"></script>
+<script src="js/trx-io.js?v=248"></script>
+<script src="js/retirement-calc.js?v=248"></script>
+<script src="js/ui-retirement.js?v=248"></script>
 
-<script src="js/ui-billreminder.js?v=247"></script>
-<script src="js/ui-todos.js?v=247"></script>
-<script src="js/ui-wishlist.js?v=247"></script>
-<script src="js/app.js?v=247"></script>
+<script src="js/ui-billreminder.js?v=248"></script>
+<script src="js/ui-todos.js?v=248"></script>
+<script src="js/ui-wishlist.js?v=248"></script>
+<script src="js/app.js?v=248"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>
