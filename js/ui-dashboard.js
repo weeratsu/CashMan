@@ -273,14 +273,24 @@ if(t.deadline_mode==='asap'){if(_viewingThisMonth)(taskByDay[_todayDom]=taskByDa
 if(t.deadline_mode!=='date'||!t.due_date)return;
 var parts=t.due_date.split('-');if(parts.length!==3)return;
 var ty=parseInt(parts[0],10),tm=parseInt(parts[1],10)-1,day=parseInt(parts[2],10);
-if(ty===y&&tm===m)(taskByDay[day]=taskByDay[day]||[]).push(t);
+if(ty===y&&tm===m){(taskByDay[day]=taskByDay[day]||[]).push(t);
+// An overdue pending task flags its day cell as needs-attention (red), same as overdue bills.
+var _td=new Date(t.due_date+'T00:00:00');if(!isNaN(_td.getTime())&&_td<_calToday)dayStatus[day]=Math.max(dayStatus[day]||0,2);}
 else if(ty===_prevY&&tm===_prevM)(prevTaskByDay[day]=prevTaskByDay[day]||[]).push(t);
 else if(ty===_nextY&&tm===_nextM)(nextTaskByDay[day]=nextTaskByDay[day]||[]).push(t);
 });
 // Task-line HTML (shared by current-month cells and faded adjacent cells). `muted` dims adjacent tasks.
 function _calTaskLine(t,muted){
 var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
-return '<div onclick="dashCalShow('+tidx+')" title="'+esc(t.title||'')+(t.category?' \u00b7 '+esc(t.category):'')+' \u00b7 click for details" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--accent)'+(muted?';opacity:.7':'')+'"><i class="fa-solid fa-list-check" style="width:14px;text-align:center"></i> '+esc(t.title||'')+'</div>';
+// Overdue = date-mode task whose due date is before today and not done. Carried-over pending tasks
+// must STAND OUT (red + bold + \u26a0), never fade — even in a faded adjacent-month cell.
+var _ovd=false;
+if(!t.done&&t.deadline_mode==='date'&&t.due_date){var _dd=new Date(t.due_date+'T00:00:00');if(!isNaN(_dd.getTime())&&_dd<_calToday)_ovd=true;}
+var _col=_ovd?'var(--error)':'var(--accent)';
+var _fade=(muted&&!_ovd)?';opacity:.7':'';// overdue ignores the mute so it stays prominent
+var _wt=_ovd?';font-weight:700':'';
+var _mark=_ovd?'\u26a0\ufe0f ':'<i class="fa-solid fa-list-check" style="width:14px;text-align:center"></i> ';
+return '<div onclick="dashCalShow('+tidx+')" title="'+esc(t.title||'')+(t.category?' \u00b7 '+esc(t.category):'')+(_ovd?' \u00b7 OVERDUE':'')+' \u00b7 click for details" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+_col+_fade+_wt+'">'+_mark+esc(t.title||'')+'</div>';
 }
 // Build calendar grid (weeks start Sunday)
 var startDow=first.getDay();
