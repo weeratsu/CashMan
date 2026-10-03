@@ -12,11 +12,11 @@ var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>CashMan v251</title>
+<title>CashMan v253</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="icon" type="image/x-icon" href="images/cashman-favicon.ico?v=251">
-<link rel="icon" type="image/png" sizes="32x32" href="images/cashman-favicon-32.png?v=251">
-<link rel="apple-touch-icon" sizes="180x180" href="images/cashman-apple-touch-icon.png?v=251">
+<link rel="icon" type="image/x-icon" href="images/cashman-favicon.ico?v=252">
+<link rel="icon" type="image/png" sizes="32x32" href="images/cashman-favicon-32.png?v=252">
+<link rel="apple-touch-icon" sizes="180x180" href="images/cashman-apple-touch-icon.png?v=252">
 <style>
 :root{--bg:#f5f6f8;--bg2:#fff;--bg3:#f0f1f4;--surface:#e8eaef;--border:#d4d7e0;--border2:#c0c4d0;--text:#1a1d27;--text2:#4a5068;--text3:#7a8098;--primary:#4a7aed;--primary-bg:rgba(74,122,237,.1);--success:#16a34a;--success-bg:rgba(22,163,74,.08);--warning:#d97706;--warning-bg:rgba(217,119,6,.08);--error:#dc2626;--error-bg:rgba(220,38,38,.08);--purple:#7c3aed;--purple-bg:rgba(124,58,237,.08);--radius:8px;--radius-sm:6px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Fira Code','Cascadia Code',monospace;--shadow:0 1px 3px rgba(0,0,0,.06)}
 html.dark{--bg:#0f1117;--bg2:#1a1d27;--bg3:#252833;--surface:#2a2d3a;--border:#353849;--border2:#454860;--text:#e8eaed;--text2:#9aa0b0;--text3:#6b7185;--primary:#5b8def;--primary-bg:rgba(91,141,239,.12);--success:#4ade80;--success-bg:rgba(74,222,128,.1);--warning:#fbbf24;--warning-bg:rgba(251,191,36,.1);--error:#f87171;--error-bg:rgba(248,113,113,.1);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.1);--shadow:0 1px 3px rgba(0,0,0,.3)}
@@ -189,7 +189,7 @@ select.inp{font-size:11px;padding:2px 4px}
 </head>
 <body>
 <nav class="nav">
-<div class="nav-brand"><img src="images/cashman-icon.svg?v=251" alt="CashMan" style="width:22px;height:22px;vertical-align:middle;border-radius:5px;margin-right:4px"> <span class="brand-txt">CashMan <span style='font-size:9px;color:var(--text3)'>v251</span></span></div>
+<div class="nav-brand"><img src="images/cashman-icon.svg?v=253" alt="CashMan" style="width:22px;height:22px;vertical-align:middle;border-radius:5px;margin-right:4px"> <span class="brand-txt">CashMan <span style='font-size:9px;color:var(--text3)'>v253</span></span></div>
 <button class="sb-toggle" id="sb-toggle" title="Collapse / expand menu" onclick="sidebarToggle()"><i class="fa-solid fa-angles-left"></i></button>
 <div id="sb-today" style="font-size:10px;color:var(--text2);padding:4px 8px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:5px" title="Today's date"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i><span class="sb-today-txt"></span></div>
 <div class="nav-tabs" id="nav-tabs">
@@ -213,6 +213,7 @@ select.inp{font-size:11px;padding:2px 4px}
 <button class="nav-tab" data-tab="timeline" title="Timeline"><i class="fa-solid fa-list-ol"></i><span>Timeline</span></button>
 <button class="nav-tab" data-tab="analysis" title="Analysis"><i class="fa-solid fa-chart-pie"></i><span>Analysis</span></button>
 <div class="nav-subwrap" data-parent="analysis"><button class="nav-sub" data-tab="analysis" data-sub="type"><span>By Type</span></button><button class="nav-sub" data-tab="analysis" data-sub="card"><span>By Card</span></button></div>
+<button class="nav-tab" data-tab="utilities" title="Utilities"><i class="fa-solid fa-bolt"></i><span>Utilities</span></button>
 <div class="nav-group">Configuration</div>
 <button class="nav-tab" data-tab="setup" title="Setup"><i class="fa-solid fa-gear"></i><span>Setup</span></button>
 <button class="nav-tab" data-tab="help" title="Help"><i class="fa-solid fa-circle-question"></i><span>Help</span></button>
@@ -557,31 +558,36 @@ select.inp{font-size:11px;padding:2px 4px}
 <div id="tab-wishlist" class="tab-content">
 <div id="wishlist-content"></div>
 </div>
+<div id="tab-utilities" class="tab-content">
+<div id="utilities-content"></div>
+</div>
 
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
-<script src="js/data.js?v=251"></script>
+<script src="js/data.js?v=252"></script>
 </script>
-<script src="js/simulation.js?v=251"></script>
+<script src="js/simulation.js?v=252"></script>
 
-<script src="js/ui-setup.js?v=251"></script>
+<script src="js/ui-setup.js?v=252"></script>
 
-<script src="js/ui-payroll.js?v=251"></script>
-<script src="js/ui-bills.js?v=251"></script>
-<script src="js/ui-creditcards.js?v=251"></script>
+<script src="js/ui-payroll.js?v=252"></script>
+<script src="js/ui-bills.js?v=252"></script>
+<script src="js/ui-creditcards.js?v=252"></script>
 
-<script src="js/ui-timeline.js?v=251"></script>
-<script src="js/ui-dashboard.js?v=251"></script>
-<script src="js/help-data.js?v=251"></script>
-<script src="js/trx-io.js?v=251"></script>
-<script src="js/retirement-calc.js?v=251"></script>
-<script src="js/ui-retirement.js?v=251"></script>
+<script src="js/ui-timeline.js?v=252"></script>
+<script src="js/ui-dashboard.js?v=252"></script>
+<script src="js/help-data.js?v=252"></script>
+<script src="js/trx-io.js?v=252"></script>
+<script src="js/retirement-calc.js?v=252"></script>
+<script src="js/ui-retirement.js?v=252"></script>
 
-<script src="js/ui-billreminder.js?v=251"></script>
-<script src="js/ui-todos.js?v=251"></script>
-<script src="js/ui-wishlist.js?v=251"></script>
-<script src="js/app.js?v=251"></script>
+<script src="js/ui-billreminder.js?v=252"></script>
+<script src="js/ui-todos.js?v=252"></script>
+<script src="js/ui-wishlist.js?v=252"></script>
+<script src="data/utility_log.js?v=252"></script>
+<script src="js/ui-utilities.js?v=253"></script>
+<script src="js/app.js?v=252"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>
