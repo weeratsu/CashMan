@@ -172,10 +172,12 @@ function _utilDetailRow(b){
   var isElec=b.utility==='electric';
   var unitLbl=isElec?'kWh':'m\u00b3';
   var items=[];
-  items.push(['Meter read date', b.meter_date?fmtDate(b.meter_date):'-']);
+  items.push(['Meter reading date', b.meter_date?fmtDate(b.meter_date):'-']);
   items.push(['Meter now', raw(b.meter_now)]);
   items.push(['Meter prev', raw(b.meter_prev)]);
   items.push(['Usage', b.units!=null?(b.units+' '+unitLbl):'-']);
+  items.push([isElec?'CA / Ref No.1':'Account No.', raw(b.ca_no)]);
+  if(isElec){ items.push(['Installation', raw(b.installation)]); }
   if(isElec){
     items.push(['Energy charge', money(b.energy_charge)]);
     items.push(['Service fee', money(b.service_fee)]);
@@ -330,6 +332,7 @@ function utilAutoSyncPlanned(){
     // fallbacks: due_date, then 15th of the month after the usage period.
     var due=(b.utility==='water'?(b.invoice_date||b.meter_date):(b.meter_date||b.invoice_date))||b.due_date||'';
     if(!due && b.period){var p=b.period.split('-');var y=+p[0],mo=+p[1];var ny=mo===12?y+1:y,nm2=mo===12?1:mo+1;due=ny+'-'+(nm2<10?'0':'')+nm2+'-15';}
+    var dl=b.due_date||'';  // printed payment-due date (deadline) from the bill
     // paid status: receipt-paid (b.paid) OR manually marked
     var manual=mp[ukey];
     var isPaid=!!b.paid || !!manual;
@@ -343,15 +346,16 @@ function utilAutoSyncPlanned(){
       // (missing tags make the recurring-skip in simulation/billOccurrences never fire -> dupes).
       if(ex._utilUtility!==b.utility){ ex._utilUtility=b.utility; changed=true; }
       if(ex._utilPeriod!==b.period){ ex._utilPeriod=b.period; changed=true; }
+      if(ex.deadline_date!==dl){ ex.deadline_date=dl; changed=true; }
     }else if(haveName[nm]){
       // adopt a legacy row with the same name (e.g. from the retired utilAddBill button) that
       // lacks the _fromUtility flags — tag it in place instead of pushing a duplicate.
       var lg=haveName[nm];
       lg._fromUtility=true; lg._utilKey=ukey; lg._utilUtility=b.utility; lg._utilPeriod=b.period;
-      lg.amount=amt; lg.date=due; lg.type='Utilities';
+      lg.amount=amt; lg.date=due; lg.type='Utilities'; lg.deadline_date=dl;
       have[ukey]=lg; changed=true;
     }else{
-      D.planned.push({name:nm,amount:amt,date:due,type:'Utilities',owner:'Me',
+      D.planned.push({name:nm,amount:amt,date:due,type:'Utilities',owner:'Me',deadline_date:dl,
         _fromUtility:true,_utilKey:ukey,_utilUtility:b.utility,_utilPeriod:b.period});
       added++; changed=true;
     }
@@ -422,15 +426,26 @@ function utilMarkPaidConfirm(){
   if(!d){ toast('Pick a date'); return; }
   if(!D.util_manual_paid) D.util_manual_paid={};
   D.util_manual_paid[_utilMarkTarget.utility+'|'+_utilMarkTarget.period]={paid_date:d};
+  // Cross-page sync: push this paid state into the Bills Reminder ledger (D.bill_payments)
+  // immediately so the Bill Reminder page shows it paid without waiting for a reload.
+  if(typeof utilAutoSyncPlanned==='function'){ try{ utilAutoSyncPlanned(); }catch(e){} }
   saveD();
   var ov=document.getElementById('util-markpaid-ov'); if(ov) ov.style.display='none';
   _utilMarkTarget=null;
   renderUtilities();
+  if(typeof renderBillReminder==='function'){ try{ renderBillReminder(); }catch(e){} }
+  if(typeof renderDashBills==='function'){ try{ renderDashBills(); }catch(e){} }
   if(typeof toast==='function') toast('\u2705 Marked paid');
 }
 function utilUnmarkPaid(utility, period){
   readAll();
-  if(D.util_manual_paid){ delete D.util_manual_paid[utility+'|'+period]; saveD(); }
+  if(D.util_manual_paid){ delete D.util_manual_paid[utility+'|'+period]; }
+  // Cross-page sync: reconcile the Bills Reminder ledger so the matching _fromUtility paid
+  // entry is removed too (unless a real receipt in the log still marks it paid).
+  if(typeof utilAutoSyncPlanned==='function'){ try{ utilAutoSyncPlanned(); }catch(e){} }
+  saveD();
   renderUtilities();
+  if(typeof renderBillReminder==='function'){ try{ renderBillReminder(); }catch(e){} }
+  if(typeof renderDashBills==='function'){ try{ renderDashBills(); }catch(e){} }
   if(typeof toast==='function') toast('Unmarked');
 }

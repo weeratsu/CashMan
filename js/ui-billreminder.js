@@ -145,6 +145,9 @@ return ic('fa-file-invoice','var(--text3)');
 // mode 'card' -> the card's deadline day in d's month; 'custom' -> item.deadline_day in d's month.
 // Returns null when no deadline is defined.
 function _billDeadline(item,d){
+// Explicit deadline DATE (e.g. a utility bill printed payment-due date from UtilityLog).
+// Takes precedence over card/day-of-month logic.
+if(item.deadline_date){var _p=(''+item.deadline_date).split('-');if(_p.length===3){return new Date(+_p[0],(+_p[1])-1,+_p[2]);}}
 var mode=item.deadline_mode;
 var day=null;
 if(mode==='card'||(!mode&&item.card&&item.card!=='Cash/Direct')){
@@ -281,7 +284,7 @@ if(!within(d)){
   if(!_isUtilUnpaid)return;
 }
 occ.push({kind:'Planned',key:_billKeyId('P',item.name,item.date),name:item.name,type:item.type||'Other',
-amount:item.amount||0,card:_isIncome?'Cash/Direct':(item.card||'Cash/Direct'),auto_pay:!!item.auto_pay,due:d,orig_due:_odP,deadline:_billDeadline({card:(_isIncome?'Cash/Direct':item.card),deadline_mode:item.deadline_mode||((item.card&&item.card!=='Cash/Direct'&&!_isIncome)?'card':'custom'),deadline_day:item.deadline_day},d),info:_isIncome?'receivable':'one-time',_income:_isIncome});
+amount:item.amount||0,card:_isIncome?'Cash/Direct':(item.card||'Cash/Direct'),auto_pay:!!item.auto_pay,due:d,orig_due:_odP,deadline:_billDeadline({card:(_isIncome?'Cash/Direct':item.card),deadline_mode:item.deadline_mode||((item.card&&item.card!=='Cash/Direct'&&!_isIncome)?'card':'custom'),deadline_day:item.deadline_day,deadline_date:item.deadline_date},d),info:_isIncome?'receivable':'one-time',_income:_isIncome,_fromUtility:!!item._fromUtility,_utilUtility:item._utilUtility||'',_utilPeriod:item._utilPeriod||''});
 });
 
 // Card-statement mode: collapse all card-charged occurrences into one line per card per payment-month.
@@ -400,12 +403,14 @@ return null;
 }
 
 // Toggle paid status for one occurrence.
-function toggleBillPaid(fullKey,amount,checked,dueISO,typ,card,autoPay){
+function toggleBillPaid(fullKey,amount,checked,dueISO,typ,card,autoPay,utilUtility,utilPeriod){
 if(!D.bill_payments)D.bill_payments={};
 if(checked){
 D.bill_payments[fullKey]={paid:true,paid_date:_billISO(_billToday()),paid_amount:amount,due:dueISO||'',type:typ||'',card:card||'',auto_pay:!!autoPay};
+if(utilUtility&&utilPeriod){ if(!D.util_manual_paid)D.util_manual_paid={}; D.util_manual_paid[utilUtility+'|'+utilPeriod]={paid_date:_billISO(_billToday())}; }
 }else{
 delete D.bill_payments[fullKey];
+if(utilUtility&&utilPeriod&&D.util_manual_paid){ delete D.util_manual_paid[utilUtility+'|'+utilPeriod]; }
 }
 saveD();
 renderBillReminder();
@@ -413,11 +418,17 @@ if(typeof renderDash==='function'&&typeof SIM!=='undefined'&&SIM)try{renderDashB
 }
 
 // Mark ONE bill paid using the per-row date picker (default today, editable before marking).
-function markRowPaid(fullKey,amount,dueISO,typ,card,autoPay){
+function markRowPaid(fullKey,amount,dueISO,typ,card,autoPay,utilUtility,utilPeriod){
 if(!D.bill_payments)D.bill_payments={};
 var di=document.getElementById('brpd_'+fullKey.replace(/[^a-zA-Z0-9]/g,'_'));
 var pd=(di&&di.value)?di.value:_billISO(_billToday());
 D.bill_payments[fullKey]={paid:true,paid_date:pd,paid_amount:amount,due:dueISO||'',type:typ||'',card:card||'',auto_pay:!!autoPay};
+// Cross-page sync: a utility bill paid here must also show paid on the Utilities page
+// (which reads D.util_manual_paid keyed by utility|period). Write both stores.
+if(utilUtility&&utilPeriod){
+  if(!D.util_manual_paid)D.util_manual_paid={};
+  D.util_manual_paid[utilUtility+'|'+utilPeriod]={paid_date:pd};
+}
 saveD();renderBillReminder();
 if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}
 toast('\u2705 Marked paid on '+fmtDate(pd));
@@ -779,9 +790,9 @@ h+='<tr style="'+rowStyle+'">'+
 '<td style="white-space:nowrap">'+fmtDate(_billISO((o._surfaced&&o.orig_due)?o.orig_due:o.due))+'<span style="font-size:8px;color:var(--text3)">'+dueRel+'</span></td>'+
 '<td style="white-space:nowrap">'+(o.deadline?('<span style="'+(_dfl?(_dfl.state==='past'?'color:var(--error);font-weight:600':'color:var(--warning);font-weight:600'):'')+'">'+fmtDate(_billISO(o.deadline))+'</span>'):'<span style="color:var(--text3)">\u2014</span>')+'</td>'+
 '<td>'+stBadge+
-(o.paid?'<div style="margin-top:3px"><span style="font-size:8px;color:var(--text3)">'+(o._income?'received ':'paid ')+(D.bill_payments&&D.bill_payments[o.fullKey]&&D.bill_payments[o.fullKey].paid_date?fmtDate(D.bill_payments[o.fullKey].paid_date):'')+'</span> <button class="btn btn-ghost" style="font-size:8px;padding:1px 6px" onclick="toggleBillPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\',0,false)"><i class="fa-solid fa-rotate-left"></i> Unmark</button></div>'
+(o.paid?'<div style="margin-top:3px"><span style="font-size:8px;color:var(--text3)">'+(o._income?'received ':'paid ')+(D.bill_payments&&D.bill_payments[o.fullKey]&&D.bill_payments[o.fullKey].paid_date?fmtDate(D.bill_payments[o.fullKey].paid_date):'')+'</span> <button class="btn btn-ghost" style="font-size:8px;padding:1px 6px" onclick="toggleBillPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\',0,false,\'\',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\')"><i class="fa-solid fa-rotate-left"></i> Unmark</button></div>'
 :(o.auto_pay||st==='auto_paid')?'<div style="margin-top:3px"><span style="font-size:8px;color:var(--text3)">'+(st==='auto_paid'?'charged automatically \u00b7 no action needed':'will be auto-charged \u00b7 no action needed')+'</span></div>'
-:'<div style="margin-top:3px;display:flex;gap:3px;align-items:center"><input type="date" id="brpd_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')+'" value="'+_billISO(today)+'" style="font-size:8px;padding:1px 3px;width:104px" title="'+(o._income?'Received date':'Payment date')+'"><button class="btn '+(o._income?'btn-ghost" style="font-size:8px;padding:2px 7px;background:#10b981;color:#fff"':'btn-primary" style="font-size:8px;padding:2px 7px"')+' onclick="markRowPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\','+o.amount+',\''+_billISO(o.orig_due||o.due)+'\',\''+(o.type||'').replace(/'/g,"\\'")+'\',\''+(o.card||'').replace(/'/g,"\\'")+'\','+(o.auto_pay?'true':'false')+')"><i class="fa-solid fa-'+(o._income?'hand-holding-dollar':'check')+'"></i> '+(o._income?'Received':'Pay')+'</button></div>')
+:'<div style="margin-top:3px;display:flex;gap:3px;align-items:center"><input type="date" id="brpd_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')+'" value="'+_billISO(today)+'" style="font-size:8px;padding:1px 3px;width:104px" title="'+(o._income?'Received date':'Payment date')+'"><button class="btn '+(o._income?'btn-ghost" style="font-size:8px;padding:2px 7px;background:#10b981;color:#fff"':'btn-primary" style="font-size:8px;padding:2px 7px"')+' onclick="markRowPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\','+o.amount+',\''+_billISO(o.orig_due||o.due)+'\',\''+(o.type||'').replace(/'/g,"\\'")+'\',\''+(o.card||'').replace(/'/g,"\\'")+'\','+(o.auto_pay?'true':'false')+',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\')"><i class="fa-solid fa-'+(o._income?'hand-holding-dollar':'check')+'"></i> '+(o._income?'Received':'Pay')+'</button></div>')
 '</td></tr>';
 // Statement detail: list the underlying charges as greyed, non-actionable rows
 if(o.children&&o.children.length){
