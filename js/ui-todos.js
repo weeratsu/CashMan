@@ -13,11 +13,13 @@ function toggleTodoHist(){_todoHistOpen=!_todoHistOpen;renderTodos();}
 var _todoCatOpen=false;  // collapsible category-summary section (persist across re-renders)
 function toggleTodoCat(){_todoCatOpen=!_todoCatOpen;renderTodos();}
 function clearTodoLog(){if(!confirm('Clear ALL completion history? This cannot be undone.'))return;D.todo_log=[];saveD();renderTodos();}
-var _todoSort='urgency';  // urgency | due | priority | name | category
+var _todoSort='urgent_priority';  // urgent_priority (Overdue>ASAP>Priority) | urgency | due | priority | name | category
 var _todoAsc=true;
 
 function setTodoFilter(f){_todoFilter=f;renderTodos();}
 function setTodoSort(col){if(_todoSort===col){_todoAsc=!_todoAsc;}else{_todoSort=col;_todoAsc=true;}renderTodos();}
+// Sort-mode dropdown: pick a mode directly (always ascending — top band first).
+function setTodoSortMode(mode){_todoSort=mode;_todoAsc=true;renderTodos();}
 
 function _todoId(){return 't'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
 
@@ -200,6 +202,20 @@ if(diff<0)return 1;if(diff===0)return 2;if(diff<=7)return 3;return 4;
 }
 // Effective due timestamp for within-band date ordering (ASAP/none sort last within their band).
 function _todoDueMs(t){if(t.deadline_mode==='date'&&t.due_date){return new Date(t.due_date+'T00:00:00').getTime();}return Infinity;}
+// Urgency+Priority rank: Overdue FIRST, then ASAP, then due today/soon/upcoming/none.
+// (Differs from _todoRank, which puts ASAP above overdue.) Used by the 'urgent_priority' sort mode;
+// within each band the comparator then sorts by priority (High→Low) and due date.
+function _todoRankUP(t,today){
+  if(t.done)return 9;
+  if(t.deadline_mode==='date'&&t.due_date){
+    var diff=Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000);
+    if(diff<0)return 0;           // Overdue first
+    if(t.deadline_mode==='asap')return 1;
+    if(diff===0)return 2;if(diff<=7)return 3;return 4;
+  }
+  if(t.deadline_mode==='asap')return 1;// ASAP (no date) after overdue
+  return 5;
+}
 
 function _todoStatusBadge(t,today){
 if(t.done)return '<span style="color:var(--success)">\u2705 Done'+(t.done_date?' '+fmtDate(t.done_date):'')+'</span>';
@@ -276,6 +292,7 @@ return true;
 });
 var _c=function(a,b){var r=0;
 if(_todoSort==='urgency'){r=_todoRank(a,today)-_todoRank(b,today);if(r===0)r=_todoDueMs(a)-_todoDueMs(b);}
+else if(_todoSort==='urgent_priority'){r=_todoRankUP(a,today)-_todoRankUP(b,today);if(r===0)r=(a.priority||2)-(b.priority||2);if(r===0)r=_todoDueMs(a)-_todoDueMs(b);}
 else if(_todoSort==='due')r=((a.due_date||'zzzz')).localeCompare(b.due_date||'zzzz');
 else if(_todoSort==='priority')r=(a.priority||2)-(b.priority||2);
 else if(_todoSort==='name')r=(a.title||'').localeCompare(b.title||'');
@@ -344,6 +361,9 @@ h+='<button class="btn '+(on?'btn-primary':'btn-ghost')+'" style="font-size:10px
 // Category filter dropdown (combines with the status chips above).
 var _tcats=(D.todo_cats||[]).slice().sort(function(a,b){return a.localeCompare(b);});
 h+='<span style="flex:1"></span>';
+// Sort-mode selector (combines with header-click sorting; 'urgent_priority' = Overdue > ASAP > Priority).
+var _sortOpts=[['urgent_priority','\ud83d\udd25 Overdue > ASAP > Priority'],['urgency','Urgency'],['priority','Priority'],['due','Due date'],['name','Task name'],['category','Category']];
+h+='<label style="font-size:10px;color:var(--text3)">Sort</label><select class="sel" style="font-size:10px;padding:2px 8px" onchange="setTodoSortMode(this.value)" title="Sort order">'+_sortOpts.map(function(o){return '<option value="'+o[0]+'"'+(_todoSort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';
 h+='<select class="sel" style="font-size:10px;padding:2px 8px" onchange="setTodoCatFilter(this.value)" title="Filter by category"><option value="">All categories</option>'+_tcats.map(function(cn){return '<option value="'+esc(cn)+'"'+(_todoCatFilter===cn?' selected':'')+'>'+esc(cn)+'</option>';}).join('')+'</select>';
 h+='</div>';
 

@@ -204,6 +204,23 @@ _dashCalMonth=y+'-'+('0'+(m+1)).slice(-2);
 renderDashCalendar();
 }
 function dashCalToday(){_dashCalMonth='';renderDashCalendar();}
+/* Refresh: re-read the latest saved data (edits made in other tabs/pages), re-sync utility bills,
+   re-run the forecast, then redraw. Keeps the month you are viewing. */
+function dashCalRefresh(){
+  var keep=_dashCalMonth;
+  var go=function(){
+    try{ if(typeof loadD==='function') loadD(); }catch(e){ console.error('dashCalRefresh loadD:',e); }
+    try{ if(typeof utilAutoSyncPlanned==='function') utilAutoSyncPlanned(); }catch(e){ console.error('dashCalRefresh util:',e); }
+    try{ if(typeof simulate==='function') simulate(); }catch(e){ console.error('dashCalRefresh simulate:',e); }
+    _dashCalMonth=keep;
+    try{ if(typeof renderDashBills==='function') renderDashBills(); }catch(e){}
+    try{ if(typeof renderDashTodos==='function') renderDashTodos(); }catch(e){}
+    renderDashCalendar();
+    if(typeof toast==='function') toast('Calendar refreshed');
+  };
+  // also pick up new bills written by run_utility.bat since the page was opened
+  if(typeof utilReloadLog==='function'){ utilReloadLog().then(go, go); } else { go(); }
+}
 function dashCalToggleAuto(cb){_dashCalShowAuto=!!cb.checked;renderDashCalendar();}
 function dashCalToggleBills(cb){_dashCalShowBills=!!cb.checked;renderDashCalendar();}
 function dashCalToggleTasks(cb){_dashCalShowTasks=!!cb.checked;renderDashCalendar();}
@@ -310,6 +327,7 @@ h+='<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" onclic
 h+='<div style="font-weight:600;min-width:96px;text-align:center">'+MO[m]+' '+y+'</div>';
 h+='<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" onclick="dashCalNav(1)" title="Next month"><i class="fa-solid fa-chevron-right"></i></button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="dashCalToday()" title="Jump to current month">Today</button>';
+h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="dashCalRefresh()" title="Reload latest bills, tasks and payments"><i class="fa-solid fa-rotate-right"></i> Refresh</button>';
 h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="Show or hide bills"><input type="checkbox" '+(_dashCalShowBills?'checked':'')+' onchange="dashCalToggleBills(this)"> Bills</label>';
 h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer" title="Show or hide to-do tasks"><input type="checkbox" '+(_dashCalShowTasks?'checked':'')+' onchange="dashCalToggleTasks(this)"> Tasks</label>';
 h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="Show or hide auto-pay bills"><input type="checkbox" '+(_dashCalShowAuto?'checked':'')+' onchange="dashCalToggleAuto(this)"> Show auto</label>';

@@ -12,7 +12,7 @@ var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>CashMan v275</title>
+<title>CashMan v278</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="icon" type="image/x-icon" href="images/cashman-favicon.ico?v=252">
 <link rel="icon" type="image/png" sizes="32x32" href="images/cashman-favicon-32.png?v=252">
@@ -189,7 +189,7 @@ select.inp{font-size:11px;padding:2px 4px}
 </head>
 <body>
 <nav class="nav">
-<div class="nav-brand"><img src="images/cashman-icon.svg?v=275" alt="CashMan" style="width:22px;height:22px;vertical-align:middle;border-radius:5px;margin-right:4px"> <span class="brand-txt">CashMan <span style='font-size:9px;color:var(--text3)'>v275</span></span></div>
+<div class="nav-brand"><img src="images/cashman-icon.svg?v=278" alt="CashMan" style="width:22px;height:22px;vertical-align:middle;border-radius:5px;margin-right:4px"> <span class="brand-txt">CashMan <span style='font-size:9px;color:var(--text3)'>v278</span></span></div>
 <button class="sb-toggle" id="sb-toggle" title="Collapse / expand menu" onclick="sidebarToggle()"><i class="fa-solid fa-angles-left"></i></button>
 <div id="sb-today" style="font-size:10px;color:var(--text2);padding:4px 8px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:5px" title="Today's date"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i><span class="sb-today-txt"></span></div>
 <div class="nav-tabs" id="nav-tabs">
@@ -584,10 +584,14 @@ select.inp{font-size:11px;padding:2px 4px}
 <script src="js/ui-retirement.js?v=252"></script>
 
 <script src="js/ui-billreminder.js?v=274"></script>
-<script src="js/ui-todos.js?v=265"></script>
+<script src="js/ui-todos.js?v=276"></script>
 <script src="js/ui-wishlist.js?v=252"></script>
-<script src="data/utility_log.js?v=252"></script>
-<script src="js/ui-utilities.js?v=275"></script>
+<!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
+     timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
+     still see window.UTILITY_DATA) — otherwise the browser serves a stale cached copy and new
+     receipts/bills don't appear until a manual hard-reload. -->
+<script>document.write('<script src="data/utility_log.js?t='+Date.now()+'"><\/script>');</script>
+<script src="js/ui-utilities.js?v=278"></script>
 <script src="js/app.js?v=261"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>

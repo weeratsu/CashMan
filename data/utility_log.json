@@ -1,11 +1,14 @@
 {
-  "generated_at": "2026-10-04T16:04:06",
+  "generated_at": "2026-10-06T16:54:48",
   "bill_count": 77,
   "bills": [
     {
       "utility": "electric",
       "ref": "550200750",
       "period": "2023-05",
+      "ca_no": "010961575",
+      "invoice_file": "[Invoice] 2023-06-03 - ELE_010961575_660602_000550200750.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\05 - May\\[Invoice] 2023-06-03 - ELE_010961575_660602_000550200750.pdf",
       "units": 567.0,
       "ft": 0.9119,
       "amount": 3020.4,
@@ -14,16 +17,20 @@
       "charge": 2822.8,
       "vat": 197.6,
       "ft_amount": 517.05,
-      "ca_no": "010961575",
       "paid_amount": 3020.4,
-      "paid_date": "2023-06-05",
+      "paid_date": "2023-06-04",
       "receipt_file": "[Receipt] 2023-06-05 - 010961575_04062566_O0600307687.pdf",
-      "paid": true
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\05 - May\\[Receipt] 2023-06-05 - 010961575_04062566_O0600307687.pdf",
+      "paid": true,
+      "due_date": "2023-06-13"
     },
     {
       "utility": "electric",
       "ref": "25459133253",
       "period": "2023-06",
+      "ca_no": "010961575",
+      "invoice_file": "[Invoice] 2023-07-03 - ELE_010961575_660702_025459133253.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\06 - June\\[Invoice] 2023-07-03 - ELE_010961575_660702_025459133253.pdf",
       "units": 508.0,
       "ft": 0.9119,
       "amount": 2683.69,
@@ -32,16 +39,20 @@
       "charge": 2508.12,
       "vat": 175.57,
       "ft_amount": 463.25,
-      "ca_no": "010961575",
       "paid_amount": 2683.69,
-      "paid_date": "2023-07-05",
+      "paid_date": "2023-07-04",
       "receipt_file": "[Receipt] 2023-07-05 - 010961575_04072566_O0700362124.pdf",
-      "paid": true
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\06 - June\\[Receipt] 2023-07-05 - 010961575_04072566_O0700362124.pdf",
+      "paid": true,
+      "due_date": "2023-07-13"
     },
     {
       "utility": "electric",
       "ref": "25414198039",
       "period": "2023-07",
+      "ca_no": "010961575",
+      "invoice_file": "[Invoice] 2023-08-04 - ELE_010961575_660802_025414198039.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\07 - July\\[Invoice] 2023-08-04 - ELE_010961575_660802_025414198039.pdf",
       "units": 484.0,
       "ft": 0.9119,
       "amount": 2546.72,
@@ -50,16 +61,20 @@
       "charge": 2380.11,
       "vat": 166.61,
       "ft_amount": 441.36,
-      "ca_no": "010961575",
       "paid_amount": 2546.72,
-      "paid_date": "2023-08-05",
+      "paid_date": "2023-08-04",
       "receipt_file": "[Receipt] 2023-08-05 - 010961575_04082566_O0800365457.pdf",
-      "paid": true
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\07 - July\\[Receipt] 2023-08-05 - 010961575_04082566_O0800365457.pdf",
+      "paid": true,
+      "due_date": "2023-08-15"
     },
     {
       "utility": "electric",
       "ref": "25369260211",
       "period": "2023-08",
+      "ca_no": "010961575",
+      "invoice_file": "[Invoice] 2023-09-04 - ELE_010961575_660902_025369260211.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\08 - August\\[Invoice] 2023-09-04 - ELE_010961575_660902_025369260211.pdf",
       "units": 495.0,
       "ft": 0.9119,
       "amount": 2609.49,
@@ -68,16 +83,20 @@
       "charge": 2438.78,
       "vat": 170.71,
       "ft_amount": 451.39,
-      "ca_no": "010961575",
       "paid_amount": 2609.49,
-      "paid_date": "2023-09-05",
+      "paid_date": "2023-09-04",
       "receipt_file": "[Receipt] 2023-09-05 - 010961575_04092566_O0900367479.pdf",
-      "paid": true
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\08 - August\\[Receipt] 2023-09-05 - 010961575_04092566_O0900367479.pdf",
+      "paid": true,
+      "due_date": "2023-09-13"
     },
     {
       "utility": "electric",
       "ref": "25054518824",
       "period": "2023-09",
+      "ca_no": "010961575",
+      "invoice_file": "[Invoice] 2023-10-03 - ELE_010961575_661002_025054518824.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\09 - September\\[Invoice] 2023-10-03 - ELE_010961575_661002_025054518824.pdf",
       "units": 433.0,
       "ft": 0.6689,
       "amount": 2143.08,
@@ -86,16 +105,20 @@
       "charge": 2002.88,
       "vat": 140.2,
       "ft_amount": 289.63,
-      "ca_no": "010961575",
       "paid_amount": 2143.08,
-      "paid_date": "2023-10-04",
+      "paid_date": "2023-10-03",
       "receipt_file": "[Receipt] 2023-10-04 - 010961575_03102566_O1000299154.pdf",
-      "paid": true
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\09 - September\\[Receipt] 2023-10-04 - 010961575_03102566_O1000299154.pdf",
+      "paid": true,
+      "due_date": "2023-10-16"
     },
     {
       "utility": "electric",
       "ref": "25414290944",
       "period": "2023-10",
+      "ca_no": "010961575",
+      "invoice_file": "[Invoice] 2023-11-07 - ELE_010961575_661102_025414290944.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\10 - October\\[Invoice] 2023-11-07 - ELE_010961575_661102_025414290944.pdf",
       "units": 422.0,
       "ft": 0.2048,
       "amount": 1658.59,
@@ -104,11 +127,12 @@
       "charge": 1550.09,
       "vat": 108.5,
       "ft_amount": 86.43,
-      "ca_no": "010961575",
       "paid_amount": 1658.59,
-      "paid_date": "2023-11-11",
+      "paid_date": "2023-11-03",
       "receipt_file": "[Receipt] 2023-11-11 - 010961575_03112566_O1100275409.pdf",
-      "paid": true
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\10 - October\\[Receipt] 2023-11-11 - 010961575_03112566_O1100275409.pdf",
+      "paid": true,
+      "due_date": "2023-11-13"
     },
     {
       "utility": "water",
@@ -123,12 +147,16 @@
       "vat": 15.68,
       "water_charge": 223.95,
       "ca_no": "69219988",
-      "invoice_file": "[Invoice] 2023-10-20 - 25661020_69219988_087885.pdf"
+      "invoice_file": "[Invoice] 2023-10-20 - 25661020_69219988_087885.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2023\\10 - October\\[Invoice] 2023-10-20 - 25661020_69219988_087885.pdf"
     },
     {
       "utility": "electric",
       "ref": "25324386310",
       "period": "2023-11",
+      "ca_no": "010961575",
+      "invoice_file": "[Invoice] 2023-12-03 - ELE_010961575_661202_025324386310.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\11 - November\\[Invoice] 2023-12-03 - ELE_010961575_661202_025324386310.pdf",
       "units": 385.0,
       "ft": 0.2048,
       "amount": 1693.65,
@@ -137,11 +165,12 @@
       "charge": 1582.85,
       "vat": 110.8,
       "ft_amount": 78.85,
-      "ca_no": "010961575",
       "paid_amount": 1693.65,
-      "paid_date": "2023-12-07",
+      "paid_date": "2023-12-06",
       "receipt_file": "[Receipt] 2023-12-07 - 010961575_06122566_O1200573850.pdf",
-      "paid": true
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\11 - November\\[Receipt] 2023-12-07 - 010961575_06122566_O1200573850.pdf",
+      "paid": true,
+      "due_date": "2023-12-13"
     },
     {
       "utility": "water",
@@ -157,9 +186,11 @@
       "water_charge": 232.6,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2023-11-21 - 25661121_69219988_259463.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2023\\11 - November\\[Invoice] 2023-11-21 - 25661121_69219988_259463.pdf",
       "paid_amount": 248.88,
       "paid_date": "2023-11-22",
       "receipt_file": "[Receipt] 2023-11-22 - 25661122_1236374091.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2023\\11 - November\\[Receipt] 2023-11-22 - 25661122_1236374091.pdf",
       "paid": true
     },
     {
@@ -180,11 +211,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-01-04 - SIGN_25549261033.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\12 - December\\[Invoice] 2024-01-04 - SIGN_25549261033.pdf",
       "invoice_no": "25549261033",
       "charge": 1838.94,
       "paid_amount": 1967.67,
-      "paid_date": "2024-01-06",
+      "paid_date": "2024-01-04",
       "receipt_file": "[Receipt] 2024-01-06 - SIGN_O0103028459.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2023\\12 - December\\[Receipt] 2024-01-06 - SIGN_O0103028459.pdf",
       "paid": true
     },
     {
@@ -201,9 +234,11 @@
       "water_charge": 189.35,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2023-12-19 - 25661219_69219988_431161.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2023\\12 - December\\[Invoice] 2023-12-19 - 25661219_69219988_431161.pdf",
       "paid_amount": 202.6,
       "paid_date": "2023-12-25",
       "receipt_file": "[Receipt] 2023-12-25 - 25661225_1236391073.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2023\\12 - December\\[Receipt] 2023-12-25 - 25661225_1236391073.pdf",
       "paid": true
     },
     {
@@ -224,11 +259,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-02-03 - SIGN_25504324785.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\01 - January\\[Invoice] 2024-02-03 - SIGN_25504324785.pdf",
       "invoice_no": "25504324785",
       "charge": 1894.87,
       "paid_amount": 2027.51,
-      "paid_date": "2024-02-07",
+      "paid_date": "2024-02-05",
       "receipt_file": "[Receipt] 2024-02-07 - SIGN_O0202992173.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\01 - January\\[Receipt] 2024-02-07 - SIGN_O0202992173.pdf",
       "paid": true
     },
     {
@@ -245,9 +282,11 @@
       "water_charge": 249.9,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-01-22 - 25670122_69219988_151461.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\01 - January\\[Invoice] 2024-01-22 - 25670122_69219988_151461.pdf",
       "paid_amount": 267.39,
-      "paid_date": "",
+      "paid_date": "2024-01-22",
       "receipt_file": "[Receipt] 2024-01-22 - 25670122_1236405377.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\01 - January\\[Receipt] 2024-01-22 - 25670122_1236405377.pdf",
       "paid": true
     },
     {
@@ -268,11 +307,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-03-03 - SIGN_25279519897.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\02 - February\\[Invoice] 2024-03-03 - SIGN_25279519897.pdf",
       "invoice_no": "25279519897",
       "charge": 1909.32,
       "paid_amount": 2042.97,
-      "paid_date": "2024-03-07",
+      "paid_date": "2024-03-05",
       "receipt_file": "[Receipt] 2024-03-07 - SIGN_O0303347826.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\02 - February\\[Receipt] 2024-03-07 - SIGN_O0303347826.pdf",
       "paid": true
     },
     {
@@ -289,9 +330,11 @@
       "water_charge": 206.65,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-02-19 - 25670219_69219988_323247.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\02 - February\\[Invoice] 2024-02-19 - 25670219_69219988_323247.pdf",
       "paid_amount": 221.12,
-      "paid_date": "",
+      "paid_date": "2024-02-20",
       "receipt_file": "[Receipt] 2024-02-20 - 25670220_1236419896.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\02 - February\\[Receipt] 2024-02-20 - 25670220_1236419896.pdf",
       "paid": true
     },
     {
@@ -311,7 +354,8 @@
       "vat": 161.31,
       "ca_no": "010961575",
       "installation": "68221246",
-      "invoice_file": "[Invoice] 2024-04-03 - SIGN_25369484063.pdf"
+      "invoice_file": "[Invoice] 2024-04-03 - SIGN_25369484063.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\03 - March\\[Invoice] 2024-04-03 - SIGN_25369484063.pdf"
     },
     {
       "utility": "water",
@@ -327,9 +371,11 @@
       "water_charge": 215.3,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-03-20 - 25670320_69219988_495710.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\03 - March\\[Invoice] 2024-03-20 - 25670320_69219988_495710.pdf",
       "paid_amount": 230.37,
-      "paid_date": "",
+      "paid_date": "2024-03-21",
       "receipt_file": "[Receipt] 2024-03-21 - 25670321_1297122882.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\03 - March\\[Receipt] 2024-03-21 - 25670321_1297122882.pdf",
       "paid": true
     },
     {
@@ -350,11 +396,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-05-03 - SIGN_25324553048.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\04 - April\\[Invoice] 2024-05-03 - SIGN_25324553048.pdf",
       "invoice_no": "25324553048",
       "charge": 2935.76,
       "paid_amount": 3141.26,
-      "paid_date": "2024-05-04",
+      "paid_date": "2024-05-03",
       "receipt_file": "[Receipt] 2024-05-04 - SIGN_O0503015134.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\04 - April\\[Receipt] 2024-05-04 - SIGN_O0503015134.pdf",
       "paid": true
     },
     {
@@ -371,9 +419,11 @@
       "water_charge": 223.95,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-04-20 - 25670419_69219988_674006.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\04 - April\\[Invoice] 2024-04-20 - 25670419_69219988_674006.pdf",
       "paid_amount": 239.63,
-      "paid_date": "",
+      "paid_date": "2024-04-22",
       "receipt_file": "[Receipt] 2024-04-22 - 25670422_1297145486.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\04 - April\\[Receipt] 2024-04-22 - 25670422_1297145486.pdf",
       "paid": true
     },
     {
@@ -394,11 +444,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-06-03 - SIGN_25234654761.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\05 - May\\[Invoice] 2024-06-03 - SIGN_25234654761.pdf",
       "invoice_no": "25234654761",
       "charge": 2290.02,
       "paid_amount": 2450.32,
-      "paid_date": "2024-06-05",
+      "paid_date": "2024-06-04",
       "receipt_file": "[Receipt] 2024-06-05 - SIGN_O0602930984.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\05 - May\\[Receipt] 2024-06-05 - SIGN_O0602930984.pdf",
       "paid": true
     },
     {
@@ -415,9 +467,11 @@
       "water_charge": 189.35,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-05-20 - 25670520_69219988_040729.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\05 - May\\[Invoice] 2024-05-20 - 25670520_69219988_040729.pdf",
       "paid_amount": 202.6,
-      "paid_date": "",
+      "paid_date": "2024-05-21",
       "receipt_file": "[Receipt] 2024-05-21 - 25670521_1297167935.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\05 - May\\[Receipt] 2024-05-21 - 25670521_1297167935.pdf",
       "paid": true
     },
     {
@@ -438,11 +492,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-07-03 - SIGN_25324620646.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\06 - June\\[Invoice] 2024-07-03 - SIGN_25324620646.pdf",
       "invoice_no": "25324620646",
       "charge": 2424.95,
       "paid_amount": 2594.7,
-      "paid_date": "2024-07-04",
+      "paid_date": "2024-07-03",
       "receipt_file": "[Receipt] 2024-07-04 - SIGN_O0703160160.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\06 - June\\[Receipt] 2024-07-04 - SIGN_O0703160160.pdf",
       "paid": true
     },
     {
@@ -459,9 +515,11 @@
       "water_charge": 206.65,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-06-19 - 25670619_69219988_213750.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\06 - June\\[Invoice] 2024-06-19 - 25670619_69219988_213750.pdf",
       "paid_amount": 221.12,
-      "paid_date": "",
+      "paid_date": "2024-06-21",
       "receipt_file": "[Receipt] 2024-06-21 - 25670621_1297190737.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\06 - June\\[Receipt] 2024-06-21 - 25670621_1297190737.pdf",
       "paid": true
     },
     {
@@ -482,11 +540,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-08-03 - SIGN_25279690663.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\07 - July\\[Invoice] 2024-08-03 - SIGN_25279690663.pdf",
       "invoice_no": "25279690663",
       "charge": 2034.62,
       "paid_amount": 2177.04,
-      "paid_date": "2024-08-06",
+      "paid_date": "2024-08-05",
       "receipt_file": "[Receipt] 2024-08-06 - SIGN_O0803338850.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\07 - July\\[Receipt] 2024-08-06 - SIGN_O0803338850.pdf",
       "paid": true
     },
     {
@@ -503,9 +563,11 @@
       "water_charge": 241.25,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-07-23 - 25670723_69219988_386123.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\07 - July\\[Invoice] 2024-07-23 - 25670723_69219988_386123.pdf",
       "paid_amount": 258.14,
-      "paid_date": "",
+      "paid_date": "2024-07-25",
       "receipt_file": "[Receipt] 2024-07-25 - 25670725_1297216733.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\07 - July\\[Receipt] 2024-07-25 - 25670725_1297216733.pdf",
       "paid": true
     },
     {
@@ -526,11 +588,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-09-03 - SIGN_25234758018.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\08 - August\\[Invoice] 2024-09-03 - SIGN_25234758018.pdf",
       "invoice_no": "25234758018",
       "charge": 2294.84,
       "paid_amount": 2455.48,
-      "paid_date": "2024-09-06",
+      "paid_date": "2024-09-04",
       "receipt_file": "[Receipt] 2024-09-06 - SIGN_O0903211484.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\08 - August\\[Receipt] 2024-09-06 - SIGN_O0903211484.pdf",
       "paid": true
     },
     {
@@ -547,9 +611,11 @@
       "water_charge": 223.95,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-08-20 - 25670820_69219988_558606.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\08 - August\\[Invoice] 2024-08-20 - 25670820_69219988_558606.pdf",
       "paid_amount": 239.63,
-      "paid_date": "",
+      "paid_date": "2024-08-20",
       "receipt_file": "[Receipt] 2024-08-20 - 25670820_1297234917.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\08 - August\\[Receipt] 2024-08-20 - 25670820_1297234917.pdf",
       "paid": true
     },
     {
@@ -570,11 +636,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-10-03 - SIGN_25144865865.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\09 - September\\[Invoice] 2024-10-03 - SIGN_25144865865.pdf",
       "invoice_no": "25144865865",
       "charge": 2140.64,
       "paid_amount": 2290.48,
-      "paid_date": "2024-10-05",
+      "paid_date": "2024-10-04",
       "receipt_file": "[Receipt] 2024-10-05 - SIGN_O1003351443.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\09 - September\\[Receipt] 2024-10-05 - SIGN_O1003351443.pdf",
       "paid": true
     },
     {
@@ -591,9 +659,11 @@
       "water_charge": 232.6,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-09-20 - 25670920_69219988_731865.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\09 - September\\[Invoice] 2024-09-20 - 25670920_69219988_731865.pdf",
       "paid_amount": 248.88,
-      "paid_date": "",
+      "paid_date": "2024-09-20",
       "receipt_file": "[Receipt] 2024-09-21 - 25670920_1297258523.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\09 - September\\[Receipt] 2024-09-21 - 25670920_1297258523.pdf",
       "paid": true
     },
     {
@@ -614,11 +684,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-11-04 - SIGN_25054969284.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\10 - October\\[Invoice] 2024-11-04 - SIGN_25054969284.pdf",
       "invoice_no": "25054969284",
       "charge": 2034.62,
       "paid_amount": 2177.04,
-      "paid_date": "2024-11-06",
+      "paid_date": "2024-11-04",
       "receipt_file": "[Receipt] 2024-11-06 - SIGN_O1102111815.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\10 - October\\[Receipt] 2024-11-06 - SIGN_O1102111815.pdf",
       "paid": true
     },
     {
@@ -633,11 +705,13 @@
       "invoice_date": "2024-10-21",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-10-21 - 20241021_106229-8.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\10 - October\\[Invoice] 2024-10-21 - 20241021_106229-8.pdf",
       "water_charge": 206.65,
       "vat": 14.47,
       "paid_amount": 221.12,
       "paid_date": "2024-10-22",
       "receipt_file": "[Receipt] 2024-10-22 - 20241022_E1297283019.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\10 - October\\[Receipt] 2024-10-22 - 20241022_E1297283019.pdf",
       "paid": true
     },
     {
@@ -658,11 +732,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2024-12-04 - SIGN_23570805612.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\11 - November\\[Invoice] 2024-12-04 - SIGN_23570805612.pdf",
       "invoice_no": "23570805612",
       "charge": 1822.58,
       "paid_amount": 1950.16,
-      "paid_date": "2024-12-08",
+      "paid_date": "2024-12-06",
       "receipt_file": "[Receipt] 2024-12-08 - SIGN_O1200619445.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\11 - November\\[Receipt] 2024-12-08 - SIGN_O1200619445.pdf",
       "paid": true
     },
     {
@@ -677,11 +753,13 @@
       "invoice_date": "2024-11-19",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-11-19 - 20241119_279339-6.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\11 - November\\[Invoice] 2024-11-19 - 20241119_279339-6.pdf",
       "water_charge": 198.0,
       "vat": 13.86,
       "paid_amount": 211.86,
       "paid_date": "2024-11-23",
       "receipt_file": "[Receipt] 2024-11-23 - 20241123_E1236572689.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\11 - November\\[Receipt] 2024-11-23 - 20241123_E1236572689.pdf",
       "paid": true
     },
     {
@@ -702,11 +780,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-01-04 - SIGN_25144972093.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\12 - December\\[Invoice] 2025-01-04 - SIGN_25144972093.pdf",
       "invoice_no": "25144972093",
       "charge": 1933.42,
       "paid_amount": 2068.76,
-      "paid_date": "2025-01-06",
+      "paid_date": "2025-01-04",
       "receipt_file": "[Receipt] 2025-01-06 - SIGN_O0103072377.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2024\\12 - December\\[Receipt] 2025-01-06 - SIGN_O0103072377.pdf",
       "paid": true
     },
     {
@@ -721,11 +801,13 @@
       "invoice_date": "2024-12-20",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2024-12-20 - 20241220_452525-9.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\12 - December\\[Invoice] 2024-12-20 - 20241220_452525-9.pdf",
       "water_charge": 206.65,
       "vat": 14.47,
       "paid_amount": 221.12,
       "paid_date": "2024-12-25",
       "receipt_file": "[Receipt] 2024-12-25 - 20241225_E1236591826.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2024\\12 - December\\[Receipt] 2024-12-25 - 20241225_E1236591826.pdf",
       "paid": true
     },
     {
@@ -746,11 +828,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-02-04 - SIGN_25145007968.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\01 - January\\[Invoice] 2025-02-04 - SIGN_25145007968.pdf",
       "invoice_no": "25145007968",
       "charge": 1388.39,
       "paid_amount": 1485.58,
-      "paid_date": "2025-02-08",
+      "paid_date": "2025-02-05",
       "receipt_file": "[Receipt] 2025-02-08 - SIGN_O0203059543.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\01 - January\\[Receipt] 2025-02-08 - SIGN_O0203059543.pdf",
       "paid": true
     },
     {
@@ -765,11 +849,13 @@
       "invoice_date": "2025-01-20",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-01-20 - 20250120_153482-5.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\01 - January\\[Invoice] 2025-01-20 - 20250120_153482-5.pdf",
       "water_charge": 249.9,
       "vat": 17.49,
       "paid_amount": 267.39,
-      "paid_date": "",
+      "paid_date": "2025-01-24",
       "receipt_file": "[Receipt] 2025-01-24 - 20250124_E1236609805.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\01 - January\\[Receipt] 2025-01-24 - 20250124_E1236609805.pdf",
       "paid": true
     },
     {
@@ -790,11 +876,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-03-03 - SIGN_25189997989.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\02 - February\\[Invoice] 2025-03-03 - SIGN_25189997989.pdf",
       "invoice_no": "25189997989",
       "charge": 1599.49,
       "paid_amount": 1711.45,
-      "paid_date": "2025-03-10",
+      "paid_date": "2025-03-04",
       "receipt_file": "[Receipt] 2025-03-10 - SIGN_O0303295527.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\02 - February\\[Receipt] 2025-03-10 - SIGN_O0303295527.pdf",
       "paid": true
     },
     {
@@ -809,11 +897,13 @@
       "invoice_date": "2025-02-19",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-02-26 - 20250219_326233-4.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\02 - February\\[Invoice] 2025-02-26 - 20250219_326233-4.pdf",
       "water_charge": 189.35,
       "vat": 13.25,
       "paid_amount": 202.6,
-      "paid_date": "",
+      "paid_date": "2025-02-24",
       "receipt_file": "[Receipt] 2025-02-25 - 20250224_E1297376197.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\02 - February\\[Receipt] 2025-02-25 - 20250224_E1297376197.pdf",
       "paid": true
     },
     {
@@ -834,11 +924,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-04-04 - SIGN_25369893814.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\03 - March\\[Invoice] 2025-04-04 - SIGN_25369893814.pdf",
       "invoice_no": "25369893814",
       "charge": 2145.21,
       "paid_amount": 2295.37,
-      "paid_date": "2025-04-08",
+      "paid_date": "2025-04-05",
       "receipt_file": "[Receipt] 2025-04-08 - SIGN_O0403155912.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\03 - March\\[Receipt] 2025-04-08 - SIGN_O0403155912.pdf",
       "paid": true
     },
     {
@@ -853,11 +945,13 @@
       "invoice_date": "2025-03-19",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-03-19 - 20250319_498378-9.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\03 - March\\[Invoice] 2025-03-19 - 20250319_498378-9.pdf",
       "water_charge": 198.0,
       "vat": 13.86,
       "paid_amount": 211.86,
-      "paid_date": "",
+      "paid_date": "2025-03-19",
       "receipt_file": "[Receipt] 2025-03-19 - 20250319_E1297395199.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\03 - March\\[Receipt] 2025-03-19 - 20250319_E1297395199.pdf",
       "paid": true
     },
     {
@@ -878,11 +972,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-05-08 - SIGN_25145111881.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\04 - April\\[Invoice] 2025-05-08 - SIGN_25145111881.pdf",
       "invoice_no": "25145111881",
       "charge": 2317.61,
       "paid_amount": 2479.84,
-      "paid_date": "2025-05-06",
+      "paid_date": "2025-05-04",
       "receipt_file": "[Receipt] 2025-05-06 - SIGN_O0503061051.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\04 - April\\[Receipt] 2025-05-06 - SIGN_O0503061051.pdf",
       "paid": true
     },
     {
@@ -897,11 +993,13 @@
       "invoice_date": "2025-04-21",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-04-21 - 20250421_672096-5.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\04 - April\\[Invoice] 2025-04-21 - 20250421_672096-5.pdf",
       "water_charge": 206.65,
       "vat": 14.47,
       "paid_amount": 221.12,
-      "paid_date": "",
+      "paid_date": "2025-04-22",
       "receipt_file": "[Receipt] 2025-04-22 - 20250422_E1236663338.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\04 - April\\[Receipt] 2025-04-22 - 20250422_E1236663338.pdf",
       "paid": true
     },
     {
@@ -922,11 +1020,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-06-04 - SIGN_25055215964.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\05 - May\\[Invoice] 2025-06-04 - SIGN_25055215964.pdf",
       "invoice_no": "25055215964",
       "charge": 2089.62,
       "paid_amount": 2235.89,
-      "paid_date": "2025-06-08",
+      "paid_date": "2025-06-05",
       "receipt_file": "[Receipt] 2025-06-08 - SIGN_O0603022326.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\05 - May\\[Receipt] 2025-06-08 - SIGN_O0603022326.pdf",
       "paid": true
     },
     {
@@ -941,11 +1041,13 @@
       "invoice_date": "2025-05-20",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-05-20 - 20250520_046310-9.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\05 - May\\[Invoice] 2025-05-20 - 20250520_046310-9.pdf",
       "water_charge": 215.3,
       "vat": 15.07,
       "paid_amount": 230.37,
-      "paid_date": "",
+      "paid_date": "2025-05-20",
       "receipt_file": "[Receipt] 2025-05-20 - 20250520_E1297441783.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\05 - May\\[Receipt] 2025-05-20 - 20250520_E1297441783.pdf",
       "paid": true
     },
     {
@@ -966,11 +1068,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-07-04 - SIGN_25100211423.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\06 - June\\[Invoice] 2025-07-04 - SIGN_25100211423.pdf",
       "invoice_no": "25100211423",
       "charge": 2117.33,
       "paid_amount": 2265.54,
-      "paid_date": "2025-07-06",
+      "paid_date": "2025-07-04",
       "receipt_file": "[Receipt] 2025-07-06 - SIGN_O0703248160.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\06 - June\\[Receipt] 2025-07-06 - SIGN_O0703248160.pdf",
       "paid": true
     },
     {
@@ -985,11 +1089,13 @@
       "invoice_date": "2025-06-20",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-06-20 - 20250620_219607-9.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\06 - June\\[Invoice] 2025-06-20 - 20250620_219607-9.pdf",
       "water_charge": 241.25,
       "vat": 16.89,
       "paid_amount": 258.14,
-      "paid_date": "",
+      "paid_date": "2025-06-21",
       "receipt_file": "[Receipt] 2025-06-21 - 20250621_E1297466322.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\06 - June\\[Receipt] 2025-06-21 - 20250621_E1297466322.pdf",
       "paid": true
     },
     {
@@ -1010,11 +1116,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-08-04 - SIGN_25100247200.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\07 - July\\[Invoice] 2025-08-04 - SIGN_25100247200.pdf",
       "invoice_no": "25100247200",
       "charge": 2121.96,
       "paid_amount": 2270.5,
-      "paid_date": "2025-08-06",
+      "paid_date": "2025-08-04",
       "receipt_file": "[Receipt] 2025-08-06 - SIGN_O0803225775.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\07 - July\\[Receipt] 2025-08-06 - SIGN_O0803225775.pdf",
       "paid": true
     },
     {
@@ -1029,11 +1137,13 @@
       "invoice_date": "2025-07-21",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-07-21 - 20250721_393181-3.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\07 - July\\[Invoice] 2025-07-21 - 20250721_393181-3.pdf",
       "water_charge": 232.6,
       "vat": 16.28,
       "paid_amount": 248.88,
-      "paid_date": "",
+      "paid_date": "2025-07-22",
       "receipt_file": "[Receipt] 2025-07-22 - 20250722_E1297490808.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\07 - July\\[Receipt] 2025-07-22 - 20250722_E1297490808.pdf",
       "paid": true
     },
     {
@@ -1054,11 +1164,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-09-03 - SIGN_24965396891.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\08 - August\\[Invoice] 2025-09-03 - SIGN_24965396891.pdf",
       "invoice_no": "24965396891",
       "charge": 2606.94,
       "paid_amount": 2789.43,
-      "paid_date": "2025-09-06",
+      "paid_date": "2025-09-04",
       "receipt_file": "[Receipt] 2025-09-06 - SIGN_O0903211976.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\08 - August\\[Receipt] 2025-09-06 - SIGN_O0903211976.pdf",
       "paid": true
     },
     {
@@ -1073,11 +1185,13 @@
       "invoice_date": "2025-08-19",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-08-19 - 20250819_566480-0.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\08 - August\\[Invoice] 2025-08-19 - 20250819_566480-0.pdf",
       "water_charge": 223.95,
       "vat": 15.68,
       "paid_amount": 239.63,
-      "paid_date": "",
+      "paid_date": "2025-08-21",
       "receipt_file": "[Receipt] 2025-08-21 - 20250821_E1297513955.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\08 - August\\[Receipt] 2025-08-21 - 20250821_E1297513955.pdf",
       "paid": true
     },
     {
@@ -1098,11 +1212,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-10-04 - SIGN_25100317979.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\09 - September\\[Invoice] 2025-10-04 - SIGN_25100317979.pdf",
       "invoice_no": "25100317979",
       "charge": 2216.31,
       "paid_amount": 2371.45,
-      "paid_date": "2025-10-10",
+      "paid_date": "2025-10-08",
       "receipt_file": "[Receipt] 2025-10-10 - SIGN_O1003758852.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\09 - September\\[Receipt] 2025-10-10 - SIGN_O1003758852.pdf",
       "paid": true
     },
     {
@@ -1117,11 +1233,13 @@
       "invoice_date": "2025-09-19",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-09-19 - 20250919_740038-5.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\09 - September\\[Invoice] 2025-09-19 - 20250919_740038-5.pdf",
       "water_charge": 241.25,
       "vat": 16.89,
       "paid_amount": 258.14,
-      "paid_date": "",
+      "paid_date": "2025-09-22",
       "receipt_file": "[Receipt] 2025-09-22 - 20250922_E1297541523.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\09 - September\\[Receipt] 2025-09-22 - 20250922_E1297541523.pdf",
       "paid": true
     },
     {
@@ -1142,11 +1260,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-11-03 - SIGN_24875538495.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\10 - October\\[Invoice] 2025-11-03 - SIGN_24875538495.pdf",
       "invoice_no": "24875538495",
       "charge": 2307.89,
       "paid_amount": 2469.44,
-      "paid_date": "2025-11-05",
+      "paid_date": "2025-11-03",
       "receipt_file": "[Receipt] 2025-11-05 - SIGN_O1102023825.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\10 - October\\[Receipt] 2025-11-05 - SIGN_O1102023825.pdf",
       "paid": true
     },
     {
@@ -1163,9 +1283,11 @@
       "water_charge": 241.25,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-10-20 - 25681020_69219988_123554.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\10 - October\\[Invoice] 2025-10-20 - 25681020_69219988_123554.pdf",
       "paid_amount": 258.14,
       "paid_date": "2025-10-20",
       "receipt_file": "[Receipt] 2025-10-20 - 25681020_1236781481.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\10 - October\\[Receipt] 2025-10-20 - 25681020_1236781481.pdf",
       "paid": true
     },
     {
@@ -1186,11 +1308,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2025-12-03 - SIGN_25190309416.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\11 - November\\[Invoice] 2025-12-03 - SIGN_25190309416.pdf",
       "invoice_no": "25190309416",
       "charge": 1882.05,
       "paid_amount": 2013.79,
-      "paid_date": "2025-12-07",
+      "paid_date": "2025-12-05",
       "receipt_file": "[Receipt] 2025-12-07 - SIGN_O1200531015.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\11 - November\\[Receipt] 2025-12-07 - SIGN_O1200531015.pdf",
       "paid": true
     },
     {
@@ -1207,9 +1331,11 @@
       "water_charge": 241.25,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-11-19 - 25681119_69219988_287748.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\11 - November\\[Invoice] 2025-11-19 - 25681119_69219988_287748.pdf",
       "paid_amount": 258.14,
       "paid_date": "2025-11-21",
       "receipt_file": "[Receipt] 2025-11-24 - 25681121_1293492865.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\11 - November\\[Receipt] 2025-11-24 - 25681121_1293492865.pdf",
       "paid": true
     },
     {
@@ -1230,11 +1356,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-01-03 - SIGN_24515884901.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\12 - December\\[Invoice] 2026-01-03 - SIGN_24515884901.pdf",
       "invoice_no": "24515884901",
       "charge": 1891.21,
       "paid_amount": 2023.59,
-      "paid_date": "2026-01-07",
+      "paid_date": "2026-01-05",
       "receipt_file": "[Receipt] 2026-01-07 - SIGN_O0100412895.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2025\\12 - December\\[Receipt] 2026-01-07 - SIGN_O0100412895.pdf",
       "paid": true
     },
     {
@@ -1251,9 +1379,11 @@
       "water_charge": 232.6,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2025-12-22 - 25681222_69219988_462110.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\12 - December\\[Invoice] 2025-12-22 - 25681222_69219988_462110.pdf",
       "paid_amount": 248.88,
       "paid_date": "2025-12-27",
       "receipt_file": "[Receipt] 2025-12-27 - 25681227_1236831410.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2025\\12 - December\\[Receipt] 2025-12-27 - 25681227_1236831410.pdf",
       "paid": true
     },
     {
@@ -1274,11 +1404,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-02-04 - SIGN_24920616894.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\01 - January\\[Invoice] 2026-02-04 - SIGN_24920616894.pdf",
       "invoice_no": "24920616894",
       "charge": 1981.28,
       "paid_amount": 2119.97,
-      "paid_date": "2026-02-08",
+      "paid_date": "2026-02-06",
       "receipt_file": "[Receipt] 2026-02-08 - SIGN_O0200619648.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\01 - January\\[Receipt] 2026-02-08 - SIGN_O0200619648.pdf",
       "paid": true
     },
     {
@@ -1295,9 +1427,11 @@
       "water_charge": 325.22,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-01-19 - 25690119_69219988_153476.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\01 - January\\[Invoice] 2026-01-19 - 25690119_69219988_153476.pdf",
       "paid_amount": 347.99,
-      "paid_date": "",
+      "paid_date": "2026-01-24",
       "receipt_file": "[Receipt] 2026-01-26 - 25690124_1293506461.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\01 - January\\[Receipt] 2026-01-26 - 25690124_1293506461.pdf",
       "paid": true
     },
     {
@@ -1318,11 +1452,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-03-04 - SIGN_25145461543.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\02 - February\\[Invoice] 2026-03-04 - SIGN_25145461543.pdf",
       "invoice_no": "25145461543",
       "charge": 2130.41,
       "paid_amount": 2279.54,
-      "paid_date": "2026-03-07",
+      "paid_date": "2026-03-05",
       "receipt_file": "[Receipt] 2026-03-07 - SIGN_O0300581243.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\02 - February\\[Receipt] 2026-03-07 - SIGN_O0300581243.pdf",
       "paid": true
     },
     {
@@ -1339,9 +1475,11 @@
       "water_charge": 376.12,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-02-19 - 25690219_69219988_328287.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\02 - February\\[Invoice] 2026-02-19 - 25690219_69219988_328287.pdf",
       "paid_amount": 402.45,
-      "paid_date": "",
+      "paid_date": "2026-02-24",
       "receipt_file": "[Receipt] 2026-02-25 - 25690224_1293512965.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\02 - February\\[Receipt] 2026-02-25 - 25690224_1293512965.pdf",
       "paid": true
     },
     {
@@ -1362,11 +1500,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-04-03 - SIGN_25325334969.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\03 - March\\[Invoice] 2026-04-03 - SIGN_25325334969.pdf",
       "invoice_no": "25325334969",
       "charge": 2582.3,
       "paid_amount": 2763.06,
-      "paid_date": "2026-04-06",
+      "paid_date": "2026-04-04",
       "receipt_file": "[Receipt] 2026-04-06 - SIGN_O0400393417.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\03 - March\\[Receipt] 2026-04-06 - SIGN_O0400393417.pdf",
       "paid": true
     },
     {
@@ -1383,9 +1523,11 @@
       "water_charge": 284.5,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-03-19 - 25690319_69219988_503027.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\03 - March\\[Invoice] 2026-03-19 - 25690319_69219988_503027.pdf",
       "paid_amount": 304.42,
-      "paid_date": "",
+      "paid_date": "2026-03-24",
       "receipt_file": "[Receipt] 2026-03-25 - 25690324_1293519716.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\03 - March\\[Receipt] 2026-03-25 - 25690324_1293519716.pdf",
       "paid": true
     },
     {
@@ -1406,11 +1548,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-05-03 - SIGN_24875755063.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\04 - April\\[Invoice] 2026-05-03 - SIGN_24875755063.pdf",
       "invoice_no": "24875755063",
       "charge": 2943.8,
       "paid_amount": 3149.87,
-      "paid_date": "2026-05-05",
+      "paid_date": "2026-05-03",
       "receipt_file": "[Receipt] 2026-05-05 - SIGN_O0500267282.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\04 - April\\[Receipt] 2026-05-05 - SIGN_O0500267282.pdf",
       "paid": true
     },
     {
@@ -1427,9 +1571,11 @@
       "water_charge": 284.5,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-04-20 - 25690420_69219988_677542.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\04 - April\\[Invoice] 2026-04-20 - 25690420_69219988_677542.pdf",
       "paid_amount": 304.42,
-      "paid_date": "",
+      "paid_date": "2026-04-20",
       "receipt_file": "[Receipt] 2026-04-21 - 25690420_1293525271.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\04 - April\\[Receipt] 2026-04-21 - 25690420_1293525271.pdf",
       "paid": true
     },
     {
@@ -1450,11 +1596,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-06-03 - SIGN_24920761034.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\05 - May\\[Invoice] 2026-06-03 - SIGN_24920761034.pdf",
       "invoice_no": "24920761034",
       "charge": 2677.4,
       "paid_amount": 2864.82,
-      "paid_date": "2026-06-08",
+      "paid_date": "2026-06-04",
       "receipt_file": "[Receipt] 2026-06-08 - SIGN_O0600359548.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\05 - May\\[Receipt] 2026-06-08 - SIGN_O0600359548.pdf",
       "paid": true
     },
     {
@@ -1471,9 +1619,11 @@
       "water_charge": 294.68,
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-05-20 - 25690520_69219988_051617.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\05 - May\\[Invoice] 2026-05-20 - 25690520_69219988_051617.pdf",
       "paid_amount": 315.31,
-      "paid_date": "",
+      "paid_date": "2026-05-22",
       "receipt_file": "[Receipt] 2026-05-25 - 25690522_1293532988.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\05 - May\\[Receipt] 2026-05-25 - 25690522_1293532988.pdf",
       "paid": true
     },
     {
@@ -1494,11 +1644,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-07-04 - SIGN_24875828239.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\06 - June\\[Invoice] 2026-07-04 - SIGN_24875828239.pdf",
       "invoice_no": "24875828239",
       "charge": 2475.7,
       "paid_amount": 2649.0,
-      "paid_date": "2026-07-13",
+      "paid_date": "2026-07-11",
       "receipt_file": "[Receipt] 2026-07-13 - SIGN_O0701201184.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\06 - June\\[Receipt] 2026-07-13 - SIGN_O0701201184.pdf",
       "paid": true
     },
     {
@@ -1513,11 +1665,13 @@
       "invoice_date": "2026-06-19",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-06-19 - 25690619_0069219988_227030.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\06 - June\\[Invoice] 2026-06-19 - 25690619_0069219988_227030.pdf",
       "water_charge": 284.5,
       "vat": 19.92,
       "paid_amount": 304.42,
       "paid_date": "2026-06-22",
       "receipt_file": "[Receipt] 2026-06-23 - 25690622_1293540622.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\06 - June\\[Receipt] 2026-06-23 - 25690622_1293540622.pdf",
       "paid": true
     },
     {
@@ -1538,11 +1692,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-08-04 - SIGN_22761889550.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\07 - July\\[Invoice] 2026-08-04 - SIGN_22761889550.pdf",
       "invoice_no": "22761889550",
       "charge": 2567.39,
       "paid_amount": 2747.11,
-      "paid_date": "2026-08-07",
+      "paid_date": "2026-08-04",
       "receipt_file": "[Receipt] 2026-08-07 - SIGN_O0800403982.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\07 - July\\[Receipt] 2026-08-07 - SIGN_O0800403982.pdf",
       "paid": true
     },
     {
@@ -1557,11 +1713,13 @@
       "invoice_date": "2026-07-21",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-07-22 - 25690721_0069219988_401294.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\07 - July\\[Invoice] 2026-07-22 - 25690721_0069219988_401294.pdf",
       "water_charge": 267.2,
       "vat": 18.7,
       "paid_amount": 285.9,
       "paid_date": "2026-07-29",
       "receipt_file": "[Receipt] 2026-08-01 - 25690729_1293548851.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\08 - August\\[Receipt] 2026-08-01 - 25690729_1293548851.pdf",
       "paid": true
     },
     {
@@ -1582,11 +1740,13 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-09-03 - SIGN_24696062494.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\08 - August\\[Invoice] 2026-09-03 - SIGN_24696062494.pdf",
       "invoice_no": "24696062494",
       "charge": 2306.1,
       "paid_amount": 2467.53,
-      "paid_date": "2026-09-06",
+      "paid_date": "2026-09-04",
       "receipt_file": "[Receipt] 2026-09-06 - SIGN_O0900441263.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\08 - August\\[Receipt] 2026-09-06 - SIGN_O0900441263.pdf",
       "paid": true
     },
     {
@@ -1601,11 +1761,13 @@
       "invoice_date": "2026-08-20",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-08-20 - 25690820_0069219988_576678.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\08 - August\\[Invoice] 2026-08-20 - 25690820_0069219988_576678.pdf",
       "water_charge": 241.25,
       "vat": 16.89,
       "paid_amount": 258.14,
       "paid_date": "2026-08-24",
       "receipt_file": "[Receipt] 2026-08-24 - 25690824_1236010495.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\08 - August\\[Receipt] 2026-08-24 - 25690824_1236010495.pdf",
       "paid": true
     },
     {
@@ -1625,7 +1787,15 @@
       "vat": 161.55,
       "ca_no": "010961575",
       "installation": "68221246",
-      "invoice_file": "[Invoice] 2026-10-04 - SIGN_24786017824.pdf"
+      "invoice_file": "[Invoice] 2026-10-04 - SIGN_24786017824.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\09 - September\\[Invoice] 2026-10-04 - SIGN_24786017824.pdf",
+      "invoice_no": "24786017824",
+      "charge": 2307.8,
+      "paid_amount": 2469.35,
+      "paid_date": "2026-10-04",
+      "receipt_file": "[Receipt] 2026-10-06 - SIGN_O1000400458.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\09 - September\\[Receipt] 2026-10-06 - SIGN_O1000400458.pdf",
+      "paid": true
     },
     {
       "utility": "water",
@@ -1639,11 +1809,13 @@
       "invoice_date": "2026-09-21",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-09-21 - 25690921_0069219988_750947.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\09 - September\\[Invoice] 2026-09-21 - 25690921_0069219988_750947.pdf",
       "water_charge": 249.9,
       "vat": 17.49,
       "paid_amount": 267.39,
       "paid_date": "2026-09-26",
       "receipt_file": "[Receipt] 2026-09-26 - 25690926_1267166877.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\09 - September\\[Receipt] 2026-09-26 - 25690926_1267166877.pdf",
       "paid": true
     }
   ]

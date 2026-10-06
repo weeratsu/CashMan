@@ -108,6 +108,10 @@ function renderUtilities(){
 
   // ---- integration card ----
   var avgE=_utilAvg('electric',12), avgW=_utilAvg('water',12);
+  var _ulGen=(_utilData().generated_at||'').replace('T',' ').slice(0,16);
+  var refreshBar='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:10px;color:var(--text3)">'+
+    '<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="utilRefresh()" title="Reload the latest bills written by run_utility.bat"><i class="fa-solid fa-rotate-right"></i> Refresh bills</button>'+
+    '<span>UtilityLog updated: '+(_ulGen||'-')+'</span></div>';
   var integ='<div class="card"><h2><i class="fa-solid fa-link"></i> Bills Reminder Integration</h2>'+
     '<p class="text-muted" style="font-size:10px;margin-bottom:8px">Keep your recurring forecast accurate using the real 12-month average, and push unpaid bills into Bills Reminder.</p>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
@@ -145,8 +149,11 @@ function renderUtilities(){
       '<td class="r">\u0e3f'+fmt(b.amount||0)+'</td>'+
       '<td class="r">'+(b.units!=null?b.units+' '+unitLbl:'-')+'</td>'+
       '<td class="r">'+(b.ft!=null?b.ft:'-')+'</td>'+
+      '<td>'+(_utilIssueDate(b)?fmtDate(_utilIssueDate(b)):'-')+'</td>'+
+      '<td>'+(b.due_date?fmtDate(b.due_date):'-')+'</td>'+
       '<td>'+paidTag+'</td>'+
       '<td>'+(b.paid_date?fmtDate(b.paid_date):'-')+'</td>'+
+      '<td onclick="event.stopPropagation()" style="white-space:nowrap">'+_utilDocIcons(b)+'</td>'+
       '<td onclick="event.stopPropagation()">'+actBtn+'</td>'+
     '</tr>';
     if(open) row+=_utilDetailRow(b);
@@ -154,21 +161,33 @@ function renderUtilities(){
   }).join('');
   var table='<div class="card"><h2><i class="fa-solid fa-table-list"></i> All bills ('+bills.length+')</h2>'+
     '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
-    '<th>Period</th><th class="r">Amount</th><th class="r">Usage</th><th class="r">Ft</th><th>Status</th><th>Paid date</th><th></th>'+
+    '<th>Period</th><th class="r">Amount</th><th class="r">Usage</th><th class="r">Ft</th><th>Due date</th><th>Deadline</th><th>Status</th><th>Paid date</th><th>Docs</th><th></th>'+
     '</tr></thead><tbody>'+table_rows_guard(rows)+'</tbody></table></div></div>';
 
-  host.innerHTML=kpi+fb+integ+charts+table;
+  host.innerHTML=refreshBar+kpi+fb+integ+charts+table;
 
   // draw charts after DOM is in place
   setTimeout(_utilDrawCharts, 30);
 }
 
-function table_rows_guard(rows){return rows||'<tr><td colspan="7" class="text-muted">No bills for this filter</td></tr>';}
+/* Due (bill issue date) uses the same rule as utilAutoSyncPlanned: water=invoice_date, electric=meter_date,
+   fallback due_date. Deadline = printed payment-due date (b.due_date). */
+function _utilIssueDate(b){ return (b.utility==='water'?(b.invoice_date||b.meter_date):(b.meter_date||b.invoice_date))||b.due_date||''; }
+function table_rows_guard(rows){return rows||'<tr><td colspan="10" class="text-muted">No bills for this filter</td></tr>';}
 
 // Expandable detail row — shows every raw field the parser captured for one bill.
 function _utilDetailRow(b){
   function money(v){ return v!=null ? '\u0e3f'+fmt(v) : '-'; }
   function raw(v){ return v!=null && v!=='' ? v : '-'; }
+  // Render a bill document (invoice/receipt) as a clickable file:// link when the parser stored a
+  // full path; otherwise show the filename as plain text (web/iPhone build has no local file access).
+  function fileLink(name,path){
+    if(!name) return '-';
+    if(path){
+      return '<a href="#" data-src="'+esc(_utilFileUrl(path))+'" onclick="event.stopPropagation();utilViewDoc(this.getAttribute(\'data-src\'),event);return false;" title="Open '+esc(name)+'" style="color:var(--primary);text-decoration:underline">'+esc(name)+'</a>';
+    }
+    return esc(name);
+  }
   var isElec=b.utility==='electric';
   var unitLbl=isElec?'kWh':'m\u00b3';
   var items=[];
@@ -193,14 +212,14 @@ function _utilDetailRow(b){
   items.push(['Due date', b.due_date?fmtDate(b.due_date):'-']);
   items.push(['Invoice date', b.invoice_date?fmtDate(b.invoice_date):'-']);
   items.push(['Paid date', b.paid_date?fmtDate(b.paid_date):'-']);
-  items.push(['Invoice file', raw(b.invoice_file)]);
-  items.push(['Receipt file', raw(b.receipt_file)]);
+  items.push(['Invoice file', fileLink(b.invoice_file,b.invoice_path)]);
+  items.push(['Receipt file', fileLink(b.receipt_file,b.receipt_path)]);
   var cells=items.map(function(it){
     return '<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px solid var(--border)">'+
       '<span style="color:var(--text3);font-size:10px">'+it[0]+'</span>'+
       '<span style="font-family:var(--mono);font-size:10px;text-align:right;word-break:break-all">'+it[1]+'</span></div>';
   }).join('');
-  return '<tr><td colspan="7" style="background:var(--bg3);padding:10px 14px">'+
+  return '<tr><td colspan="10" style="background:var(--bg3);padding:10px 14px">'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 18px">'+cells+'</div>'+
     '</td></tr>';
 }
@@ -449,3 +468,66 @@ function utilUnmarkPaid(utility, period){
   if(typeof renderDashBills==='function'){ try{ renderDashBills(); }catch(e){} }
   if(typeof toast==='function') toast('Unmarked');
 }
+
+/* Reload data/utility_log.js WITHOUT a page reload (the parser rewrites it on every run).
+   Injects a fresh cache-busted <script>; resolves after window.UTILITY_DATA is replaced.
+   On failure (file missing/offline) keeps the old data and resolves false. */
+function utilReloadLog(){
+  return new Promise(function(resolve){
+    var before=(window.UTILITY_DATA&&window.UTILITY_DATA.generated_at)||'';
+    var old=document.getElementById('util-log-reload'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var s=document.createElement('script'); s.id='util-log-reload';
+    s.src='data/utility_log.js?t='+Date.now();
+    s.onload=function(){ var after=(window.UTILITY_DATA&&window.UTILITY_DATA.generated_at)||''; resolve({ok:true, changed:after!==before, generated_at:after}); };
+    s.onerror=function(){ resolve({ok:false}); };
+    document.head.appendChild(s);
+  });
+}
+/* Utilities page "Refresh": reload utility_log.js, re-sync bills into Planned/Bills Reminder, redraw. */
+async function utilRefresh(){
+  var r=await utilReloadLog();
+  if(!r.ok){ if(typeof toast==='function') toast('\u26a0 Could not load utility_log.js'); return; }
+  try{ if(typeof utilAutoSyncPlanned==='function') utilAutoSyncPlanned(); }catch(e){ console.error('utilRefresh sync:',e); }
+  try{ if(typeof simulate==='function') simulate(); }catch(e){}
+  try{ if(typeof renderAllTabs==='function') renderAllTabs(); else renderUtilities(); }catch(e){ renderUtilities(); }
+  if(typeof toast==='function') toast(r.changed ? ('\u2705 Loaded new UtilityLog data ('+String(r.generated_at).replace('T',' ').slice(0,16)+')') : 'UtilityLog already up to date');
+}
+
+/* ===== Invoice / Receipt popup viewer (same look as VillageMan's lightbox) ===== */
+function _utilFileUrl(path){
+  var p=String(path||'').replace(/\\/g,'/');
+  if(/^(https?:|file:)/i.test(p)) return p;
+  if(/^[A-Za-z]:\//.test(p)) return 'file:///'+encodeURI(p);   // absolute Windows path -> file:// URL
+  return p;                                                       // relative path: use as-is
+}
+/* Two small icons per bill row: invoice + receipt. Only shown when the parser stored a path. */
+function _utilDocIcons(b){
+  var h='';
+  if(b.invoice_path) h+='<a href="#" data-src="'+esc(_utilFileUrl(b.invoice_path))+'" onclick="utilViewDoc(this.getAttribute(\'data-src\'),event);return false;" title="Invoice: '+esc(b.invoice_file||'')+'" style="margin-right:8px"><i class="fa-solid fa-file-invoice" style="color:var(--primary)"></i></a>';
+  if(b.receipt_path) h+='<a href="#" data-src="'+esc(_utilFileUrl(b.receipt_path))+'" onclick="utilViewDoc(this.getAttribute(\'data-src\'),event);return false;" title="Receipt: '+esc(b.receipt_file||'')+'"><i class="fa-solid fa-receipt" style="color:var(--primary)"></i></a>';
+  return h||'<span class="text-muted">-</span>';
+}
+function utilViewDoc(src, ev){
+  if(ev){ if(ev.preventDefault) ev.preventDefault(); if(ev.stopPropagation) ev.stopPropagation(); }
+  if(!src) return;
+  var isPdf=/\.pdf(\?|$)/i.test(src);
+  var ov=document.getElementById('util-doc-ov');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='util-doc-ov';
+    ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:24px';
+    ov.addEventListener('click',function(e){ if(e.target===ov) utilCloseDoc(); });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape') utilCloseDoc(); });
+    document.body.appendChild(ov);
+  }
+  var inner=isPdf
+    ? '<iframe src="'+esc(src)+'" style="width:88vw;height:88vh;border:0;background:#fff;border-radius:8px"></iframe>'
+    : '<img src="'+esc(src)+'" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">';
+  ov.innerHTML='<div style="position:relative">'
+    +'<button onclick="utilCloseDoc()" style="position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;border:0;background:#fff;color:#111;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)">&times;</button>'
+    +inner
+    +'<div style="margin-top:6px;text-align:center"><a href="'+esc(src)+'" target="_blank" rel="noopener" style="color:#fff;font-size:11px;opacity:.85">Open in new tab</a></div>'
+    +'</div>';
+  ov.style.display='flex';
+}
+function utilCloseDoc(){ var ov=document.getElementById('util-doc-ov'); if(ov){ ov.style.display='none'; ov.innerHTML=''; } }
+window.utilViewDoc=utilViewDoc; window.utilCloseDoc=utilCloseDoc;
