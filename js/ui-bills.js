@@ -287,7 +287,71 @@ var detail='<tr class="m-detail" data-mrow="'+i+'" style="'+(open?'':'display:no
 '</div></td></tr>';
 return mainRow+detail}).join('')}
 
-function addMonthly(){readAll();D.monthly.push({name:'New',type:D.types[0]||'Other',amount:0,billing_day:1,card:'Cash/Direct',direction:'expense',status:'Active',start_mode:'forever',start_date:'',end_mode:'forever',end_date:'',deadline_mode:'custom',deadline_day:''});renderMonthly();filterMonthly()}
+/* Add Monthly / Add Yearly open a popup form (same pattern as To-Do / Planned): the item is added
+   only on Save, then the page scrolls to the new row and outlines it. Advanced timing (start/end,
+   deadline, utility link, installment periods) is still set in the row's ▶ detail after saving. */
+function _recAddOpen(kind){
+readAll();
+var Y=kind==='yearly';
+var ov=document.getElementById('rec-add-ov');
+if(!ov){ov=document.createElement('div');ov.id='rec-add-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('mousedown',function(e){if(e.target===ov)recAddClose();});
+ document.body.appendChild(ov);}
+var row=function(lbl,html){return '<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--text3)">'+lbl+'</label>'+html+'</div>';};
+var monthSel='<select id="ra-month" class="sel">'+MO.map(function(mn,mi){return '<option value="'+(mi+1)+'"'+(mi===new Date().getMonth()?' selected':'')+'>'+mn+'</option>';}).join('')+'</select>';
+ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(480px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)" onkeydown="if(event.key===\'Escape\')recAddClose();if(event.key===\'Enter\'){event.preventDefault();recAddSave(\''+kind+'\');}">'
+ +'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-plus"></i> New '+(Y?'yearly':'monthly')+' recurring</h3>'
+ +'<div style="display:grid;gap:10px">'
+ +row('Name *','<input id="ra-name" class="inp" placeholder="'+(Y?'e.g. Car insurance':'e.g. Netflix')+'" style="width:100%">')
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Income / Expense','<select id="ra-dir" class="sel">'+dirOpts('expense')+'</select>')
+ +row('Type','<select id="ra-type" class="sel">'+tOpts(D.types[0]||'Other')+'</select>')
+ +'</div>'
+ +'<div style="display:grid;grid-template-columns:'+(Y?'1fr 1fr 1fr':'1fr 1fr')+';gap:10px">'
+ +row('Amount *','<input id="ra-amt" class="inp inp-num" inputmode="decimal" placeholder="0.00">')
+ +row('Billing day *','<input id="ra-day" type="number" min="1" max="31" class="inp inp-num" value="1">')
+ +(Y?row('Month','<span>'+monthSel+'</span>'):'')
+ +'</div>'
+ +row('Card','<select id="ra-card" class="sel">'+cOpts('Cash/Direct')+'</select>')
+ +(Y?row('Pay mode','<div style="display:flex;gap:8px;align-items:center"><select id="ra-pay" class="sel" onchange="document.getElementById(\'ra-perwrap\').style.visibility=this.value===\'installment\'?\'visible\':\'hidden\'"><option value="full">Full</option><option value="installment">Installment</option></select><span id="ra-perwrap" style="visibility:hidden;font-size:10px;color:var(--text3)"><input id="ra-per" type="number" min="1" max="60" value="10" class="inp inp-num" style="width:56px"> periods</span></div>'):'')
+ +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="ra-auto"> Auto-charged (auto-pay)</label>'
+ +'</div>'
+ +'<div id="ra-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
+ +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="recAddClose()">Cancel</button><button class="btn btn-primary" onclick="recAddSave(\''+kind+'\')"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
+ +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 start/end date, deadline'+(Y?'':', utility link')+' can be set in the row (\u25b6) after saving</div>'
+ +'</div>';
+ov.style.display='flex';
+setTimeout(function(){var e=document.getElementById('ra-name');if(e)e.focus();},30);
+}
+function recAddClose(){var ov=document.getElementById('rec-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+function recAddSave(kind){
+var Y=kind==='yearly';
+var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
+var err=function(m,f){var e=document.getElementById('ra-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&fe.focus)fe.focus();};
+var name=g('ra-name'); if(!name){err('Please enter a name','ra-name');return;}
+var amt=parseFloat(g('ra-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amount greater than 0','ra-amt');return;}
+var day=parseInt(g('ra-day'),10); if(!(day>=1&&day<=31)){err('Billing day must be 1-31','ra-day');return;}
+var ae=document.getElementById('ra-auto'), auto=!!(ae&&ae.checked);
+var base={name:name,type:g('ra-type')||D.types[0]||'Other',amount:amt,billing_day:day,card:g('ra-card')||'Cash/Direct',
+ direction:g('ra-dir')||'expense',status:'Active',start_mode:'forever',deadline_mode:'custom',deadline_day:'',auto_pay:auto};
+var list,idx,sel;
+if(Y){
+ var pm=g('ra-pay')||'full', per=pm==='installment'?Math.max(1,Math.min(60,parseInt(g('ra-per'),10)||1)):1;
+ base.month=parseInt(g('ra-month'),10)||1; base.pay_mode=pm; base.inst_periods=per; base.own_by='Me'; base.start_from='';
+ D.yearly.push(base); idx=D.yearly.length-1; sel='#yearly-body tr.y-main[data-yrow="'+idx+'"]';
+}else{
+ base.start_date=''; base.end_mode='forever'; base.end_date='';
+ D.monthly.push(base); idx=D.monthly.length-1; sel='#monthly-body tr.m-main[data-mrow="'+idx+'"]';
+}
+saveD();recAddClose();
+simulate();renderAllTabs();
+try{Y?filterYearly():filterMonthly();}catch(e){}
+var r=document.querySelector(sel);
+if(r){r.style.outline='2px solid var(--primary)';r.style.outlineOffset='-2px';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
+if(typeof toast==='function')toast('\u2705 '+(Y?'Yearly':'Monthly')+' item added');
+}
+function addMonthly(){_recAddOpen('monthly');}
 
 function toggleAllMonthly(c){document.querySelectorAll('.m-chk').forEach(function(cb){var tr=cb.closest('tr');if(tr&&tr.style.display!=='none')cb.checked=c});updateMonthlyBulk()}
 function updateMonthlyBulk(){var n=document.querySelectorAll('.m-chk:checked').length;var el=document.getElementById('monthly-bulk');if(el)el.style.display=n>0?'':'none';var c=document.getElementById('m-sel-count');if(c)c.textContent=n}
@@ -333,7 +397,7 @@ var detail='<tr class="y-detail" data-yrow="'+i+'" style="'+(open?'':'display:no
 '</div></td></tr>';
 return mainRow+detail}).join('')}
 
-function addYearly(){readAll();D.yearly.push({name:'New',type:D.types[0]||'Other',amount:0,billing_day:1,month:1,card:'Cash/Direct',pay_mode:'full',inst_periods:1,own_by:'Me',status:'Active',start_mode:'forever',start_from:'',deadline_mode:'custom',deadline_day:''});renderYearly();filterYearly()}
+function addYearly(){_recAddOpen('yearly');}
 
 function toggleAllYearly(c){document.querySelectorAll('.y-chk').forEach(function(cb){var tr=cb.closest('tr');if(tr&&tr.style.display!=='none')cb.checked=c});updateYearlyBulk()}
 function updateYearlyBulk(){var n=document.querySelectorAll('.y-chk:checked').length;var el=document.getElementById('yearly-bulk');if(el)el.style.display=n>0?'':'none';var c=document.getElementById('y-sel-count');if(c)c.textContent=n}
@@ -756,7 +820,61 @@ _pw.innerHTML=msgs.length?'<div style="background:rgba(217,119,6,0.12);border:1p
 populatePlannedFilters()}
 
 
-function addPlanned(){readAll();D.planned.push({name:'New',type:D.types[0]||'Other',amount:0,date:'',card:'Cash/Direct',direction:'expense',own_by:'Me',notes:''});renderPlanned();filterPlanned()}
+/* Add Planned opens a popup form (same pattern as To-Do): the item is added only on Save,
+   then the page scrolls to the new row and outlines it so it's easy to find. */
+var _plNewIdx=-1;
+function addPlanned(){
+readAll();
+var ov=document.getElementById('pl-add-ov');
+if(!ov){ov=document.createElement('div');ov.id='pl-add-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('mousedown',function(e){if(e.target===ov)plAddClose();});
+ document.body.appendChild(ov);}
+var row=function(lbl,html){return '<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--text3)">'+lbl+'</label>'+html+'</div>';};
+ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(480px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)" onkeydown="if(event.key===\'Escape\')plAddClose();if(event.key===\'Enter\'){event.preventDefault();plAddSave();}">'
+ +'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-plus"></i> New planned item</h3>'
+ +'<div style="display:grid;gap:10px">'
+ +row('Name *','<input id="pa-name" class="inp" placeholder="e.g. Car insurance renewal" style="width:100%">')
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Income / Expense','<select id="pa-dir" class="sel">'+dirOpts('expense')+'</select>')
+ +row('Type','<select id="pa-type" class="sel">'+tOpts(D.types[0]||'Other')+'</select>')
+ +'</div>'
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Amount *','<input id="pa-amt" class="inp inp-num" inputmode="decimal" placeholder="0.00">')
+ +row('Date *','<input id="pa-date" type="date" class="inp">')
+ +'</div>'
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Card','<select id="pa-card" class="sel">'+cOpts('Cash/Direct')+'</select>')
+ +row('Own By','<select id="pa-own" class="sel">'+oOpts('Me')+'</select>')
+ +'</div>'
+ +row('Notes','<input id="pa-notes" class="inp" style="width:100%">')
+ +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="pa-auto"> Auto-charged (auto-pay)</label>'
+ +'</div>'
+ +'<div id="pa-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
+ +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="plAddClose()">Cancel</button><button class="btn btn-primary" onclick="plAddSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
+ +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel</div>'
+ +'</div>';
+ov.style.display='flex';
+setTimeout(function(){var e=document.getElementById('pa-name');if(e)e.focus();},30);
+}
+function plAddClose(){var ov=document.getElementById('pl-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+function plAddSave(){
+var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
+var err=function(m,f){var e=document.getElementById('pa-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&fe.focus)fe.focus();};
+var name=g('pa-name'); if(!name){err('Please enter a name','pa-name');return;}
+var amt=parseFloat(g('pa-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amount greater than 0','pa-amt');return;}
+var date=g('pa-date'); if(!date){err('Pick a date (items without a date are skipped by the Timeline)','pa-date');return;}
+var ae=document.getElementById('pa-auto');
+D.planned.push({name:name,type:g('pa-type')||D.types[0]||'Other',amount:amt,date:date,card:g('pa-card')||'Cash/Direct',
+ direction:g('pa-dir')||'expense',own_by:g('pa-own')||'Me',notes:g('pa-notes'),auto_pay:!!(ae&&ae.checked)});
+_plNewIdx=D.planned.length-1;
+saveD();plAddClose();
+simulate();renderAllTabs();
+try{filterPlanned();}catch(e){}
+var r=document.querySelector('#planned-body tr.pl-main[data-plrow="'+_plNewIdx+'"]');
+if(r){r.style.outline='2px solid var(--primary)';r.style.outlineOffset='-2px';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
+if(typeof toast==='function')toast('\u2705 Planned item added');
+}
 
 function toggleAllPlanned(c){document.querySelectorAll('.pl-chk').forEach(function(cb){var tr=cb.closest('tr');if(tr&&tr.style.display!=='none')cb.checked=c});updatePlannedBulk()}
 function updatePlannedBulk(){var n=document.querySelectorAll('.pl-chk:checked').length;var el=document.getElementById('planned-bulk');if(el)el.style.display=n>0?'':'none';var c=document.getElementById('pl-sel-count');if(c)c.textContent=n}
@@ -868,7 +986,70 @@ saveD();simulate();renderAllTabs();
 toast('\u2705 Converted to editable installment')}
 
 
-function addInst(){readAll();D.installments.push({name:'New',type:D.types[0]||'Other',card:D.cards[0]?D.cards[0].name:'',own_by:'Me',total:0,per_period:0,periods:1,start_year:new Date().getFullYear(),start_month:new Date().getMonth()+1,start_day:1,billing_day:1,hide_before:'',status:'Planned'});instSortState.col=null;renderInst();filterInst()}
+/* Add Manual opens a popup form (same pattern as the other pages); added only on Save, then the
+   page scrolls to the new row and outlines it. Per-period is auto-calculated from total / periods. */
+function addInst(){
+readAll();
+var ov=document.getElementById('inst-add-ov');
+if(!ov){ov=document.createElement('div');ov.id='inst-add-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('mousedown',function(e){if(e.target===ov)instAddClose();});
+ document.body.appendChild(ov);}
+var row=function(lbl,html){return '<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--text3)">'+lbl+'</label>'+html+'</div>';};
+var now=new Date(), iso=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2)+'-01';
+ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(480px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)" onkeydown="if(event.key===\'Escape\')instAddClose();if(event.key===\'Enter\'){event.preventDefault();instAddSave();}">'
+ +'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-plus"></i> New installment</h3>'
+ +'<div style="display:grid;gap:10px">'
+ +row('Name *','<input id="ia-name" class="inp" placeholder="e.g. iPhone 0% 10 months" style="width:100%">')
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Type','<select id="ia-type" class="sel">'+tOpts(D.types[0]||'Other')+'</select>')
+ +row('Card *','<select id="ia-card" class="sel">'+cOnlyOpts(D.cards[0]?D.cards[0].name:'')+'</select>')
+ +'</div>'
+ +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
+ +row('Total *','<input id="ia-total" class="inp inp-num" inputmode="decimal" placeholder="0.00" oninput="instAddPP()">')
+ +row('Periods *','<input id="ia-per" type="number" min="1" max="60" class="inp inp-num" value="10" oninput="instAddPP()">')
+ +row('Per period','<div id="ia-pp" style="font-family:var(--mono);font-size:12px;padding:5px 0">\u2014</div>')
+ +'</div>'
+ +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
+ +row('First payment *','<input id="ia-start" type="date" class="inp" value="'+iso+'">')
+ +row('Own By','<select id="ia-own" class="sel">'+oOpts('Me')+'</select>')
+ +row('Status','<select id="ia-st" class="sel">'+STATUSES.map(function(s){return '<option'+(s==='Active'?' selected':'')+'>'+s+'</option>';}).join('')+'</select>')
+ +'</div>'
+ +'</div>'
+ +'<div id="ia-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
+ +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="instAddClose()">Cancel</button><button class="btn btn-primary" onclick="instAddSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
+ +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 Hide-before date can be set in the row after saving</div>'
+ +'</div>';
+ov.style.display='flex';
+setTimeout(function(){var e=document.getElementById('ia-name');if(e)e.focus();},30);
+}
+function instAddPP(){
+var t=parseFloat(String((document.getElementById('ia-total')||{}).value||'').replace(/,/g,''))||0;
+var n=parseInt((document.getElementById('ia-per')||{}).value,10)||0;
+var el=document.getElementById('ia-pp'); if(el) el.textContent=(t>0&&n>0)?'\u0e3f'+fmt(Math.round(t/n*100)/100):'\u2014';
+}
+function instAddClose(){var ov=document.getElementById('inst-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+function instAddSave(){
+var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
+var err=function(m,f){var e=document.getElementById('ia-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&fe.focus)fe.focus();};
+var name=g('ia-name'); if(!name){err('Please enter a name','ia-name');return;}
+var card=g('ia-card'); if(!card){err('Add a credit card first (installments are charged to a card)','ia-card');return;}
+var total=parseFloat(g('ia-total').replace(/,/g,'')); if(!(total>0)){err('Enter a total greater than 0','ia-total');return;}
+var per=parseInt(g('ia-per'),10); if(!(per>=1&&per<=60)){err('Periods must be 1-60','ia-per');return;}
+var sd=g('ia-start'); var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(sd); if(!m){err('Pick the first payment date','ia-start');return;}
+var day=parseInt(m[3],10);
+D.installments.push({name:name,type:g('ia-type')||D.types[0]||'Other',card:card,own_by:g('ia-own')||'Me',
+ total:total,per_period:Math.round(total/per*100)/100,periods:per,
+ start_year:parseInt(m[1],10),start_month:parseInt(m[2],10),start_day:day,billing_day:day,hide_before:'',status:g('ia-st')||'Active'});
+var idx=D.installments.length-1;
+instSortState.col=null;
+saveD();instAddClose();
+simulate();renderAllTabs();
+try{filterInst();}catch(e){}
+var r=document.querySelector('#inst-body tr[data-idx="'+idx+'"]');
+if(r){r.style.outline='2px solid var(--primary)';r.style.outlineOffset='-2px';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
+if(typeof toast==='function')toast('\u2705 Installment added');
+}
 
 
 // === SIMULATION ===

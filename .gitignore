@@ -1,0 +1,4 @@
+# Private: Google Sheet tokens + Sheet ID - NEVER push to the public GitHub Pages repo
+js/config-sheet.js
+scripts/Code.gs
+scripts/cashman_sheet_checklist.html

@@ -92,7 +92,7 @@ body.sb-collapsed .nav-subwrap{display:none}
 .btn{padding:5px 12px;border:none;border-radius:var(--radius-sm);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:4px}.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{opacity:.9}.btn:active{transform:scale(0.95);opacity:.7;transition:transform .1s,opacity .1s}.btn-ghost:active{transform:scale(0.95);background:var(--surface)}.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg3)}
 .tag{display:inline-block;font-size:8px;padding:1px 5px;border-radius:8px;font-weight:500}.tag-active{background:var(--success-bg);color:var(--success)}.tag-planned{background:var(--warning-bg);color:var(--warning)}.tag-finished{background:var(--bg3);color:var(--text3)}.tag-cancelled{background:var(--error-bg);color:var(--error)}.tag-auto{background:var(--purple-bg);color:var(--purple)}
 .shifted{color:var(--primary);font-weight:600;background:var(--primary-bg);padding:1px 4px;border-radius:3px;font-family:var(--mono);font-size:9px}.orig{color:var(--text3);font-family:var(--mono);font-size:9px}
-.add-row{display:flex;gap:5px;padding:6px 9px;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-sm);margin-top:5px;align-items:center;cursor:pointer;color:var(--text3);font-size:10px}.add-row:hover{background:var(--surface);color:var(--text)}.del-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:2px;font-size:10px}.del-btn:hover{color:var(--error)}
+.add-row{display:inline-flex;width:auto;gap:5px;padding:5px 12px;background:var(--primary);border:none;border-radius:var(--radius-sm);margin-top:8px;align-items:center;cursor:pointer;color:#fff;font-size:10px;font-weight:600;font-family:var(--font)}.add-row:hover{opacity:.9;background:var(--primary);color:#fff}.del-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:2px;font-size:10px}.del-btn:hover{color:var(--error)}
 .acc-header{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;user-select:none;margin-bottom:2px}.acc-header:hover{background:var(--surface)}.acc-header .arr{transition:transform .2s;font-size:9px;color:var(--text3)}.acc-header .arr.open{transform:rotate(90deg)}.acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}.acc-body.open{max-height:6000px}
 .pay-details{max-height:0;overflow:hidden;transition:max-height .2s ease}.pay-details.open{max-height:500px}.pay-row:hover{background:var(--primary-bg)}
 .day-row{padding:3px 10px 3px 24px;border-bottom:1px solid rgba(128,128,128,.06);font-size:10px;display:flex;gap:4px}.day-row:hover{background:rgba(128,128,128,.04)}.day-date{width:44px;font-family:var(--mono);color:var(--text3);font-size:9px;flex-shrink:0}.day-icon{width:14px;flex-shrink:0;font-size:11px}.day-name{flex:1}.day-card{font-size:8px;padding:0 4px;border-radius:6px;background:var(--purple-bg);color:var(--purple);margin:0 3px}.day-amt{font-family:var(--mono);min-width:80px;text-align:right}.day-bal{font-family:var(--mono);font-weight:600;min-width:90px;text-align:right;color:var(--primary)}
@@ -357,20 +357,20 @@ select.inp{font-size:11px;padding:2px 4px}
 <div class="form-group"><label>Cat Expense (&#x0E3F;/mo)</label><input type="text" class="inp inp-num" id="f-cat" style="width:80px"></div>
 <div class="form-group"><label>Pet Names</label><input type="text" class="inp" id="f-catname" style="width:120px"></div>
 </div></div>
-<div class="card"><h2><i class="fa-solid fa-rotate"></i> Monthly Recurring</h2>
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-rotate"></i> Monthly Recurring</h2><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addMonthly()"><i class="fa-solid fa-plus"></i> Add Monthly</button></div>
 <div class="filterbar flex gap-2 flex-wrap mb-3">
 <select class="sel" id="flt-m-type" onchange="filterMonthly()"><option value="">All Types</option></select>
 <select class="sel" id="flt-m-card" onchange="filterMonthly()"><option value="">All Cards</option></select>
 </div>
 <table class="tbl"><thead><tr id="monthly-hdr"></tr></thead><tbody id="monthly-body"></tbody></table>
-<div class="add-row" onclick="addMonthly()"><i class="fa-solid fa-plus"></i> Add Monthly</div>
+
 <div id="monthly-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedMonthly()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="m-sel-count">0</span>)</button></div>
 <div style="display:flex;gap:5px;margin-top:6px">
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('monthly')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-monthly').click()"><i class="fa-solid fa-file-import"></i> Import Excel</button>
 <input type="file" id="imp-monthly" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrxExcel('monthly',event)">
 </div></div>
-<div class="card"><h2><i class="fa-solid fa-calendar"></i> Yearly Recurring</h2>
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-calendar"></i> Yearly Recurring</h2><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addYearly()"><i class="fa-solid fa-plus"></i> Add Yearly</button></div>
 <div class="filterbar flex gap-2 flex-wrap mb-3">
 <select class="sel" id="flt-y-type" onchange="filterYearly()"><option value="">All Types</option></select>
 <select class="sel" id="flt-y-mode" onchange="filterYearly()"><option value="">All Modes</option><option value="full">Full</option><option value="installment">Installment</option></select>
@@ -378,7 +378,7 @@ select.inp{font-size:11px;padding:2px 4px}
 </div>
 <p class="text-muted mb-3" style="font-size:10px">Set "Installment" mode to split into monthly payments. These appear in the Installments tab too.</p>
 <table class="tbl"><thead><tr id="yearly-hdr"></tr></thead><tbody id="yearly-body"></tbody></table>
-<div class="add-row" onclick="addYearly()"><i class="fa-solid fa-plus"></i> Add Yearly</div>
+
 <div id="yearly-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedYearly()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="y-sel-count">0</span>)</button></div>
 <div style="display:flex;gap:5px;margin-top:6px">
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('yearly')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
@@ -406,7 +406,7 @@ select.inp{font-size:11px;padding:2px 4px}
 
 <!-- SUB: Installments -->
 <div id="bp-installments" class="sub-panel">
-<div class="card"><h2><i class="fa-solid fa-calendar-check"></i> Installments</h2>
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-calendar-check"></i> Installments</h2><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addInst()"><i class="fa-solid fa-plus"></i> Add Manual</button></div>
 <div class="filterbar flex gap-2 flex-wrap mb-3">
 <select class="sel" id="flt-i-type" onchange="filterInst()"><option value="">All Types</option></select>
 <select class="sel" id="flt-i-card" onchange="filterInst()"><option value="">All Cards</option></select>
@@ -420,8 +420,6 @@ select.inp{font-size:11px;padding:2px 4px}
 <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
 <select id="inst-from-recurring" class="sel" style="flex:1;font-size:10px;padding:4px 6px"><option value="">&#x2014; Select from Recurring &#x2014;</option></select>
 <button class="btn btn-primary" style="font-size:10px;padding:4px 10px;white-space:nowrap" onclick="addInstFromRecurring()"><i class="fa-solid fa-plus"></i> Add Selected</button>
-<span style="color:var(--text3);font-size:10px">or</span>
-<div class="add-row" style="margin:0;flex:0 0 auto" onclick="addInst()"><i class="fa-solid fa-plus"></i> Add Manual</div>
 </div>
 <div style="display:flex;gap:5px;margin-top:6px">
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('installments')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
@@ -449,7 +447,7 @@ select.inp{font-size:11px;padding:2px 4px}
 
 <!-- SUB: Planned -->
 <div id="bp-planned" class="sub-panel">
-<div class="card"><h2><i class="fa-solid fa-calendar-check"></i> Planned Expenses</h2>
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-calendar-check"></i> Planned Expenses</h2><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addPlanned()"><i class="fa-solid fa-plus"></i> Add Planned</button></div>
 <p class="text-muted mb-3" style="font-size:10px">One-time future expenses or income that are not recurring. These appear in the timeline on their specified date.</p>
 <div class="filterbar" style="gap:6px;margin-bottom:8px">
 <select class="sel" id="flt-p-type" onchange="filterPlanned()" style="font-size:10px;padding:2px 6px"><option value="">All Types</option></select>
@@ -459,7 +457,7 @@ select.inp{font-size:11px;padding:2px 4px}
 </div>
 <table class="tbl"><thead><tr id="planned-hdr"></tr></thead><tbody id="planned-body"></tbody></table>
 <div id="planned-window-warn"></div>
-<div class="add-row" onclick="addPlanned()"><i class="fa-solid fa-plus"></i> Add Planned Expense</div>
+
 <div id="planned-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedPlanned()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="pl-sel-count">0</span>)</button></div>
 <div style="display:flex;gap:5px;margin-top:6px">
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('planned')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
@@ -567,6 +565,9 @@ select.inp{font-size:11px;padding:2px 4px}
 </div><!-- /.main -->
 
 <script src="js/data.js?v=266"></script>
+<!-- Google Sheet sync (local only): config-sheet.js is in .gitignore; if missing (e.g. GitHub Pages) CashMan uses localStorage only -->
+<script src="js/config-sheet.js" onerror="window.CM_SHEET_CFG=null"></script>
+<script src="js/sheet-sync.js?v=1"></script>
 </script>
 <script src="js/simulation.js?v=259"></script>
 

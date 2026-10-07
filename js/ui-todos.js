@@ -7,7 +7,7 @@
 
 var _todoFilter='open';   // open | done | all
 var _todoCatFilter='';    // '' = all categories; else a category name (combines with status filter)
-function setTodoCatFilter(v){_todoCatFilter=v||'';renderTodos();}
+function setTodoCatFilter(v){_todoFrozen=null;_todoTouched={};_todoCatFilter=v||'';renderTodos();}
 var _todoHistOpen=false;  // collapsible completion-history section (persist across re-renders)
 function toggleTodoHist(){_todoHistOpen=!_todoHistOpen;renderTodos();}
 var _todoCatOpen=false;  // collapsible category-summary section (persist across re-renders)
@@ -16,21 +16,76 @@ function clearTodoLog(){if(!confirm('Clear ALL completion history? This cannot b
 var _todoSort='urgent_priority';  // urgent_priority (Overdue>ASAP>Priority) | urgency | due | priority | name | category
 var _todoAsc=true;
 
-function setTodoFilter(f){_todoFilter=f;renderTodos();}
-function setTodoSort(col){if(_todoSort===col){_todoAsc=!_todoAsc;}else{_todoSort=col;_todoAsc=true;}renderTodos();}
+var _todoFrozen=null;   // null = live sort; else array of task ids in frozen display order
+var _todoTouched={};    // id -> true for rows edited since the freeze began (highlighted)
+function _todoFreeze(){
+  if(_todoFrozen) return;
+  var rows=document.querySelectorAll('#todos-content tr[data-row]');
+  _todoFrozen=Array.prototype.map.call(rows,function(r){return r.getAttribute('data-row');});
+}
+function todoResort(){_todoFrozen=null;_todoTouched={};renderTodos();}
+function setTodoFilter(f){_todoFrozen=null;_todoTouched={};_todoFilter=f;renderTodos();}
+function setTodoSort(col){_todoFrozen=null;_todoTouched={};if(_todoSort===col){_todoAsc=!_todoAsc;}else{_todoSort=col;_todoAsc=true;}renderTodos();}
 // Sort-mode dropdown: pick a mode directly (always ascending — top band first).
-function setTodoSortMode(mode){_todoSort=mode;_todoAsc=true;renderTodos();}
+function setTodoSortMode(mode){_todoFrozen=null;_todoTouched={};_todoSort=mode;_todoAsc=true;renderTodos();}
 
 function _todoId(){return 't'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
 
+/* Add task opens a popup form; the task is added to the list only on Save (nothing jumps while typing). */
 function addTodo(){
 readAll();
-D.todos.push({id:_todoId(),title:'New task',note:'',
-deadline_mode:'none',due_date:'',due_time:'',
-recur:'none',recur_every:1,recur_dow:1,recur_dom:1,recur_month:1,recur_until:'',
-category:(D.todo_cats&&D.todo_cats[0])||'Other',priority:2,
-done:false,done_date:'',link_type:'',link_ref:''});
-saveD();renderTodos();
+var cats=(D.todo_cats||['Other']).slice().sort(function(a,b){return a.localeCompare(b);});
+var ov=document.getElementById('todo-add-ov');
+if(!ov){ov=document.createElement('div');ov.id='todo-add-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('mousedown',function(e){if(e.target===ov)todoAddClose();});
+ document.body.appendChild(ov);}
+var row=function(lbl,html){return '<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--text3)">'+lbl+'</label>'+html+'</div>';};
+ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(460px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)" onkeydown="if(event.key===\'Escape\')todoAddClose();if(event.key===\'Enter\'&&event.target.tagName!==\'TEXTAREA\'){event.preventDefault();todoAddSave();}">'
+ +'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-plus"></i> New task</h3>'
+ +'<div style="display:grid;gap:10px">'
+ +row('Task *','<input id="ta-title" class="inp" placeholder="What needs doing?" style="width:100%">')
+ +row('Note','<input id="ta-note" class="inp" placeholder="note / idea" style="width:100%">')
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Category','<select id="ta-cat" class="sel">'+cats.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</select>')
+ +row('Priority','<select id="ta-pri" class="sel"><option value="1">\ud83d\udd34 High</option><option value="2" selected>\ud83d\udfe1 Normal</option><option value="3">\ud83d\udfe3 Low</option></select>')
+ +'</div>'
+ +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
+ +row('Deadline','<select id="ta-mode" class="sel" onchange="document.getElementById(\'ta-datewrap\').style.visibility=this.value===\'date\'?\'visible\':\'hidden\'"><option value="none">None</option><option value="date">Date</option><option value="asap">ASAP</option></select>')
+ +'<div id="ta-datewrap" style="visibility:hidden">'+row('Date','<input id="ta-date" type="date" class="inp">')+'</div>'
+ +row('Time','<input id="ta-time" type="time" class="inp">')
+ +'</div>'
+ +row('Repeat','<select id="ta-recur" class="sel"><option value="none">once</option><option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option><option value="yearly">yearly</option></select>')
+ +'</div>'
+ +'<div id="ta-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
+ +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="todoAddClose()">Cancel</button><button class="btn btn-primary" onclick="todoAddSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
+ +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 recurrence details (every N, day, until) can be fine-tuned in the row after saving</div>'
+ +'</div>';
+ov.style.display='flex';
+setTimeout(function(){var e=document.getElementById('ta-title');if(e)e.focus();},30);
+}
+function todoAddClose(){var ov=document.getElementById('todo-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+function todoAddSave(){
+var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
+var title=g('ta-title');
+if(!title){var er=document.getElementById('ta-err');if(er)er.textContent='Please enter a task name';var te=document.getElementById('ta-title');if(te)te.focus();return;}
+var mode=g('ta-mode')||'none', due=g('ta-date');
+if(mode==='date'&&!due){var er2=document.getElementById('ta-err');if(er2)er2.textContent='Pick a date (or set Deadline to None/ASAP)';return;}
+var recur=g('ta-recur')||'none';
+var d0=due?new Date(due+'T00:00:00'):new Date();
+var t={id:_todoId(),title:title,note:g('ta-note'),
+ deadline_mode:mode,due_date:mode==='date'?due:'',due_time:g('ta-time'),
+ recur:recur,recur_every:1,recur_dow:d0.getDay(),recur_dom:d0.getDate(),recur_month:d0.getMonth()+1,recur_until:'',
+ category:g('ta-cat')||((D.todo_cats&&D.todo_cats[0])||'Other'),priority:parseInt(g('ta-pri'))||2,
+ done:false,done_date:'',link_type:'',link_ref:''};
+D.todos.push(t);
+saveD();
+todoAddClose();
+// keep current order; just highlight the new row so it's easy to find
+_todoFreeze();_todoTouched[t.id]=true;
+renderTodos();
+var r=document.querySelector('#todos-content tr[data-row="'+t.id+'"]');if(r&&r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
+if(typeof toast==='function')toast('\u2705 Task added');
 }
 
 function todoSaveAll(){
@@ -46,6 +101,7 @@ saveD();renderTodos();
 
 function todoSaveField(id,f,el){
 var t=(D.todos||[]).find(function(x){return x.id===id;});if(!t)return;
+_todoFreeze();_todoTouched[id]=true;
 var v=el.value;
 if(f==='priority'){t[f]=parseInt(v)||2;}
 else if(f==='recur_every'){t[f]=Math.max(1,parseInt(v)||1);}
@@ -263,6 +319,7 @@ return h;
 
 function todoSaveLink(id,el){
 var t=(D.todos||[]).find(function(x){return x.id===id;});if(!t)return;
+_todoFreeze();_todoTouched[id]=true;
 var v=el.value;
 if(!v){t.link_type='';t.link_ref='';}
 else{var p=v.split('::');t.link_type=p[0]||'';t.link_ref=p.slice(1).join('::')||'';}
@@ -300,7 +357,19 @@ else if(_todoSort==='category')r=(a.category||'').localeCompare(b.category||'');
 if(r===0){r=_todoRank(a,today)-_todoRank(b,today);if(r===0)r=_todoDueMs(a)-_todoDueMs(b);}
 return _todoAsc?r:-r;
 };
-items.sort(_c);
+// Sort freeze: while you are editing, rows keep the order they had when editing began, so a
+// re-render (after a save) never makes the row you're typing in jump away. Fresh order is
+// applied on: Re-sort button, header click, sort-mode change, filter change, or leaving the page.
+if(_todoFrozen){
+  var _pos={};_todoFrozen.forEach(function(id,ix){_pos[id]=ix;});
+  items.sort(function(a,b){
+    var pa=(a.id in _pos)?_pos[a.id]:1e9, pb=(b.id in _pos)?_pos[b.id]:1e9;
+    if(pa!==pb) return pa-pb;
+    return _c(a,b);                      // brand-new rows (not in snapshot) go to the end
+  });
+}else{
+  items.sort(_c);
+}
 
 var openCount=D.todos.filter(function(t){return !t.done;}).length;
 var overdue=D.todos.filter(function(t){return !t.done&&t.deadline_mode==='date'&&t.due_date&&(new Date(t.due_date+'T00:00:00')<today);}).length;
@@ -317,6 +386,7 @@ var h='<div class="card">';
 h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">';
 h+='<h2 style="margin:0"><i class="fa-solid fa-list-check"></i> To-Do</h2>';
 h+='<span style="flex:1"></span>';
+h+='<button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addTodo()"><i class="fa-solid fa-plus"></i> Add task</button>';
 h+='<button class="btn btn-ghost" style="font-size:11px;padding:4px 12px" onclick="todoSaveAll()" title="All changes save automatically; click to confirm"><i class="fa-solid fa-floppy-disk"></i> Save</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="exportTrxExcel(\'todos\')" title="Export To-Do list to Excel"><i class="fa-solid fa-download"></i> Excel</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="document.getElementById(\'imp-todos\').click()" title="Import To-Do list from Excel (adds rows)"><i class="fa-solid fa-upload"></i> Import</button>';
@@ -369,11 +439,12 @@ h+='</div>';
 
 if(!items.length){
 h+='<p class="text-muted" style="font-size:11px">'+(D.todos.length?'No tasks match this filter.':'No tasks yet \u2705')+'</p>';
-h+='<div class="add-row" onclick="addTodo()"><i class="fa-solid fa-plus"></i> Add task</div></div>';
+h+='</div>';
 el.innerHTML=h;return;
 }
 
 var _ar=function(col){return _todoSort===col?(_todoAsc?' \u25b2':' \u25bc'):'';};
+if(_todoFrozen){h+='<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);background:var(--primary-bg,rgba(79,70,229,.08));border-radius:6px;padding:5px 10px;margin:6px 0"><i class="fa-solid fa-lock"></i> Order paused while you edit (edited rows outlined)<span style="flex:1"></span><button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="todoResort()"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort now</button></div>';}
 h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:11px;min-width:920px"><thead><tr>'+
 '<th style="width:28px"></th>'+
 '<th style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</th>'+
@@ -409,7 +480,7 @@ else if(t.recur==='yearly'){recCell+=' <select class="sel" data-tid="'+t.id+'" d
 // task is marked done instead of rolling forever (stop a recurring task without deleting it).
 if(t.recur&&t.recur!=='none'){recCell+=' <span style="font-size:8px;color:var(--text3)">until</span> <input type="date" class="inp-inline" value="'+esc(t.recur_until||'')+'" data-tid="'+t.id+'" data-tf="recur_until" onchange="todoSaveField(\''+t.id+'\',\'recur_until\',this)" style="width:120px" title="Stop recurring after this date (task is marked done, not deleted)">';}
 
-h+='<tr style="'+rowStyle+'">'+
+h+='<tr data-row="'+t.id+'" style="'+rowStyle+(_todoTouched[t.id]?';outline:2px solid var(--primary);outline-offset:-2px':'')+'">'+
 '<td class="r"><input type="checkbox"'+(t.done?' checked':'')+' title="'+(t.done?'Reopen':'Complete')+'" onchange="this.checked?todoComplete(\''+t.id+'\'):todoReopen(\''+t.id+'\')"></td>'+
 '<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:500;min-width:130px'+(t.done?';text-decoration:line-through':'')+'">'+
 '<br><input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:9px;color:var(--text3);min-width:170px"></td>'+
@@ -422,7 +493,7 @@ h+='<tr style="'+rowStyle+'">'+
 '</tr>';
 });
 h+='</tbody></table></div>';
-h+='<div class="add-row" onclick="addTodo()"><i class="fa-solid fa-plus"></i> Add task</div>';
+
 h+='<p class="text-muted" style="font-size:9px;margin-top:8px">\ud83d\udca1 Recurring tasks roll forward to the next occurrence when you complete them (no duplicate rows). To-Dos are for <b>actions</b> \u2014 anything with an amount that moves your balance belongs in Bills &amp; Plans instead.</p>';
 h+='</div>';
 // ===== Completion History (collapsible) =====

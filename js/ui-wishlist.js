@@ -6,23 +6,71 @@
 
 var _wishFilter='active'; // active (wishing) | all | bought | dropped
 var _wishCatFilter='';    // '' = all categories; else a category name (combines with status filter)
-function setWishCatFilter(v){_wishCatFilter=v||'';renderWishlist();}
+function setWishCatFilter(v){_wishFrozen=null;_wishTouched={};_wishCatFilter=v||'';renderWishlist();}
 var _wishCatOpen=false;   // collapsible category-summary section (persist across re-renders)
 function toggleWishCat(){_wishCatOpen=!_wishCatOpen;renderWishlist();}
 var _wishSort='priority'; // priority | price | target | name | status
 var _wishAsc=true;
 
-function setWishFilter(f){_wishFilter=f;renderWishlist();}
-function setWishSort(col){if(_wishSort===col){_wishAsc=!_wishAsc;}else{_wishSort=col;_wishAsc=true;}renderWishlist();}
+var _wishFrozen=null;   // null = live sort; else wish ids in frozen display order (rows don't jump while editing)
+var _wishTouched={};
+function _wishFreeze(){
+  if(_wishFrozen) return;
+  var rows=document.querySelectorAll('#wishlist-content tr[data-row]');
+  _wishFrozen=Array.prototype.map.call(rows,function(r){return r.getAttribute('data-row');});
+}
+function wishResort(){_wishFrozen=null;_wishTouched={};renderWishlist();}
+function setWishFilter(f){_wishFrozen=null;_wishTouched={};_wishFilter=f;renderWishlist();}
+function setWishSort(col){_wishFrozen=null;_wishTouched={};if(_wishSort===col){_wishAsc=!_wishAsc;}else{_wishSort=col;_wishAsc=true;}renderWishlist();}
 
 function _wishId(){return 'w'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
 
+/* Add item opens a popup form (same pattern as To-Do / Planned / Recurring); added only on Save. */
 function addWish(){
 readAll();
-D.wishlist.push({id:_wishId(),item:'New item',note:'',target_price:0,target_date:'',
-priority:2,category:(D.wish_cats&&D.wish_cats[0])||'Other',status:'wishing',url:'',
-added_date:_billISO(new Date())});
-saveD();renderWishlist();
+var cats=(D.wish_cats||['Other']).slice().sort(function(a,b){return a.localeCompare(b);});
+var ov=document.getElementById('wish-add-ov');
+if(!ov){ov=document.createElement('div');ov.id='wish-add-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('mousedown',function(e){if(e.target===ov)wishAddClose();});
+ document.body.appendChild(ov);}
+var row=function(lbl,html){return '<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--text3)">'+lbl+'</label>'+html+'</div>';};
+ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(460px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)" onkeydown="if(event.key===\'Escape\')wishAddClose();if(event.key===\'Enter\'){event.preventDefault();wishAddSave();}">'
+ +'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-plus"></i> New wishlist item</h3>'
+ +'<div style="display:grid;gap:10px">'
+ +row('Item *','<input id="wa-item" class="inp" placeholder="What do you want to buy?" style="width:100%">')
+ +row('Note','<input id="wa-note" class="inp" style="width:100%">')
+ +row('Link (URL)','<input id="wa-url" class="inp" placeholder="https://..." style="width:100%">')
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Category','<select id="wa-cat" class="sel">'+cats.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</select>')
+ +row('Priority','<select id="wa-pri" class="sel"><option value="1">\ud83d\udd34 High</option><option value="2" selected>\ud83d\udfe1 Normal</option><option value="3">\u26aa Low</option></select>')
+ +'</div>'
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+ +row('Target price','<input id="wa-price" class="inp inp-num" inputmode="decimal" placeholder="0.00">')
+ +row('Target date','<input id="wa-date" type="date" class="inp">')
+ +'</div>'
+ +'</div>'
+ +'<div id="wa-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
+ +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="wishAddClose()">Cancel</button><button class="btn btn-primary" onclick="wishAddSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
+ +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel</div>'
+ +'</div>';
+ov.style.display='flex';
+setTimeout(function(){var e=document.getElementById('wa-item');if(e)e.focus();},30);
+}
+function wishAddClose(){var ov=document.getElementById('wish-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+function wishAddSave(){
+var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
+var item=g('wa-item');
+if(!item){var er=document.getElementById('wa-err');if(er)er.textContent='Please enter an item name';var ie=document.getElementById('wa-item');if(ie&&ie.focus)ie.focus();return;}
+var w={id:_wishId(),item:item,note:g('wa-note'),target_price:parseFloat(g('wa-price').replace(/,/g,''))||0,target_date:g('wa-date'),
+ priority:parseInt(g('wa-pri'))||2,category:g('wa-cat')||((D.wish_cats&&D.wish_cats[0])||'Other'),status:'wishing',url:g('wa-url'),
+ added_date:_billISO(new Date())};
+D.wishlist.push(w);
+saveD();wishAddClose();
+_wishFreeze();_wishTouched[w.id]=true;
+renderWishlist();
+var r=document.querySelector('#wishlist-content tr[data-row="'+w.id+'"]');if(r&&r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
+if(typeof toast==='function')toast('\u2705 Wishlist item added');
 }
 
 function delWish(id){
@@ -47,6 +95,7 @@ else{w[f]=v;}
 
 function wishSaveField(id,f,el){
 var w=(D.wishlist||[]).find(function(x){return x.id===id;});if(!w)return;
+_wishFreeze();_wishTouched[id]=true;
 var v=el.value;
 if(f==='target_price'){w[f]=parseFloat((v+'').replace(/,/g,''))||0;}
 else if(f==='priority'){w[f]=parseInt(v)||2;}
@@ -127,7 +176,10 @@ else if(_wishSort==='status')r=(a.status||'').localeCompare(b.status||'');
 if(r===0)r=(a.priority||2)-(b.priority||2);
 return _wishAsc?r:-r;
 };
-items.sort(_c);
+if(_wishFrozen){
+  var _pos={};_wishFrozen.forEach(function(id,ix){_pos[id]=ix;});
+  items.sort(function(a,b){var pa=(a.id in _pos)?_pos[a.id]:1e9,pb=(b.id in _pos)?_pos[b.id]:1e9;if(pa!==pb)return pa-pb;return _c(a,b);});
+}else{ items.sort(_c); }
 
 var totActive=D.wishlist.filter(function(w){return (w.status||'wishing')==='wishing';})
 .reduce(function(s,w){return s+(w.target_price||0);},0);
@@ -148,6 +200,7 @@ var h='<div class="card">';
 h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">';
 h+='<h2 style="margin:0"><i class="fa-solid fa-star"></i> Wishlist</h2>';
 h+='<span style="flex:1"></span>';
+h+='<button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addWish()"><i class="fa-solid fa-plus"></i> Add item</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="exportTrxExcel(\'wishlist\')" title="Export Wishlist to Excel"><i class="fa-solid fa-download"></i> Excel</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="document.getElementById(\'imp-wishlist\').click()" title="Import Wishlist from Excel (adds rows)"><i class="fa-solid fa-upload"></i> Import</button>';
 h+='<input type="file" id="imp-wishlist" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel(\'wishlist\',event)">';
@@ -196,11 +249,12 @@ h+='</div>';
 
 if(!items.length){
 h+='<p class="text-muted" style="font-size:11px">'+(D.wishlist.length?'No items match this filter.':'No wishlist items yet \u2b50')+'</p>';
-h+='<div class="add-row" onclick="addWish()"><i class="fa-solid fa-plus"></i> Add item</div></div>';
+h+='</div>';
 el.innerHTML=h;return;
 }
 
 var _ar=function(col){return _wishSort===col?(_wishAsc?' \u25b2':' \u25bc'):'';};
+if(_wishFrozen){h+='<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);background:var(--primary-bg,rgba(79,70,229,.08));border-radius:6px;padding:5px 10px;margin:6px 0"><i class="fa-solid fa-lock"></i> Order paused while you edit (edited rows outlined)<span style="flex:1"></span><button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="wishResort()"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort now</button></div>';}
 h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:11px;min-width:900px"><thead><tr>'+
 '<th style="cursor:pointer" onclick="setWishSort(\'name\')">Item'+_ar('name')+'</th>'+
 '<th>Category</th>'+
@@ -214,7 +268,7 @@ h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:11px;min-wi
 items.forEach(function(w){
 var fit=_wishFit(w);
 var dimd=(w.status&&w.status!=='wishing')?'opacity:.55;':'';
-h+='<tr style="'+dimd+'">'+
+h+='<tr data-row="'+w.id+'" style="'+dimd+(_wishTouched[w.id]?';outline:2px solid var(--primary);outline-offset:-2px':'')+'">'+
 '<td><input class="inp-inline" value="'+esc(w.item||'')+'" data-wid="'+w.id+'" data-wf="item" onchange="wishSaveField(\''+w.id+'\',\'item\',this)" style="font-weight:500;min-width:120px">'+
 (w.url?' <a href="'+esc(w.url)+'" target="_blank" title="Open link" style="color:var(--primary)"><i class="fa-solid fa-link" style="font-size:9px"></i></a>':'')+
 '<br><input class="inp-inline" value="'+esc(w.note||'')+'" placeholder="note / URL below" data-wid="'+w.id+'" data-wf="note" onchange="wishSaveField(\''+w.id+'\',\'note\',this)" style="font-size:9px;color:var(--text3);min-width:160px">'+
@@ -231,7 +285,6 @@ h+='<tr style="'+dimd+'">'+
 '</tr>';
 });
 h+='</tbody></table></div>';
-h+='<div class="add-row" onclick="addWish()"><i class="fa-solid fa-plus"></i> Add item</div>';
 h+='<p class="text-muted" style="font-size:9px;margin-top:8px">\ud83d\udca1 "Fits?" compares each item\'s target price against your projected balance at its target month (from the latest simulation). Use <b>Plan</b> to turn a wish into a Planned expense.</p>';
 h+='</div>';
 el.innerHTML=h;

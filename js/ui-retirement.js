@@ -110,7 +110,7 @@ h+='<td><input class="inp-inline" value="'+esc(sp.note||'')+'" data-spi="'+si+'"
 h+='<td><button class="del-btn" onclick="readRetirement();D.retirement.company_special_pay.splice('+si+',1);saveD();renderRetSetup()"><i class="fa-solid fa-trash"></i></button></td></tr>';
 });
 h+='</tbody></table>';
-h+='<div class="add-row" onclick="D.retirement.company_special_pay.push({name:\'\',amount:0,note:\'\'});renderRetSetup()" style="font-size:10px"><i class="fa-solid fa-plus"></i> Add Item</div>';
+h+='<div class="add-row" onclick="retAddSpecial()" style="font-size:10px"><i class="fa-solid fa-plus"></i> Add Item</div>';
 var spTotal=(r.company_special_pay||[]).reduce(function(s,sp){return s+(parseFloat(sp.amount)||0)},0);
 if(spTotal>0)h+='<div style="font-size:11px;font-weight:600;color:var(--warning);margin-top:4px;text-align:right">Total: \u0e3f'+fmt(spTotal)+'</div>';
 
@@ -766,3 +766,15 @@ var i=+el.dataset.ai,f=el.dataset.f;if(!r.assets||!r.assets[i])return;
 if(f==='value'||f==='fx_rate')r.assets[i][f]=parseFloat(String(el.value).replace(/,/g,''))||0;
 else r.assets[i][f]=el.value});
 }
+
+/* Add a Company Special Pay row: save what's already typed first (readRetirement), then add the row
+   and put the cursor straight into its name field so the new row is easy to find. */
+function retAddSpecial(){
+  try{ if(typeof readRetirement==='function') readRetirement(); }catch(e){}
+  if(!D.retirement.company_special_pay) D.retirement.company_special_pay=[];
+  D.retirement.company_special_pay.push({name:'',amount:0,note:''});
+  var ni=D.retirement.company_special_pay.length-1;
+  saveD(); renderRetSetup();
+  setTimeout(function(){var e=document.querySelector('[data-spi="'+ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.outline='2px solid var(--primary)';tr.style.outlineOffset='-2px';}e.focus();}},30);
+}
+window.retAddSpecial=retAddSpecial;

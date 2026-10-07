@@ -68,7 +68,11 @@ psTbl+='<tr style="font-weight:700;background:var(--bg3)"><td colspan="3">NET PA
 document.getElementById('payroll-summary-tbl').innerHTML=psTbl}
 
 
-function addPayItem(type){readAll();D.payroll.push({name:'New '+(type==='income'?'Income':'Deduction'),type:type,amount:0,freq:'every_month',month:null,notes:'',affects_epf:(type==='income'),affects_sso:(type==='income'),affects_tax:(type==='income'),calc_mode:'fixed'});renderPayroll()}
+function addPayItem(type){readAll();D.payroll.push({name:'New '+(type==='income'?'Income':'Deduction'),type:type,amount:0,freq:'every_month',month:null,notes:'',affects_epf:(type==='income'),affects_sso:(type==='income'),affects_tax:(type==='income'),calc_mode:'fixed'});renderPayroll();
+// Small sub-list: keep the add button under the list, but jump straight into the new row's name field.
+var _ni=D.payroll.length-1;
+setTimeout(function(){var e=document.querySelector('[data-pi="'+_ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.outline='2px solid var(--primary)';tr.style.outlineOffset='-2px';}if(e.scrollIntoView){try{e.scrollIntoView({behavior:'smooth',block:'center'});}catch(x){}}e.focus();if(e.select)e.select();}},30);
+}
 
 
 // TAX_BRACKETS defined in simulation.js
@@ -90,12 +94,12 @@ var el=document.getElementById('tax-override-input');
 if(!el)return;
 var v=el.value;
 D.tax_actual_override=v?pn(v):null;
-sS(SKEY,JSON.stringify(D));
+saveD();
 location.hash='tax';location.reload()}
 
 function resetTaxOverride(){
 D.tax_actual_override=null;
-sS(SKEY,JSON.stringify(D));
+saveD();
 location.hash='tax';location.reload()}
 
 function renderTax(){
