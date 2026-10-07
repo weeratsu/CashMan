@@ -371,7 +371,7 @@ if(!D.todo_cats)D.todo_cats=defaultData().todo_cats;if(!D.wish_cats)D.wish_cats=
 // Dashboard layout: ensure it exists + reconcile with the known block registry (add new blocks at
 // end, drop unknown). Keeps user's order/visibility while surviving app updates that add blocks.
 (function(){var known=['kpi','bills','todos','calendar','cards','chart_balance','chart_monthly','gantt'];
-if(!Array.isArray(D.dash_layout))D.dash_layout=defaultData().dash_layout;
+if(!Array.isArray(D.dash_layout))D.dash_layout=(defaultData().dash_layout||[]).slice(); // fresh browser: defaultData has no dash_layout -> []; missing cards are added below
 var seen={};D.dash_layout=D.dash_layout.filter(function(x){if(!x||known.indexOf(x.key)<0||seen[x.key])return false;seen[x.key]=1;return true;});
 known.forEach(function(k){if(!seen[k])D.dash_layout.push({key:k,visible:true});});})();
 // Migrate owners: collect from existing data if D.owners missing

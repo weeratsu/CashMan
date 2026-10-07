@@ -14,6 +14,16 @@
   // pushes are blocked until the first pull has finished, and a fresh browser always ADOPTS the Sheet.
   var hadLocal=false; try{ hadLocal=!!localStorage.getItem((typeof SKEY!=='undefined'&&SKEY)||'cashflow_v5'); }catch(e){}
   var pulledOnce=false;
+  // REAL-DATA GUARD (Oct 7 incident): empty/default data must never reach the Sheet, and must never win
+  // over real data, whatever the timestamps say.
+  function realScore(x){
+    if(!x||typeof x!=='object'||!x.profile) return 0;
+    var n=0; ['todos','wishlist','planned','monthly','yearly','installments','cards'].forEach(function(k){ if(Array.isArray(x[k])) n+=x[k].length; });
+    if(x.bill_payments&&typeof x.bill_payments==='object') n+=Object.keys(x.bill_payments).length;
+    return n;
+  }
+  function isReal(x){ return !!(x&&x.profile&&String(x.profile.name||'').trim()) && realScore(x)>=5; }
+  window.__cmIsReal=isReal;
   function dirty(v){ try{ if(v===undefined) return localStorage.getItem(DIRTY)==='1'; v?localStorage.setItem(DIRTY,'1'):localStorage.removeItem(DIRTY);}catch(e){} return false; }
   function badge(txt,color){
     try{ var el=document.getElementById('cm-sync-badge');
@@ -32,6 +42,7 @@
     if(!pulledOnce){ return; }            // wait for the first Sheet read (pull will push afterwards if needed)
     if(pushing){ schedule(1500); return; }
     if(typeof D==='undefined'||!D||!D.profile) return;
+    if(!isReal(D)){ console.warn('CashMan: local data looks empty/default - NOT sent to Sheet'); badge('\u26a0 local data empty - not sent','var(--error,#c33)'); return; }
     pushing=true; badge('\u2191 saving to Sheet\u2026');
     var snap=JSON.stringify(D), g=gen;
     post(JSON.parse(snap)).then(function(res){
@@ -63,7 +74,10 @@
           return;
         }
         var rl=remote.last_modified||'', ll=(typeof D!=='undefined'&&D&&D.last_modified)||'';
-        if(rl && (rl>ll || (first && !hadLocal))){  // Sheet newer, OR fresh browser -> always take the Sheet
+        var lReal=(typeof D!=='undefined')&&isReal(D), rReal=isReal(remote);
+        var takeRemote = rReal && ( !lReal || rl>ll || (first && !hadLocal) );   // real Sheet beats empty local, always
+        if(!rReal && lReal){ gen++; dirty(true); schedule(0); badge('\u2191 restoring Sheet from local\u2026'); return; } // Sheet empty/broken -> repair from local
+        if(takeRemote){
           try{ localStorage.setItem(SKEY,JSON.stringify(remote)); }catch(e){}
           loadD(); DATA_READY=true;               // re-run CashMan's own migrations on the Sheet data
           try{ loadForm(); }catch(e){}
