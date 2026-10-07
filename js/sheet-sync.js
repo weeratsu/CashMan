@@ -6,6 +6,8 @@
    No config (js/config-sheet.js missing or endpoint empty, e.g. on GitHub Pages) = does nothing. */
 (function(){
   var cfg=window.CM_SHEET_CFG;
+  // GitHub Pages / phone: no config-sheet.js -> use the connection saved in THIS browser by connect.html
+  if(!cfg||!cfg.endpoint){ try{ cfg=JSON.parse(localStorage.getItem('cm_sheet_cfg')||'null'); }catch(e){ cfg=null; } if(cfg) window.CM_SHEET_CFG=cfg; }
   if(!cfg||!cfg.endpoint||String(cfg.endpoint).indexOf('http')!==0){ window.CM_SHEET_ON=false; return; }
   window.CM_SHEET_ON=true;
   var DIRTY='cashflow_sheet_dirty', timer=null, pushing=false, gen=0;
