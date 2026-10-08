@@ -56,6 +56,15 @@
       return new Promise(function(res){ setTimeout(res, tries===3?2500:6000); }).then(function(){ return __call(url,opt,tries-1,onWait); });
     });
   }
+
+  // Bad session (Oct 8 2026): iPhone Home-Screen apps keep their OWN storage (separate from Safari), so an old
+  // session survives a password change -> 'bad token'. Clear the stale web session and show a Login bar.
+  function __badToken(key){
+    try{ var c=JSON.parse(localStorage.getItem(key)||'null'); if(!c||String(c.writeToken||'').indexOf('ses_')!==0) return; localStorage.removeItem(key); }catch(e){ return; }
+    try{ if(document.getElementById('relogin-bar')) return; var a=document.createElement('a'); a.id='relogin-bar'; a.href='login.html';
+      a.textContent='🔐 Session หมดอายุ — แตะเพื่อ Login ใหม่'; a.style.cssText='position:fixed;left:0;right:0;top:0;z-index:100001;background:#dc2626;color:#fff;text-align:center;padding:12px;padding-top:calc(12px + env(safe-area-inset-top));font:600 14px system-ui,sans-serif;text-decoration:none';
+      document.body.appendChild(a); }catch(e){}
+  }
   function post(data){
     return __call(cfg.endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({token:cfg.writeToken,action:'replaceAll',data:data})},3,function(){ badge('\u21bb กำลังปลุก Google\u2026'); });
@@ -73,7 +82,7 @@
       badge('\u2713 synced','var(--success,#2a7)');
     }).catch(function(e){
       console.warn('CashMan Sheet push failed (kept locally, retry in 30s):',e);
-      badge('\u26a0 not saved: '+String((e&&e.message)||e).slice(0,80),'var(--error,#c33)'); schedule(30000);
+      if(/bad token/.test(String((e&&e.message)||e))) __badToken('cm_sheet_cfg'); badge('\u26a0 not saved: '+String((e&&e.message)||e).slice(0,80),'var(--error,#c33)'); schedule(30000);
     }).then(function(){ pushing=false; });
   }
   function schedule(ms){ clearTimeout(timer); timer=setTimeout(push,ms); }
@@ -110,7 +119,7 @@
           dirty(false);
         } else if((ll && ll>rl) || dirty()){ gen++; dirty(true); schedule(0); }   // local newer / unsent edits -> upload
         badge('\u2713 synced','var(--success,#2a7)');
-      }).catch(function(e){ console.warn('CashMan Sheet pull failed (using local data):',e); badge('\u26a0 offline: '+String((e&&e.message)||e).slice(0,80),'var(--error,#c33)'); });
+      }).catch(function(e){ console.warn('CashMan Sheet pull failed (using local data):',e); if(/bad token/.test(String((e&&e.message)||e))) __badToken('cm_sheet_cfg'); badge('\u26a0 offline: '+String((e&&e.message)||e).slice(0,80),'var(--error,#c33)'); });
   }
   window.cmSheetSyncNow=function(){ (pulledOnce&&dirty())?schedule(0):pull(); };
   window.__cmSheetState=function(){ return {pulledOnce:pulledOnce,hadLocal:hadLocal,dirty:dirty(),gen:gen}; };
