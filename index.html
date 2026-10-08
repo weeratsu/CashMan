@@ -186,6 +186,14 @@ select.inp{font-size:11px;padding:2px 4px}
 .inp:not(.inp-inline),select.inp{font-size:11px}
 .card>.form-grid .inp,.card>.form-grid .sel,.form-group .inp,.form-group .sel{font-size:11px !important;min-height:28px;padding:4px 8px !important}
 </style>
+<style id="cm-tblscroll">
+/* Wide tables (Oct 8 2026): the scroll box is limited to the screen height, so its horizontal
+   scrollbar is always visible at the bottom of the screen (no need to scroll down to find it).
+   The sticky header stays visible while scrolling inside the box. Desktop + phone. */
+div[style*="overflow-x:auto"]{max-height:calc(100vh - 120px);overflow:auto!important;overscroll-behavior:contain}
+div[style*="overflow-x:auto"]::-webkit-scrollbar{height:12px;width:10px}
+div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#cbd5e1);border-radius:6px}
+</style>
 </head>
 <body>
 <nav class="nav">
@@ -578,7 +586,7 @@ select.inp{font-size:11px;padding:2px 4px}
 <script src="js/ui-creditcards.js?v=252"></script>
 
 <script src="js/ui-timeline.js?v=252"></script>
-<script src="js/ui-dashboard.js?v=273"></script>
+<script src="js/ui-dashboard.js?v=274"></script>
 <script src="js/help-data.js?v=252"></script>
 <script src="js/trx-io.js?v=264"></script>
 <script src="js/retirement-calc.js?v=252"></script>

@@ -305,6 +305,13 @@ else if(ty===_prevY&&tm===_prevM)(prevTaskByDay[day]=prevTaskByDay[day]||[]).pus
 else if(ty===_nextY&&tm===_nextM)(nextTaskByDay[day]=nextTaskByDay[day]||[]).push(t);
 });
 // Task-line HTML (shared by current-month cells and faded adjacent cells). `muted` dims adjacent tasks.
+// Sort a day's tasks by time (Oct 8 2026): timed tasks first, earliest first; untimed tasks after, A-Z.
+function _calTaskSort(arr){
+return (arr||[]).slice().sort(function(a,b){
+var ta=(a&&a.due_time)?String(a.due_time):'',tb=(b&&b.due_time)?String(b.due_time):'';
+if(ta&&!tb)return -1;if(!ta&&tb)return 1;if(ta!==tb)return ta<tb?-1:1;
+return String((a&&a.title)||'').localeCompare(String((b&&b.title)||''));});
+}
 function _calTaskLine(t,muted){
 var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
 // Overdue = date-mode task whose due date is before today and not done. Carried-over pending tasks
@@ -315,7 +322,7 @@ var _col=_ovd?'var(--error)':'var(--accent)';
 var _fade=(muted&&!_ovd)?';opacity:.7':'';// overdue ignores the mute so it stays prominent
 var _wt=_ovd?';font-weight:700':'';
 var _mark=_ovd?'\u26a0\ufe0f ':'<i class="fa-solid fa-list-check" style="width:14px;text-align:center"></i> ';
-return '<div onclick="dashCalShow('+tidx+')" title="'+esc(t.title||'')+(t.category?' \u00b7 '+esc(t.category):'')+(_ovd?' \u00b7 OVERDUE':'')+' \u00b7 click for details" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+_col+_fade+_wt+'">'+_mark+esc(t.title||'')+'</div>';
+return '<div onclick="dashCalShow('+tidx+')" title="'+esc(t.title||'')+(t.category?' \u00b7 '+esc(t.category):'')+(_ovd?' \u00b7 OVERDUE':'')+' \u00b7 click for details" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+_col+_fade+_wt+'">'+_mark+(t.due_time?'<b>['+esc(String(t.due_time).slice(0,5))+']</b> ':'')+esc(t.title||'')+'</div>';
 }
 // Build calendar grid (weeks start Sunday)
 var startDow=first.getDay();
@@ -348,7 +355,7 @@ var _prevLast=new Date(y,m,0).getDate();// last day of previous month
 for(var b=0;b<startDow;b++){var _pd=_prevLast-startDow+1+b;
 h+='<div style="min-height:74px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 4px;overflow:hidden;opacity:.6"><div style="font-size:10px;font-weight:600;color:var(--text3)">'+_pd+'</div>';
 (prevByDay[_pd]||[]).forEach(function(o){h+=_calBillLine(o,true);});
-(prevTaskByDay[_pd]||[]).forEach(function(t){h+=_calTaskLine(t,true);});
+_calTaskSort(prevTaskByDay[_pd]).forEach(function(t){h+=_calTaskLine(t,true);});
 h+='</div>';}
 for(var day=1;day<=daysIn;day++){
 var isToday=(y===now.getFullYear()&&m===now.getMonth()&&day===now.getDate());
@@ -364,7 +371,7 @@ h+='<div style="min-height:74px;background:'+cellBg+';'+cellBd+';'+cellBar+'bord
 h+='<div style="font-size:10px;font-weight:600;color:'+(isToday?'var(--accent)':'var(--text3)')+';margin-bottom:2px">'+day+'</div>';
 var bills=billByDay[day]||[],tasks=taskByDay[day]||[];
 bills.forEach(function(o){h+=_calBillLine(o,false);});
-tasks.forEach(function(t){h+=_calTaskLine(t,false);});
+_calTaskSort(tasks).forEach(function(t){h+=_calTaskLine(t,false);});
 h+='</div>';
 }
 // Trailing days: fill the last row with the start of next month, faded, so the row ends on Saturday.
@@ -372,7 +379,7 @@ var _usedCells=startDow+daysIn;var _trail=(7-(_usedCells%7))%7;
 for(var tzi=1;tzi<=_trail;tzi++){
 h+='<div style="min-height:74px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 4px;overflow:hidden;opacity:.6"><div style="font-size:10px;font-weight:600;color:var(--text3)">'+tzi+'</div>';
 (nextByDay[tzi]||[]).forEach(function(o){h+=_calBillLine(o,true);});
-(nextTaskByDay[tzi]||[]).forEach(function(t){h+=_calTaskLine(t,true);});
+_calTaskSort(nextTaskByDay[tzi]).forEach(function(t){h+=_calTaskLine(t,true);});
 h+='</div>';}
 h+='</div>';
 // Monthly totals note
