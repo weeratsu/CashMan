@@ -44,9 +44,21 @@
       clearTimeout(el._t); if(/synced/.test(txt)) el._t=setTimeout(function(){el.style.display='none';},2500);
     }catch(e){}
   }
+
+  // Robust call (Oct 8 2026): retry Google cold-start / HTML error pages up to 3x before giving up.
+  function __call(url,opt,tries,onWait){
+    tries=tries||3;
+    return fetch(url,opt).then(function(r){ return r.text(); }).then(function(t){
+      try{ return JSON.parse(t); }catch(e){ throw new Error('Google ยังไม่ตอบ (หน้า error)'); }
+    }).catch(function(e){
+      if(tries<=1) throw e;
+      if(onWait) onWait();
+      return new Promise(function(res){ setTimeout(res, tries===3?2500:6000); }).then(function(){ return __call(url,opt,tries-1,onWait); });
+    });
+  }
   function post(data){
-    return fetch(cfg.endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({token:cfg.writeToken,action:'replaceAll',data:data})}).then(function(r){return r.json();});
+    return __call(cfg.endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({token:cfg.writeToken,action:'replaceAll',data:data})},3,function(){ badge('\u21bb กำลังปลุก Google\u2026'); });
   }
   function push(){
     if(!pulledOnce){ return; }            // wait for the first Sheet read (pull will push afterwards if needed)
@@ -61,7 +73,7 @@
       badge('\u2713 synced','var(--success,#2a7)');
     }).catch(function(e){
       console.warn('CashMan Sheet push failed (kept locally, retry in 30s):',e);
-      badge('\u26a0 not saved to Sheet yet - will retry','var(--error,#c33)'); schedule(30000);
+      badge('\u26a0 not saved: '+String((e&&e.message)||e).slice(0,80),'var(--error,#c33)'); schedule(30000);
     }).then(function(){ pushing=false; });
   }
   function schedule(ms){ clearTimeout(timer); timer=setTimeout(push,ms); }
@@ -73,8 +85,8 @@
   function pull(){
     if(pulledOnce && dirty()){ schedule(0); return; }   // unsent local edits win: push them first
     var g=gen; badge('\u21bb syncing\u2026');
-    fetch(cfg.endpoint+'?action=all&token='+encodeURIComponent(cfg.readToken||cfg.writeToken)+'&t='+Date.now())
-      .then(function(r){return r.json();}).then(function(res){
+    __call(cfg.endpoint+'?action=all&token='+encodeURIComponent(cfg.readToken||cfg.writeToken)+'&t='+Date.now(),undefined,3,function(){ badge('\u21bb กำลังปลุก Google\u2026'); })
+      .then(function(res){
         if(!res||!res.ok) throw new Error((res&&res.error)||'load failed');
         var remote=res.data||{};
         var first=!pulledOnce; pulledOnce=true;
@@ -98,7 +110,7 @@
           dirty(false);
         } else if((ll && ll>rl) || dirty()){ gen++; dirty(true); schedule(0); }   // local newer / unsent edits -> upload
         badge('\u2713 synced','var(--success,#2a7)');
-      }).catch(function(e){ console.warn('CashMan Sheet pull failed (using local data):',e); badge('\u26a0 offline (local data)','var(--error,#c33)'); });
+      }).catch(function(e){ console.warn('CashMan Sheet pull failed (using local data):',e); badge('\u26a0 offline: '+String((e&&e.message)||e).slice(0,80),'var(--error,#c33)'); });
   }
   window.cmSheetSyncNow=function(){ (pulledOnce&&dirty())?schedule(0):pull(); };
   window.__cmSheetState=function(){ return {pulledOnce:pulledOnce,hadLocal:hadLocal,dirty:dirty(),gen:gen}; };
