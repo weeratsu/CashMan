@@ -194,6 +194,38 @@ div[style*="overflow-x:auto"]{max-height:calc(100vh - 120px);overflow:auto!impor
 div[style*="overflow-x:auto"]::-webkit-scrollbar{height:12px;width:10px}
 div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#cbd5e1);border-radius:6px}
 </style>
+<style id="cm-todo-fit">
+/* Oct 9 2026: To-Do = 2 lines per task, fits the card (like Bills Reminder). */
+.todo-fit{overflow:visible!important;max-height:none!important}
+.todo-tbl{width:100%;table-layout:fixed}
+.todo-tbl th:nth-child(1),.todo-tbl td.r{width:28px}
+.todo-tbl td,.todo-tbl th{white-space:normal!important;word-break:break-word}
+.todo-tbl tr.todo-r1 td{border-bottom:0!important;padding-bottom:2px!important}
+.todo-tbl tr.todo-r2 td{padding-top:2px!important}
+.todo-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.todo-meta .todo-dl{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
+.todo-tbl input.inp-inline{max-width:100%;min-width:0;box-sizing:border-box}
+.todo-tbl td.todo-st{width:130px}
+@media(max-width:520px){.todo-tbl td.todo-st,.todo-tbl th.todo-st{width:92px}}
+.todo-sum{display:flex;flex-wrap:wrap;align-items:center;gap:5px;cursor:pointer;padding:2px 0}
+.todo-sum:hover .todo-pen{opacity:1}
+.tchip{display:inline-block;font-size:10.5px;line-height:1.5;padding:1px 8px;border-radius:20px;background:var(--bg3,#f1f5f9);color:var(--text2,#475569);white-space:nowrap}
+.tchip.t-hi{background:rgba(220,38,38,.1);color:var(--error,#dc2626)}
+.tchip.t-empty{background:none;color:var(--text3);font-style:italic}
+.todo-pen{font-size:10px;color:var(--text3);opacity:.45;margin-left:2px}
+.todo-meta{margin-top:6px;padding:8px;border:1px dashed var(--border,#cbd5e1);border-radius:8px;background:var(--bg2,#fff)}
+/* Oct 9 2026 fix: same look at any window size */
+#todos-content{max-width:1180px;margin:0 auto}  /* whole To-Do page (cards, filters, table) same width */
+.todo-tbl tbody tr:not([style*="background"]),.todo-tbl tbody tr:not([style*="background"]):hover{background:transparent!important}
+.todo-tbl td.todo-st{white-space:nowrap!important;width:120px}
+.todo-tbl tr.todo-r2+tr.todo-r1 td{border-top:1px solid var(--border,#e5e7eb)}
+.todo-search-wrap{position:relative;display:inline-flex;align-items:center;margin-right:6px}
+.todo-search-wrap i{position:absolute;left:9px;font-size:11px;color:var(--text3);pointer-events:none}
+#todo-search{font-size:12px;padding:5px 26px 5px 26px;border:1px solid var(--border,#cbd5e1);border-radius:8px;width:220px;max-width:46vw;background:var(--bg2,#fff);color:inherit}
+#todo-search:focus{outline:2px solid var(--primary,#3b82f6);outline-offset:-1px}
+.todo-search-x{position:absolute;right:4px;border:0;background:none;font-size:15px;color:var(--text3);cursor:pointer;padding:0 4px}
+#todo-search::-webkit-search-cancel-button{display:none}
+</style>
 </head>
 <body>
 <nav class="nav">
@@ -593,7 +625,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-retirement.js?v=252"></script>
 
 <script src="js/ui-billreminder.js?v=274"></script>
-<script src="js/ui-todos.js?v=276"></script>
+<script src="js/ui-todos.js?v=281"></script>
 <script src="js/ui-wishlist.js?v=252"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
@@ -603,8 +635,9 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-utilities.js?v=278"></script>
 <script src="js/drive-view.js?v=2"></script>
 <script src="js/app.js?v=261"></script>
-<script src="../Hub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
-<script src="../Hub/shared/table-fit.js?v=2" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=2';document.body.appendChild(s);"></script>
+<script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
+<script src="../WRHub/shared/table-fit.js?v=3" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=3';document.body.appendChild(s);"></script>
+<script src="js/table-search.js?v=1"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>

@@ -6,7 +6,17 @@
 // No personal data hardcoded — all rows live in D.todos.
 
 var _todoFilter='open';   // open | done | all
-var _todoCatFilter='';    // '' = all categories; else a category name (combines with status filter)
+var _todoCatFilter='';
+var _todoSearch='';   // Oct 9 2026: keyword search (title, note, category, link) - combines with status + category filters
+function _todoNorm(x){ return String(x==null?'':x).toLowerCase(); }
+function _todoMatch(t,q){ if(!q) return true; var hay=_todoNorm([t.title,t.note,t.category,t.link].join(' '));
+ return q.split(/\s+/).filter(Boolean).every(function(w){ return hay.indexOf(w)>=0; }); }
+var _todoSearchT=null;
+function setTodoSearch(v){ _todoSearch=_todoNorm(v).trim(); clearTimeout(_todoSearchT);
+ _todoSearchT=setTimeout(function(){ _todoFrozen=null; _todoTouched={}; renderTodos();
+  var el=document.getElementById('todo-search'); if(el){ el.focus(); var n=el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} } },200); }
+function clearTodoSearch(){ _todoSearch=''; var el=document.getElementById('todo-search'); if(el) el.value=''; _todoFrozen=null; _todoTouched={}; renderTodos(); }
+window.setTodoSearch=setTodoSearch; window.clearTodoSearch=clearTodoSearch;    // '' = all categories; else a category name (combines with status filter)
 function setTodoCatFilter(v){_todoFrozen=null;_todoTouched={};_todoCatFilter=v||'';renderTodos();}
 var _todoHistOpen=false;  // collapsible completion-history section (persist across re-renders)
 function toggleTodoHist(){_todoHistOpen=!_todoHistOpen;renderTodos();}
@@ -297,6 +307,31 @@ return '<span style="font-size:8px;color:var(--primary);background:var(--primary
 }
 
 // Context-link options: bills (monthly/yearly/installment names) + cards.
+
+// ---- To-Do calm summary (Oct 9 2026) ----
+var _todoEditOpen={};
+function todoEditToggle(id){ _todoEditOpen[id]=!_todoEditOpen[id]; var el=document.getElementById('tedit_'+id); if(el) el.style.display=_todoEditOpen[id]?'flex':'none'; }
+function _todoSummary(t,MON,DOW){
+ var p=[];
+ if(t.category) p.push('<span class="tchip">'+esc(t.category)+'</span>');
+ if(t.priority===1) p.push('<span class="tchip t-hi">\ud83d\udd34 High</span>'); else if(t.priority===3) p.push('<span class="tchip">\u26aa Low</span>');
+ var dl='';
+ if(t.deadline_mode==='date'&&t.due_date){ var d=t.due_date.split('-'); dl='\ud83d\udcc5 '+(+d[2])+' '+MON[(+d[1])-1]+(+d[0]!==new Date().getFullYear()?' '+d[0]:''); }
+ else if(t.deadline_mode==='asap') dl='\u26a1 ASAP';
+ if(t.due_time) dl+=(dl?' ':'\u23f0 ')+esc(String(t.due_time).slice(0,5));
+ if(dl) p.push('<span class="tchip">'+dl+'</span>');
+ if(t.recur&&t.recur!=='none'){
+  var n=+(t.recur_every||1), u={daily:'วัน',weekly:'สัปดาห์',monthly:'เดือน',yearly:'ปี'}[t.recur]||'';
+  var r='\ud83d\udd01 '+(n>1?'ทุก '+n+' '+u:{daily:'ทุกวัน',weekly:'ทุกสัปดาห์',monthly:'ทุกเดือน',yearly:'ทุกปี'}[t.recur]);
+  if(t.recur==='weekly') r+=' ('+DOW[t.recur_dow||0]+')';
+  if(t.recur==='monthly') r+=' (วันที่ '+(t.recur_dom||1)+')';
+  if(t.recur_until) r+=' ถึง '+esc(t.recur_until);
+  p.push('<span class="tchip">'+r+'</span>');
+ }
+ if(t.link) p.push('<span class="tchip">\ud83d\udd17 '+esc(String(t.link).replace(/^\w+:/,''))+'</span>');
+ return p.length?p.join(''):'<span class="tchip t-empty">+ ตั้ง category / deadline</span>';
+}
+window.todoEditToggle=todoEditToggle;
 function _todoLinkOptions(t){
 var h='<option value="">\u2014 no link</option>';
 var groups=[];
@@ -333,6 +368,7 @@ if(!D.todos)D.todos=[];
 var today=new Date();today.setHours(0,0,0,0);
 
 var items=D.todos.slice().filter(function(t){
+if(_todoSearch&&!_todoMatch(t,_todoSearch))return false;
 if(_todoCatFilter&&(t.category||'')!==_todoCatFilter)return false;
 if(_todoFilter==='all')return true;
 if(_todoFilter==='open')return !t.done;
@@ -434,10 +470,12 @@ h+='<span style="flex:1"></span>';
 // Sort-mode selector (combines with header-click sorting; 'urgent_priority' = Overdue > ASAP > Priority).
 var _sortOpts=[['urgent_priority','\ud83d\udd25 Overdue > ASAP > Priority'],['urgency','Urgency'],['priority','Priority'],['due','Due date'],['name','Task name'],['category','Category']];
 h+='<label style="font-size:10px;color:var(--text3)">Sort</label><select class="sel" style="font-size:10px;padding:2px 8px" onchange="setTodoSortMode(this.value)" title="Sort order">'+_sortOpts.map(function(o){return '<option value="'+o[0]+'"'+(_todoSort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';
+h+='<span class="todo-search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input id="todo-search" type="search" placeholder="ค้นหา task / note / category" value="'+esc(_todoSearch)+'" oninput="setTodoSearch(this.value)" onkeydown="if(event.key===\'Escape\')clearTodoSearch()">'+(_todoSearch?'<button class="todo-search-x" title="ล้าง" onclick="clearTodoSearch()">\u00d7</button>':'')+'</span>';
 h+='<select class="sel" style="font-size:10px;padding:2px 8px" onchange="setTodoCatFilter(this.value)" title="Filter by category"><option value="">All categories</option>'+_tcats.map(function(cn){return '<option value="'+esc(cn)+'"'+(_todoCatFilter===cn?' selected':'')+'>'+esc(cn)+'</option>';}).join('')+'</select>';
 h+='</div>';
 
-if(!items.length){
+if(!items.length&&_todoSearch){h+='<p class="text-muted" style="font-size:12px;padding:10px 0">ไม่พบ task ที่ตรงกับ "'+esc(_todoSearch)+'" — <a href="#" onclick="clearTodoSearch();return false;">ล้างคำค้น</a></p>';}
+else if(!items.length){
 h+='<p class="text-muted" style="font-size:11px">'+(D.todos.length?'No tasks match this filter.':'No tasks yet \u2705')+'</p>';
 h+='</div>';
 el.innerHTML=h;return;
@@ -445,15 +483,11 @@ el.innerHTML=h;return;
 
 var _ar=function(col){return _todoSort===col?(_todoAsc?' \u25b2':' \u25bc'):'';};
 if(_todoFrozen){h+='<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);background:var(--primary-bg,rgba(79,70,229,.08));border-radius:6px;padding:5px 10px;margin:6px 0"><i class="fa-solid fa-lock"></i> Order paused while you edit (edited rows outlined)<span style="flex:1"></span><button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="todoResort()"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort now</button></div>';}
-h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:11px;min-width:920px"><thead><tr>'+
+h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%"><thead><tr>'+
 '<th style="width:28px"></th>'+
-'<th style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</th>'+
-'<th style="cursor:pointer" onclick="setTodoSort(\'category\')">Category'+_ar('category')+'</th>'+
-'<th style="cursor:pointer" onclick="setTodoSort(\'priority\')">Priority'+_ar('priority')+'</th>'+
-'<th>Deadline</th>'+
-'<th style="cursor:pointer" onclick="setTodoSort(\'urgency\')">Status'+_ar('urgency')+'</th>'+
-'<th>Link</th>'+
-'<th style="width:56px"></th></tr></thead><tbody>';
+'<th><span style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</span><span style="color:var(--text3);font-weight:400"> · </span><span style="cursor:pointer" onclick="setTodoSort(\'category\')">Category'+_ar('category')+'</span><span style="color:var(--text3);font-weight:400"> · </span><span style="cursor:pointer" onclick="setTodoSort(\'priority\')">Priority'+_ar('priority')+'</span><span style="color:var(--text3);font-weight:400"> · Deadline · Link</span></th>'+
+'<th class="todo-st" style="cursor:pointer;width:130px" onclick="setTodoSort(\'urgency\')">Status'+_ar('urgency')+'</th>'+
+'<th style="width:40px"></th></tr></thead><tbody>';
 
 var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -480,17 +514,24 @@ else if(t.recur==='yearly'){recCell+=' <select class="sel" data-tid="'+t.id+'" d
 // task is marked done instead of rolling forever (stop a recurring task without deleting it).
 if(t.recur&&t.recur!=='none'){recCell+=' <span style="font-size:8px;color:var(--text3)">until</span> <input type="date" class="inp-inline" value="'+esc(t.recur_until||'')+'" data-tid="'+t.id+'" data-tf="recur_until" onchange="todoSaveField(\''+t.id+'\',\'recur_until\',this)" style="width:120px" title="Stop recurring after this date (task is marked done, not deleted)">';}
 
-h+='<tr data-row="'+t.id+'" style="'+rowStyle+(_todoTouched[t.id]?';outline:2px solid var(--primary);outline-offset:-2px':'')+'">'+
-'<td class="r"><input type="checkbox"'+(t.done?' checked':'')+' title="'+(t.done?'Reopen':'Complete')+'" onchange="this.checked?todoComplete(\''+t.id+'\'):todoReopen(\''+t.id+'\')"></td>'+
-'<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:500;min-width:130px'+(t.done?';text-decoration:line-through':'')+'">'+
-'<br><input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:9px;color:var(--text3);min-width:170px"></td>'+
-'<td><select class="sel" data-tid="'+t.id+'" data-tf="category" onchange="todoSaveField(\''+t.id+'\',\'category\',this)" style="font-size:10px">'+catOpts(t.category)+'</select></td>'+
-'<td><select class="sel" data-tid="'+t.id+'" data-tf="priority" onchange="todoSaveField(\''+t.id+'\',\'priority\',this)" style="font-size:10px"><option value="1"'+(t.priority===1?' selected':'')+'>\ud83d\udd34 High</option><option value="2"'+((t.priority||2)===2?' selected':'')+'>\ud83d\udfe1 Normal</option><option value="3"'+(t.priority===3?' selected':'')+'>\u26aa Low</option></select></td>'+
-'<td style="white-space:nowrap">'+dlCell+'<br>'+recCell+'</td>'+
-'<td style="white-space:nowrap">'+_todoStatusBadge(t,today)+' '+_todoRecurLabel(t)+'</td>'+
-'<td><select class="sel" data-tid="'+t.id+'" data-tf="link" onchange="todoSaveLink(\''+t.id+'\',this)" style="font-size:9px;max-width:120px">'+_todoLinkOptions(t)+'</select></td>'+
-'<td style="white-space:nowrap"><button class="del-btn" title="Delete" onclick="delTodo(\''+t.id+'\')"><i class="fa-solid fa-xmark"></i></button></td>'+
-'</tr>';
+var _rs=rowStyle+(_todoTouched[t.id]?';outline:2px solid var(--primary);outline-offset:-2px':'');
+// Two-row layout (Oct 9 2026): row 1 = done ☐ | task + note | status | ✕ ; row 2 = category · priority · deadline · repeat · link
+h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
+'<td class="r" rowspan="2" style="vertical-align:top;padding-top:10px"><input type="checkbox"'+(t.done?' checked':'')+' title="'+(t.done?'Reopen':'Complete')+'" onchange="this.checked?todoComplete(\''+t.id+'\'):todoReopen(\''+t.id+'\')"></td>'+
+'<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:600;font-size:12px;width:100%'+(t.done?';text-decoration:line-through':'')+'">'+
+'<input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:10px;color:var(--text3);width:100%"></td>'+
+'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+'</td>'+
+'<td rowspan="2" style="vertical-align:top;padding-top:8px"><button class="del-btn" title="Delete" onclick="delTodo(\''+t.id+'\')"><i class="fa-solid fa-xmark"></i></button></td>'+
+'</tr>'+
+'<tr class="todo-r2" style="'+_rs+'"><td>'+
+// Calm summary line (Oct 9 2026): readable chips; tap ✎ to open the full editors (kept below, hidden).
+'<div class="todo-sum" onclick="todoEditToggle(\''+t.id+'\')" title="แตะเพื่อแก้ไข">'+_todoSummary(t,MON,DOW)+'<span class="todo-pen"><i class="fa-solid fa-pen"></i></span></div>'+
+'<div class="todo-meta" id="tedit_'+t.id+'" style="display:'+(_todoEditOpen[t.id]?'flex':'none')+'">'+
+'<select class="sel" data-tid="'+t.id+'" data-tf="category" onchange="todoSaveField(\''+t.id+'\',\'category\',this)" style="font-size:10px" title="Category">'+catOpts(t.category)+'</select>'+
+'<select class="sel" data-tid="'+t.id+'" data-tf="priority" onchange="todoSaveField(\''+t.id+'\',\'priority\',this)" style="font-size:10px" title="Priority"><option value="1"'+(t.priority===1?' selected':'')+'>\ud83d\udd34 High</option><option value="2"'+((t.priority||2)===2?' selected':'')+'>\ud83d\udfe1 Normal</option><option value="3"'+(t.priority===3?' selected':'')+'>\u26aa Low</option></select>'+
+'<span class="todo-dl">'+dlCell+'</span><span class="todo-dl">'+recCell+'</span>'+
+'<select class="sel" data-tid="'+t.id+'" data-tf="link" onchange="todoSaveLink(\''+t.id+'\',this)" style="font-size:9px;max-width:140px" title="Link">'+_todoLinkOptions(t)+'</select>'+
+'</div></td></tr>';
 });
 h+='</tbody></table></div>';
 
@@ -504,7 +545,7 @@ h+='<div style="display:'+(_todoHistOpen?'':'none')+';margin-top:8px">';
 if(!log.length){h+='<p class="text-muted" style="font-size:11px">No completed tasks yet. Completing a task (including each recurring occurrence) records it here.</p>';}
 else{
 h+='<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn btn-ghost" style="font-size:9px;padding:2px 8px;color:var(--error)" onclick="clearTodoLog()"><i class="fa-solid fa-trash"></i> Clear history</button></div>';
-h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:11px;min-width:520px"><thead><tr><th>Task</th><th>Category</th><th>Done on</th><th>Was due</th><th>Type</th><th></th></tr></thead><tbody>';
+h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%"><thead><tr><th>Task</th><th>Category</th><th>Done on</th><th>Was due</th><th>Type</th><th></th></tr></thead><tbody>';
 log.forEach(function(L){
 h+='<tr><td>'+esc(L.title||'')+'</td>'+
 '<td style="font-size:10px;color:var(--text3)">'+esc(L.category||'')+'</td>'+
