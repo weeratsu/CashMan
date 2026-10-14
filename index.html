@@ -225,6 +225,30 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 #todo-search:focus{outline:2px solid var(--primary,#3b82f6);outline-offset:-1px}
 .todo-search-x{position:absolute;right:4px;border:0;background:none;font-size:15px;color:var(--text3);cursor:pointer;padding:0 4px}
 #todo-search::-webkit-search-cancel-button{display:none}
+/* v286 (user Oct 14 2026): responsive To-Do list — readable on desktop, no overlap / no table
+   bursting the card on mobile. Desktop: Task column keeps a min width + the fit box scrolls
+   horizontally if ever needed (never overflows the card). Mobile (<=640px): the table reflows to
+   stacked cards (thead hidden; each row block-level; status + Done button drop below the title). */
+.todo-fit{overflow-x:auto;max-width:100%}
+/* v287: let the Task column FLEX to fill the card (fixed layout left the right half empty). auto
+   layout distributes by content; Task takes remaining width, Status stays compact, delete narrow. */
+.todo-tbl{table-layout:auto!important;width:100%}
+.todo-tbl th:first-child,.todo-tbl td:first-child{width:auto;min-width:300px}
+.todo-tbl td.todo-st,.todo-tbl th.todo-st{width:1%;white-space:nowrap}
+.todo-tbl td:last-child,.todo-tbl th:last-child{width:1%}
+@media(max-width:640px){
+  .todo-fit{overflow-x:visible}
+  .todo-tbl{min-width:0;display:block}
+  .todo-tbl thead{display:none}
+  .todo-tbl tbody{display:block}
+  .todo-tbl tr{display:block}
+  .todo-tbl tr.todo-r1{border-top:1px solid var(--border,#e5e7eb);padding-top:8px}
+  .todo-tbl td{display:block;width:auto!important;padding:2px 0!important;white-space:normal!important}
+  .todo-tbl td.todo-st,.todo-tbl th.todo-st{width:auto!important}
+  .todo-tbl td.r{width:auto!important}
+  .todo-tbl input.inp-inline{width:100%!important}
+  .todo-meta{width:100%}
+}
 </style>
 </head>
 <body>
@@ -239,7 +263,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <button class="nav-tab" data-tab="paytax" title="Payroll & Tax"><i class="fa-solid fa-money-check-dollar"></i><span>Payroll &amp; Tax</span></button>
 <div class="nav-subwrap" data-parent="paytax"><button class="nav-sub" data-tab="paytax" data-sub="payroll-setup"><span>Payroll Setup</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-earn"><span>Monthly Earnings</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-calc"><span>Tax Calculator</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-exempt"><span>Tax Exemptions</span></button></div>
 <button class="nav-tab" data-tab="bills" title="Bills & Plans"><i class="fa-solid fa-receipt"></i><span>Bills &amp; Plans</span></button>
-<div class="nav-subwrap" data-parent="bills"><button class="nav-sub" data-tab="bills" data-sub="recurring"><span>Recurring</span></button><button class="nav-sub" data-tab="bills" data-sub="installments"><span>Installments</span></button><button class="nav-sub" data-tab="bills" data-sub="planned"><span>Planned</span></button><button class="nav-sub" data-tab="bills" data-sub="cardbills"><span>Card Bills</span></button><button class="nav-sub" data-tab="bills" data-sub="utilities"><span>Utilities</span></button></div>
+<div class="nav-subwrap" data-parent="bills"><button class="nav-sub" data-tab="bills" data-sub="recurring"><span>Recurring</span></button><button class="nav-sub" data-tab="bills" data-sub="installments"><span>Installments</span></button><button class="nav-sub" data-tab="bills" data-sub="planned"><span>Planned</span></button><button class="nav-sub" data-tab="bills" data-sub="cardbills"><span>Card Bills</span></button><button class="nav-sub" data-tab="bills" data-sub="utilities"><span>Utilities</span></button><button class="nav-sub" data-tab="bills" data-sub="carddata"><span>Card Data (raw)</span></button></div>
 <button class="nav-tab" data-tab="billreminder" title="Bills Reminder"><i class="fa-solid fa-bell"></i><span>Bills Reminder</span></button>
 <button class="nav-tab" data-tab="creditcards" title="Credit Cards"><i class="fa-solid fa-credit-card"></i><span>Credit Cards</span></button>
 <div class="nav-group">Planning</div>
@@ -386,7 +410,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 
 <!-- ===== BILLS & PLANS ===== -->
 <div id="tab-bills" class="tab-content">
-<div class="sub-tabs"><span class="sub-tab active" onclick="swBills(this,'recurring')">Recurring</span><span class="sub-tab" onclick="swBills(this,'installments')">Installments</span><span class="sub-tab" onclick="swBills(this,'planned')">Planned</span><span class="sub-tab" onclick="swBills(this,'cardbills')">Card Bills</span><span class="sub-tab" onclick="swBills(this,'utilities')">Utilities</span></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swBills(this,'recurring')">Recurring</span><span class="sub-tab" onclick="swBills(this,'installments')">Installments</span><span class="sub-tab" onclick="swBills(this,'planned')">Planned</span><span class="sub-tab" onclick="swBills(this,'cardbills')">Card Bills</span><span class="sub-tab" onclick="swBills(this,'utilities')">Utilities</span><span class="sub-tab" onclick="swBills(this,'carddata');try{renderCardRaw()}catch(e){console.error(e)}">Card Data (raw)</span></div>
 <div class="card" style="margin-bottom:10px;background:var(--primary-bg);border:1px solid var(--primary)"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span style="font-size:11px;font-weight:600"><i class="fa-solid fa-calendar-day" style="margin-right:4px"></i>Set start date for all bills:</span><input type="date" class="inp" id="bulk-start-date" style="width:150px;padding:2px 6px;font-size:11px"><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-monthly" checked> Monthly</label><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-yearly" checked> Yearly</label><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-inst" checked> Installments</label><button class="btn btn-primary" style="font-size:10px;padding:4px 12px" onclick="applyBulkStartDate()"><i class="fa-solid fa-wand-magic-sparkles"></i> Apply</button><span style="font-size:9px;color:var(--text3)">Applies to Monthly &amp; Yearly (Starts) and Installments (Hide Before). Leave blank + Apply to clear. Overwrites existing per-bill start dates.</span></div></div>
 
 <!-- SUB: Recurring -->
@@ -481,6 +505,8 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <span class="text-muted" style="font-size:10px">Monthly threshold:</span>
 <input type="text" class="inp inp-num" id="inst-threshold" value="10,000.00" style="width:100px;font-size:10px;padding:3px 6px" onfocus="var v=parseFloat(this.value.replace(/,/g,''));this.value=v||'';" onblur="this.value=(parseFloat(this.value.replace(/,/g,''))||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});renderInstMatrix()">
 <span class="text-muted" style="font-size:9px">&#x0E3F; — months exceeding this will be highlighted</span>
+<span class="text-muted" style="font-size:10px;margin-left:10px">Start from:</span>
+<select id="inst-startmonth" style="font-size:10px;padding:3px 6px" onchange="renderInstMatrix()"></select>
 </div>
 <div id="inst-matrix-chart" style="width:100%;height:300px;margin-bottom:12px"></div><div id="inst-matrix" style="overflow-x:auto"></div></div>
 </div><!-- /bp-installments -->
@@ -492,6 +518,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div class="filterbar" style="gap:6px;margin-bottom:8px">
 <select class="sel" id="flt-p-type" onchange="filterPlanned()" style="font-size:10px;padding:2px 6px"><option value="">All Types</option></select>
 <select class="sel" id="flt-p-card" onchange="filterPlanned()" style="font-size:10px;padding:2px 6px"><option value="">All Cards</option></select>
+<select class="sel" id="flt-p-status" onchange="filterPlanned()" style="font-size:10px;padding:2px 6px"><option value="">All Status</option><option value="paid">✅ Paid</option><option value="overdue">🔴 Overdue</option><option value="upcoming">🔵 Upcoming</option></select>
 <label style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" id="flt-p-showpaid" onchange="filterPlanned()"> Show paid</label>
 <span id="planned-paid-count" style="font-size:9px;color:var(--text3)"></span>
 </div>
@@ -510,6 +537,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div id="bp-cardbills" class="sub-panel">
 <div class="card"><h2><i class="fa-solid fa-credit-card"></i> Credit Card Bills</h2><p class="text-muted mb-3" style="font-size:10px">Amount due per card per month — auto-summed from everything charged to each card (monthly, yearly, installments, planned). Set a manual override to use your actual statement figure.</p><div id="cardbills-content"></div></div>
 </div><!-- /bp-cardbills -->
+<div id="bp-carddata" class="sub-panel"><div class="card"><p class="muted" style="font-size:10px;margin:0 0 6px">หน้านี้แสดง<b>ข้อมูลดิบ</b>จากหลังบ้าน (window.CARD_BILLS + D.cards) แบบ read-only ไม่คำนวณใหม่ — ไว้ตรวจว่าข้อมูลที่เก็บจริงถูกไหม</p><div id="carddata-content"></div></div></div><!-- /bp-carddata -->
 <!-- SUB: Utilities -->
 <div id="bp-utilities" class="sub-panel">
 <div id="utilities-content"></div>
@@ -604,18 +632,21 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
-<script src="js/data.js?v=267"></script>
+<script src="js/data.js?v=301"></script>
+<script src="js/unified.js?v=6"></script>
+<script src="js/unified-adapter.js?v=9"></script>
+<script>window.CM_USE_UNIFIED=true;/* Step 2: Bill Reminder/Timeline/Calendar read the unified generator via billOccurrencesUnified. Set false to A/B against legacy. */</script>
 <!-- Google Sheet sync (local only): config-sheet.js is in .gitignore; if missing (e.g. GitHub Pages) CashMan uses localStorage only -->
 <script src="js/config-sheet.js" onerror="window.CM_SHEET_CFG=null"></script>
 <script src="js/sheet-sync.js?v=5"></script>
 </script>
-<script src="js/simulation.js?v=259"></script>
+<script src="js/simulation.js?v=284"></script>
 
 <script src="js/ui-setup.js?v=252"></script>
 
 <script src="js/ui-payroll.js?v=252"></script>
-<script src="js/ui-bills.js?v=269"></script>
-<script src="js/ui-creditcards.js?v=252"></script>
+<script src="js/ui-bills.js?v=323"></script>
+<script src="js/ui-creditcards.js?v=307"></script>
 
 <script src="js/ui-timeline.js?v=252"></script>
 <script src="js/ui-dashboard.js?v=277"></script>
@@ -624,17 +655,23 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/retirement-calc.js?v=252"></script>
 <script src="js/ui-retirement.js?v=252"></script>
 
-<script src="js/ui-billreminder.js?v=274"></script>
-<script src="js/ui-todos.js?v=281"></script>
+<script src="js/ui-billreminder.js?v=325"></script>
+<script src="js/ui-todos.js?v=285"></script>
 <script src="js/ui-wishlist.js?v=252"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
      still see window.UTILITY_DATA) — otherwise the browser serves a stale cached copy and new
      receipts/bills don't appear until a manual hard-reload. -->
 <script>document.write('<script src="data/utility_log.js?t='+Date.now()+'"><\/script>');</script>
+<!-- card_bills.js is REWRITTEN by parse_cardbills.py on every run (public summary only: amount/min/due).
+     card_txns_local.json (detailed merchant lines) is PRIVATE (gitignored); loaded here on PC only. -->
+<script>document.write('<script src="data/card_bills.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="data/card_txns_local.js?t='+Date.now()+'" onerror="window.CARD_TXNS_LOCAL=null"><\/script>');</script>
 <script src="js/ui-utilities.js?v=278"></script>
+<script src="js/ui-cardsync.js?v=311"></script>
+<script src="js/ui-cardraw.js?v=3"></script>
 <script src="js/drive-view.js?v=2"></script>
-<script src="js/app.js?v=261"></script>
+<script src="js/app.js?v=287"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
 <script src="../WRHub/shared/table-fit.js?v=3" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=3';document.body.appendChild(s);"></script>
 <script src="js/table-search.js?v=1"></script>

@@ -27,19 +27,17 @@ var partsMsg=[];
 if(applyM)partsMsg.push('\u2022 '+mCount+' monthly');
 if(applyY)partsMsg.push('\u2022 '+yCount+' yearly');
 if(applyI)partsMsg.push('\u2022 '+iCount+' installment(s) + '+yInstCount+' auto installment(s) (Hide Before)');
-if(!confirm('This will '+verb+':\n'+partsMsg.join('\n')+'\n\nExisting per-bill start dates will be overwritten. Continue?'))return;
+if(!confirm('This will '+verb+':\n'+partsMsg.join('\n')+'\n\nThis OVERWRITES any existing start date on the selected bills. Continue?'))return;
+// v3 (user rule 13 Oct 'ทับทุกตัวเสมอ'): SETTING a date OVERWRITES every selected bill's start,
+// unconditionally (reverses the v2 no-overwrite guard, which left bills on their old dates so
+// applying 01/07 appeared to do nothing). CLEARING (val empty) clears all, as before.
 if(applyM)(D.monthly||[]).forEach(function(m){if(val){m.start_mode='date';m.start_date=val;}else{m.start_mode='forever';m.start_date='';}});
 if(applyY)(D.yearly||[]).forEach(function(y){if(val){y.start_mode='date';y.start_from=val;}else{y.start_mode='forever';y.start_from='';}});
 if(applyI){
 (D.installments||[]).forEach(function(x){x.hide_before=val||'';});
-// installment-mode yearly items get the Hide Before cutoff
-(D.yearly||[]).forEach(function(y){if(y.pay_mode==='installment')y.inst_hide_before=val||'';});
-var spEl=document.getElementById('flt-p-showpaid');_planShowPaid=spEl?spEl.checked:false;
-var _paidN=0;
-// Hide paid Planned items by default (they live in Payment History); 'Show paid' reveals them.
-var _paid=_planIsPaid(D.planned[pi]);
-if(_paid){var isD0=tr.classList.contains('pl-detail');if(!isD0)_paidN++;if(!_planShowPaid)show=false;}
-;var _pc=document.getElementById('planned-paid-count');if(_pc)_pc.textContent=_paidN>0?('\u00b7 '+_paidN+' paid'+(_planShowPaid?' shown':' hidden')):'';}
+// installment-mode yearly items get the Hide Before cutoff (overwrite too)
+(D.yearly||[]).forEach(function(y){if(y.pay_mode==='installment'){y.inst_hide_before=val||'';}});
+}
 saveD();simulate();renderAllTabs();
 var tParts=[];if(applyM)tParts.push('monthly');if(applyY)tParts.push('yearly');if(applyI)tParts.push('installments');
 toast((val?'\u2705 Start date set to '+fmtDate(val):'\u2705 Cleared start date')+' on '+tParts.join(', '));
@@ -50,10 +48,10 @@ var _cbYear=null,_cbMonth=null; // selected period; null => current month
 var _cbSort='due'; // card bills sort: 'name' | 'due' | 'amount' (default: due date)
 function setCbSort(v){_cbSort=v;renderCardBills();}
 // Apply the manual override typed for a card (explicit button so user sees it saved)
-function applyCardExtra(card,y,m){
+function applyCardExtra(card,y,m,per){
 var el=document.getElementById('cbex_'+card.replace(/[^a-zA-Z0-9]/g,'_'));
 var val=el?el.value:'';
-setCardBillExtra(card,y,m,val);
+setCardBillExtra(card,y,m,val,per);
 toast(val===''||parseFloat(String(val).replace(/,/g,''))===0?'\u2705 Extra cleared for '+card:'\u2705 Saved extra spend for '+card);
 }
 // Back-compat alias (older markup / muscle memory)
@@ -64,29 +62,65 @@ function _cbKey(card,y,m){return card+'::'+y+'-'+(m+1<10?'0':'')+(m+1);}
 // Paid-status for a card statement in Card Bills, kept IN SYNC with Bills Reminder's ledger.
 // The statement occurrence key (see ui-billreminder billOccurrences) is:
 //   'CB|'+cardName+'|'+mk  then period-suffixed with '::'+mk   (mk = 'YYYY-MM').
-function _cbStmtKey(card,y,m){var mk=y+'-'+(m+1<10?'0':'')+(m+1);return 'CB|'+card+'|'+mk+'::'+mk;}
-function cbPaidRec(card,y,m){return (D.bill_payments||{})[_cbStmtKey(card,y,m)];}
-function cbMarkPaid(card,y,m,amt){
-if(!D.bill_payments)D.bill_payments={};
-var mk=y+'-'+(m+1<10?'0':'')+(m+1);
-var dd=new Date(y,m,15);var cardObj=(D.cards||[]).find(function(x){return x.name===card;});
-if(cardObj&&cardObj.payment_day)dd=new Date(y,m,Math.min(cardObj.payment_day,dim(y,m)));
-var iso=dd.getFullYear()+'-'+(dd.getMonth()+1<10?'0':'')+(dd.getMonth()+1)+'-'+(dd.getDate()<10?'0':'')+dd.getDate();
-D.bill_payments[_cbStmtKey(card,y,m)]={paid:true,paid_date:(new Date()).toISOString().slice(0,10),paid_amount:amt||0,due:iso,type:'Card Statement',card:card,auto_pay:false};
-saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}
-toast('\u2705 Marked '+card+' statement paid');
+// Period of the statement shown in a given view-month (= due month in Card Bills).
+// Inverse of the forecast rule: period = (statement_day<=15 ? viewMonth-1 : viewMonth).
+// For the paid key we delegate to the CENTRAL helper (window.cardStmtKey) so Card Bills reads/writes
+// the SAME canonical key 'CB|card|PERIOD::dueMonth' that Bill Reminder uses — no more view-month key.
+function _cbPeriodForView(card,y,m){
+  var c=(D.cards||[]).find(function(x){return x.name===card;});
+  var S=c&&c.statement_day?parseInt(c.statement_day)||1:1;
+  var per=(S<=15)?(m-1):m, py=y;
+  while(per<0){per+=12;py--;} while(per>11){per-=12;py++;}
+  return py+'-'+(per+1<10?'0':'')+(per+1);
 }
-function cbUnpaid(card,y,m){
-if(D.bill_payments)delete D.bill_payments[_cbStmtKey(card,y,m)];
-saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}
+function _cbStmtKey(card,y,m){
+  var per=_cbPeriodForView(card,y,m);
+  if(typeof window.cardStmtKey==='function') return window.cardStmtKey(card,per);
+  var mk=y+'-'+(m+1<10?'0':'')+(m+1); return 'CB|'+card+'|'+per+'::'+mk; // fallback
+}
+function cbPaidRec(card,y,m,per){
+  // per: explicit statement period (YYYY-MM) from the occurrence key when known (authoritative).
+  // Fall back to the view-month inverse only when not supplied (non-PDF cards).
+  if(!/^\d{4}-\d{2}$/.test(per||'')) per=_cbPeriodForView(card,y,m);
+  // PREFIX-match the paid ledger on 'CB|card|period::' so a record keyed ::period and one keyed
+  // ::dueMonth(period+1) BOTH resolve — the two writers historically disagreed on the suffix
+  // (requirements §3.6). period alone identifies the statement; the dueMonth suffix is cosmetic.
+  var bp=D.bill_payments||{}; var pfx='CB|'+card+'|'+per+'::';
+  for(var kk in bp){ if(kk.indexOf(pfx)===0){ var r=bp[kk]; if(r&&r.paid) return r; } }
+  // not found by prefix -> defer to central helper (exact canonical key) as a last resort
+  if(typeof window.cardPaidRec==='function') return window.cardPaidRec(card,per);
+  return bp[pfx+per]||null;
+}
+function cbMarkPaid(card,y,m,amt,per){
+  if(!/^\d{4}-\d{2}$/.test(per||'')) per=_cbPeriodForView(card,y,m);
+  if(typeof window.cardMarkPaid==='function'){ window.cardMarkPaid(card,per,amt||0); }
+  else { if(!D.bill_payments)D.bill_payments={}; D.bill_payments['CB|'+card+'|'+per+'::'+per]={paid:true,paid_date:(new Date()).toISOString().slice(0,10),paid_amount:amt||0,type:'Credit Card',card:card}; }
+  saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof simulate==='function')try{simulate()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}
+  toast('\u2705 Marked '+card+' statement paid');
+}
+function cbUnpaid(card,y,m,per){
+if(!/^\d{4}-\d{2}$/.test(per||'')) per=_cbPeriodForView(card,y,m);
+// Delete EVERY paid key matching 'CB|card|period::' (covers ::period and ::dueMonth suffix variants).
+if(D.bill_payments){var pfx='CB|'+card+'|'+per+'::';Object.keys(D.bill_payments).forEach(function(kk){if(kk.indexOf(pfx)===0)delete D.bill_payments[kk];});}
+if(typeof window.cardUnmarkPaid==='function'){ try{window.cardUnmarkPaid(card,per);}catch(e){} }
+saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof simulate==='function')try{simulate()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}
 toast('Marked '+card+' statement unpaid');
 }
 function cbStepMonth(delta){var p=_cbPeriod();var m=p.m+delta,y=p.y;while(m>11){m-=12;y++}while(m<0){m+=12;y--}_cbYear=y;_cbMonth=m;renderCardBills();}
 function cbThisMonth(){var t=_cbToday();_cbYear=t.y;_cbMonth=t.m;renderCardBills();}
 // Extra-spend setter (empty or 0 clears). Effective statement = auto (Known) + extra.
-function setCardBillExtra(card,y,m,val){
+function setCardBillExtra(card,y,m,val,per){
 if(!D.cardbill_extra)D.cardbill_extra={};
-var k=_cbKey(card,y,m);
+// `per` (YYYY-MM) binds the extra to the statement's PERIOD so it matches what Bills Reminder reads
+// (billOccurrences keys PDF-managed statements by period, which can differ from the view/due month).
+// Non-PDF cards (or callers without a period) fall back to the view-month key — unchanged behaviour.
+// v320 (user Oct 13 2026): when no explicit period is supplied, bind the extra to the box's REAL
+// statement period (_cbPeriodForView) — NOT the raw view-month (_cbKey). A card whose box has no
+// occurrence this view (e.g. BAY JCB in Aug, period 2026-07) otherwise fell back to the view-month
+// key (2026-08), colliding with another view where that period is the real one (Sep JCB = 2026-08),
+// so an extra typed in one month leaked into the other.
+var _perEff=(/^\d{4}-\d{2}$/.test(per||''))?per:((typeof _cbPeriodForView==='function')?_cbPeriodForView(card,y,m):'');
+var k=(/^\d{4}-\d{2}$/.test(_perEff||''))?(card+'::'+_perEff):_cbKey(card,y,m);
 var num=parseFloat(String(val).replace(/,/g,''));
 if(val===''||isNaN(num)||num===0){delete D.cardbill_extra[k];}else{D.cardbill_extra[k]=num;}
 saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof simulate==='function')try{simulate()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}
@@ -95,20 +129,38 @@ saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBi
 function setCardBillOverride(card,y,m,val){return setCardBillExtra(card,y,m,val);}
 // Sum charges per card for the given month using billOccurrences (payment-date based).
 function cardBillData(y,m){
-var from=new Date(y,m,1), to=new Date(y,m,dim(y,m));
+// v316 REDESIGN — 1 box = 1 period. Each card shows EXACTLY the statement period that
+// corresponds to the current view month (period = _cbPeriodForView(card,y,m)), not whichever
+// statement's due-date happens to land in month m. This keeps the period badge, paid-check,
+// and cardbill_extra all aligned on the SAME period (fixes paid-but-shows-To-Pay + lost rows).
+var from=new Date(y,m-2,1), to=new Date(y,m+4,0);
 var occ=(typeof billOccurrences==='function')?billOccurrences(from,to):[];
 var byCard={};
+// v316: period each card's box represents in THIS view month (same rule Bill Reminder uses).
+function _occPer(o){ // statement period from the occurrence (key is authoritative)
+  if(o&&typeof o.key==='string'&&o.key.indexOf('CB|')===0){var mk=(o.key.split('|')[2]||'').split('::')[0];if(/^\d{4}-\d{2}$/.test(mk))return mk;}
+  if(o&&/^\d{4}-\d{2}$/.test(o.card_period||''))return o.card_period;
+  return '';
+}
 occ.forEach(function(o){var c=o.card;if(!c||c==='Cash/Direct')return;
-// v215: _surfaced rows are display-only duplicates of a charge already inside its card statement
-// (billOccurrences returns BOTH the consolidated statement AND the surfaced charge). Counting
-// them here double-counts the card total, so skip them entirely.
 if(o._surfaced)return;
+// 1 box = 1 period: keep ONLY occurrences whose statement period == this card's target period
+// for the current view month. Everything else belongs to another box (another month's view).
+var tgt=(typeof _cbPeriodForView==='function')?_cbPeriodForView(c,y,m):'';
+var per=_occPer(o);
+if(tgt&&per&&per!==tgt)return;
 if(!byCard[c])byCard[c]={items:[],total:0};
 byCard[c].items.push(o);
 // KNOWN (auto) = actual charges only. A consolidated 'Card Statement' bakes extra spend into
 // its amount, so use the sum of its underlying children instead (extra is added separately in the UI).
 var known;
-if(o.kind==='Card Statement'&&o.children&&o.children.length){known=o.children.reduce(function(s,ch){return s+(ch.amount||0);},0);}
+if(o.kind==='Card Statement'&&o._pdfDriven){
+  // PDF statement (from card_bills) is authoritative for the whole period: its own amount IS the
+  // known total (children are shown for info but excluded from the sum). Fixes Card Bills showing
+  // 0 while the statement line shows the PDF amount.
+  known=(o.amount||0);
+}
+else if(o.kind==='Card Statement'&&o.children&&o.children.length){known=o.children.reduce(function(s,ch){return s+(ch.amount||0);},0);}
 else if(o.kind==='Card Statement'){known=0;}
 else{known=(o.amount||0);}
 byCard[c].total+=known;});
@@ -137,7 +189,9 @@ var MONF=['January','February','March','April','May','June','July','August','Sep
 var data=cardBillData(y,m);
 var cards=(D.cards||[]).slice();
 // Sort card blocks per _cbSort
-function _cbEff(cd){var dd=data[cd.name];var au=dd?dd.total:0;var ex=parseFloat((D.cardbill_extra||{})[_cbKey(cd.name,y,m)])||0;return au+ex;}
+function _cbEff(cd){var dd=data[cd.name];var au=dd?dd.total:0;
+var _ep='';try{((dd&&dd.items)||[]).forEach(function(_o){if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){var _mk=(_o.key.split('|')[2]||'').split('::')[0];if(/^\d{4}-\d{2}$/.test(_mk))_ep=_mk;}});}catch(_e){}
+var ex=parseFloat((D.cardbill_extra||{})[(/^\d{4}-\d{2}$/.test(_ep||'')?(cd.name+'::'+_ep):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(cd.name,y,m)||''))?(cd.name+'::'+_cbPeriodForView(cd.name,y,m)):_cbKey(cd.name,y,m)))])||0;return au+ex;}
 function _cbDue(cd){return cd.payment_day||cd.deadline||99;}
 if(_cbSort==='due')cards.sort(function(a,b){return _cbDue(a)-_cbDue(b)||a.name.localeCompare(b.name)});
 else if(_cbSort==='amount')cards.sort(function(a,b){return _cbEff(b)-_cbEff(a)||a.name.localeCompare(b.name)});
@@ -153,12 +207,17 @@ h+='<span style="font-size:10px;color:var(--text3);margin-left:6px">Sort:</span>
 h+='<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px;margin-left:4px" onclick="cbExpandAll(true)" title="Expand all cards"><i class="fa-solid fa-angles-down"></i> Expand all</button>';
 h+='<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="cbExpandAll(false)" title="Collapse all cards"><i class="fa-solid fa-angles-up"></i> Collapse all</button>';
 h+='<span style="flex:1"></span>';
-var grand=0;cards.forEach(function(c){var d=data[c.name];var auto=d?d.total:0;var ex=parseFloat((D.cardbill_extra||{})[_cbKey(c.name,y,m)])||0;grand+=(auto+ex);});
+var grand=0;cards.forEach(function(c){var d=data[c.name];var auto=d?d.total:0;
+var _gp='';try{((d&&d.items)||[]).forEach(function(_o){if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){var _mk=(_o.key.split('|')[2]||'').split('::')[0];if(/^\d{4}-\d{2}$/.test(_mk))_gp=_mk;}});}catch(_e){}
+var _gk=(/^\d{4}-\d{2}$/.test(_gp||''))?(c.name+'::'+_gp):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(c.name,y,m)||''))?(c.name+'::'+_cbPeriodForView(c.name,y,m)):_cbKey(c.name,y,m));
+var ex=parseFloat((D.cardbill_extra||{})[_gk])||0;grand+=(auto+ex);});
 h+='<span style="font-size:12px;font-weight:700">Total due: <span style="font-family:var(--mono);color:var(--error)">\u0e3f'+fmt(grand)+'</span></span>';
 h+='</div>';
 // Period paid/unpaid summary — how many cards are settled vs still owing this month
 var _sumPaidN=0,_sumPaidAmt=0,_sumDueN=0,_sumDueAmt=0;
-cards.forEach(function(c){var dd=data[c.name];var au=dd?dd.total:0;var ex=parseFloat((D.cardbill_extra||{})[_cbKey(c.name,y,m)])||0;var eff=au+ex;if(eff<=0)return;var pr=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m):null;if(pr&&pr.paid){_sumPaidN++;_sumPaidAmt+=eff;}else{_sumDueN++;_sumDueAmt+=eff;}});
+cards.forEach(function(c){var dd=data[c.name];var au=dd?dd.total:0;
+var _fp='';try{((dd&&dd.items)||[]).forEach(function(_o){if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){var _mk=(_o.key.split('|')[2]||'').split('::')[0];if(/^\d{4}-\d{2}$/.test(_mk))_fp=_mk;}});}catch(_e){}
+var ex=parseFloat((D.cardbill_extra||{})[(/^\d{4}-\d{2}$/.test(_fp||'')?(c.name+'::'+_fp):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(c.name,y,m)||''))?(c.name+'::'+_cbPeriodForView(c.name,y,m)):_cbKey(c.name,y,m)))])||0;var eff=au+ex;if(eff<=0)return;var pr=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m,_fp):null;if(pr&&pr.paid){_sumPaidN++;_sumPaidAmt+=eff;}else{_sumDueN++;_sumDueAmt+=eff;}});
 h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px">';
 h+='<div style="flex:1;min-width:150px;padding:6px 10px;border-radius:6px;background:var(--success-bg);border:1px solid var(--success)"><div style="font-size:9px;color:var(--success);font-weight:700"><i class="fa-solid fa-circle-check"></i> PAID</div><div style="font-size:13px;font-weight:700">'+_sumPaidN+' card'+(_sumPaidN!==1?'s':'')+' · <span style="font-family:var(--mono);color:var(--success)">\u0e3f'+fmt(_sumPaidAmt)+'</span></div></div>';
 h+='<div style="flex:1;min-width:150px;padding:6px 10px;border-radius:6px;background:var(--warning-bg);border:1px solid var(--warning)"><div style="font-size:9px;color:var(--warning);font-weight:700"><i class="fa-solid fa-hourglass-half"></i> STILL TO PAY</div><div style="font-size:13px;font-weight:700">'+_sumDueN+' card'+(_sumDueN!==1?'s':'')+' · <span style="font-family:var(--mono);color:var(--warning)">\u0e3f'+fmt(_sumDueAmt)+'</span></div></div>';
@@ -168,29 +227,39 @@ if(!cards.length){h+='<p class="text-muted" style="font-size:11px">No credit car
 // One card block each
 cards.forEach(function(c){
 var d=data[c.name];var auto=d?d.total:0;var items=d?d.items:[];
-var k=_cbKey(c.name,y,m);
+// Period of the statement shown in this view-month. For PDF-managed cards the statement occurrence
+// is keyed CB|card|PERIOD (period can differ from the view/due month), so bind extra to that PERIOD
+// — matching what Bills Reminder reads. Non-PDF cards: _cbPer stays '' and we use the view-month key.
+var _cbPer='';
+try{(items||[]).forEach(function(_o){ if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){ var _mk=(_o.key.split('|')[2]||'').split('::')[0]; if(/^\d{4}-\d{2}$/.test(_mk))_cbPer=_mk; } });}catch(_e){}
+var _cbPerEff=(_cbPer)?_cbPer:((typeof _cbPeriodForView==='function')?_cbPeriodForView(c.name,y,m):'');
+var k=(/^\d{4}-\d{2}$/.test(_cbPerEff||''))?(c.name+'::'+_cbPerEff):_cbKey(c.name,y,m);
 var extra=parseFloat((D.cardbill_extra||{})[k])||0;
 var eff=auto+extra;
-var _cbPaidNow=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m):null;
+var _cbPaidNow=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m,_cbPer):null;
 _cbDefaultOpenMap[c.name]=(eff>0&&!(_cbPaidNow&&_cbPaidNow.paid));
 var _cbIsOpen=(_cbOpen[c.name]===undefined)?_cbDefaultOpenMap[c.name]:_cbOpen[c.name];
-var payDay=c.payment_day||c.deadline||null;
-var payTxt=payDay?(ord(Math.min(payDay,dim(y,m)))+' '+MONF[m].slice(0,3)):'\u2014';
-var dlDay=c.deadline||null;
-// Deadline rolls to NEXT month when its day falls on/before the planned-pay day
-var dlY=y,dlM=m;
-if(dlDay&&payDay&&dlDay<=payDay){dlM=m+1;if(dlM>11){dlM=0;dlY=y+1;}}
-var dlTxt=dlDay?(ord(Math.min(dlDay,dim(dlY,dlM)))+' '+MONF[dlM].slice(0,3)+(dlY!==y?' '+dlY:'')):'\u2014';
+// v318b: show the ACTUAL statement occurrence due/deadline (the adapter already computes it as
+// statement_day+due_offset in the correct pay month = period+1), NOT a value re-derived from the
+// VIEW month. Re-deriving from the view month put the wrong month (e.g. period 2026-10 shown as
+// "23 Oct" instead of its real "22 Nov") and the wrong day (payment_day instead of stmt+offset).
+var _cbStmtOcc=null;try{((data[c.name]&&data[c.name].items)||[]).forEach(function(_o){if(_o&&_o.kind==='Card Statement')_cbStmtOcc=_o;});}catch(_e){}
+var payTxt='\u2014',dlTxt='\u2014';
+if(_cbStmtOcc&&_cbStmtOcc.due instanceof Date){var _d=_cbStmtOcc.due;payTxt=ord(_d.getDate())+' '+MONF[_d.getMonth()].slice(0,3)+(_d.getFullYear()!==y?' '+_d.getFullYear():'');}
+if(_cbStmtOcc&&_cbStmtOcc.deadline instanceof Date){var _dl=_cbStmtOcc.deadline;dlTxt=ord(_dl.getDate())+' '+MONF[_dl.getMonth()].slice(0,3)+(_dl.getFullYear()!==y?' '+_dl.getFullYear():'');}
+// Fallback (no statement occurrence this box): derive day from statement_day+due_offset in view month.
+if(payTxt==='\u2014'){var payDay=(c.statement_day?((parseInt(c.statement_day)||0)+(parseInt(c.due_offset)||0)):(c.payment_day||c.deadline||null));if(payDay)payTxt=ord(Math.min(payDay,dim(y,m)))+' '+MONF[m].slice(0,3);}
 h+='<div class="card" style="margin-bottom:8px">';
 h+='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;cursor:pointer" onclick="cbToggle(\''+c.name.replace(/'/g,"\\'")+'\')">';
 h+='<span id="cbcx_'+c.name.replace(/[^a-zA-Z0-9]/g,'_')+'" style="color:var(--text3);width:12px">'+(_cbIsOpen?'\u25bc':'\u25b6')+'</span>';
 h+='<i class="fa-solid fa-credit-card" style="color:var(--primary)"></i><span style="font-weight:700;font-size:13px">'+esc(c.name)+'</span>';
 // Status badge for this card+period: PAID (settled) / TO PAY (has amount, unpaid) / NO CHARGES (nothing this month)
-var _cbPr=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m):null;
+var _cbPr=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m,_cbPer):null;
 if(eff>0&&_cbPr&&_cbPr.paid){h+='<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--success-bg);color:var(--success);border:1px solid var(--success)"><i class="fa-solid fa-circle-check"></i> PAID</span>';}
 else if(eff>0){h+='<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--warning-bg);color:var(--warning);border:1px solid var(--warning)"><i class="fa-solid fa-hourglass-half"></i> TO PAY</span>';}
 else{h+='<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--text3);border:1px solid var(--border)"><i class="fa-solid fa-minus"></i> NO CHARGES</span>';}
 h+='<span style="font-size:9px;color:var(--text3)">Planned pay '+payTxt+' &middot; <b style="color:var(--warning)">deadline '+dlTxt+'</b></span>';
+if(_cbPer){h+='<span title="statement period (billing cycle this box belongs to)" style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--primary-bg,rgba(59,130,246,0.12));color:var(--primary);border:1px solid var(--primary)"><i class="fa-solid fa-calendar-days" style="font-size:8px;margin-right:3px"></i>\u0e07\u0e27\u0e14 '+_cbPer+'</span>';}
 h+='<span style="flex:1"></span>';
 h+='<span style="font-size:11px">Effective: <span style="font-family:var(--mono);font-weight:700;color:var(--error)">\u0e3f'+fmt(eff)+'</span></span>';
 h+='</div>';
@@ -204,8 +273,21 @@ items.sort(function(a,b){return a.due-b.due}).forEach(function(o){
 var kids=(o.children&&o.children.length)?o.children.slice():null;
 if(kids){
 kids.sort(function(a,b){return a.due-b.due}).forEach(function(ch){
-h+='<tr><td>'+esc(ch.name)+(ch.info?' <span style="font-size:8px;color:var(--text3)">'+esc(ch.info)+'</span>':'')+_cbPayBadge(ch)+'</td><td style="font-size:9px;color:var(--text3)">'+esc(ch.kind||'')+'</td><td style="font-size:9px">'+fmtDate(_billISO(ch.orig_due||ch.due))+'</td><td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(ch.amount)+'</td></tr>';
+// v322 (user Oct 14 2026): show the charge's billing period after its name so you can verify it
+// folded under the correct card-statement period (e.g. 'Netflix 2026-10' / 'iCloud 2026-10').
+var _chPer=(ch.card_period&&/^\d{4}-\d{2}$/.test(ch.card_period))?ch.card_period:((ch.service_period&&/^\d{4}-\d{2}$/.test(ch.service_period))?ch.service_period:'');
+// v323 (user Oct 14 2026): for an ADVANCE bill (pay-before-use, e.g. Netflix/iCloud) the SERVICE
+// period is one month AFTER the statement cycle it's billed on. The charge still folds under the
+// card statement by card_period, but the badge should show the service month (card_period + 1).
+// Detect advance from the bill definition (occurrence may not carry billing_mode).
+if(_chPer){var _bdef=((D.monthly||[]).concat(D.yearly||[])).filter(function(b){return b&&b.name===ch.name;})[0];
+if(_bdef&&_bdef.billing_mode==='advance'){var _pp=_chPer.split('-'),_py=+_pp[0],_pm=+_pp[1];_pm++;if(_pm>12){_pm=1;_py++;}_chPer=_py+'-'+(_pm<10?'0':'')+_pm;}}
+h+='<tr><td>'+esc(ch.name)+(_chPer?' <span style="font-size:8px;color:var(--primary);font-family:var(--mono)">'+_chPer+'</span>':'')+(ch.info?' <span style="font-size:8px;color:var(--text3)">'+esc(ch.info)+'</span>':'')+_cbPayBadge(ch)+'</td><td style="font-size:9px;color:var(--text3)">'+esc(ch.kind||'')+'</td><td style="font-size:9px">'+fmtDate(_billISO(ch.orig_due||ch.due))+'</td><td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(ch.amount)+'</td></tr>';
 });
+// BREAKDOWN (real PDF statement): other spend = PDF total \u2212 auto-detected charges (installment+recurring).
+// Shows what the bank billed beyond the itemised charges, so the PDF total reconciles.
+if(o._pdfDriven){var _oth=Math.round(((o.amount||0)-kids.reduce(function(sx,c){return sx+(c.amount||0);},0))*100)/100;
+if(_oth>0.009){h+='<tr><td style="color:var(--text2)"><i class="fa-solid fa-receipt" style="font-size:8px;color:var(--text3);margin-right:4px"></i>\u0e2a\u0e48\u0e27\u0e19\u0e17\u0e35\u0e48\u0e40\u0e2b\u0e25\u0e37\u0e2d (other spend)</td><td style="font-size:9px;color:var(--text3)">\u0e22\u0e2d\u0e14\u0e1a\u0e34\u0e25 \u2212 \u0e1c\u0e48\u0e2d\u0e19/recurring</td><td></td><td class="r" style="font-family:var(--mono);color:var(--text2)">\u0e3f'+fmt(_oth)+'</td></tr>';}}
 }else{
 h+='<tr><td>'+esc(o.name)+(o.info?' <span style="font-size:8px;color:var(--text3)">'+esc(o.info)+'</span>':'')+_cbPayBadge(o)+'</td><td style="font-size:9px;color:var(--text3)">'+esc(o.kind)+'</td><td style="font-size:9px">'+fmtDate(_billISO(o.orig_due||o.due))+'</td><td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(o.amount)+'</td></tr>';
 }
@@ -219,23 +301,23 @@ h+='<p class="text-muted" style="font-size:10px;margin:4px 0">No charges auto-de
 h+='<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:6px;font-size:10px">';
 h+='<div><div style="color:var(--text3)">Known (auto)</div><div style="font-family:var(--mono);font-weight:600;padding:3px 0">\u0e3f'+fmt(auto)+'</div></div>';
 h+='<div style="font-size:14px;color:var(--text3);padding-bottom:2px">+</div>';
-h+='<div><div style="color:var(--text3)">Extra spend this period</div><input type="text" class="inp inp-num" id="cbex_'+c.name.replace(/[^a-zA-Z0-9]/g,'_')+'" value="'+(extra?extra.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'" placeholder="0.00" style="width:110px;padding:2px 6px;font-size:10px" onkeydown="if(event.key===\'Enter\')applyCardExtra(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+')"></div>';
-h+='<button class="btn btn-primary" style="font-size:9px;padding:3px 10px" onclick="applyCardExtra(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+')"><i class="fa-solid fa-check"></i> Save</button>';
+h+='<div><div style="color:var(--text3)">Extra spend this period</div><input type="text" class="inp inp-num" id="cbex_'+c.name.replace(/[^a-zA-Z0-9]/g,'_')+'" value="'+(extra?extra.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+'" placeholder="0.00" style="width:110px;padding:2px 6px;font-size:10px" onkeydown="if(event.key===\'Enter\')applyCardExtra(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+',\''+_cbPer+'\')"></div>';
+h+='<button class="btn btn-primary" style="font-size:9px;padding:3px 10px" onclick="applyCardExtra(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+',\''+_cbPer+'\')"><i class="fa-solid fa-check"></i> Save</button>';
 h+='<div style="font-size:14px;color:var(--text3);padding-bottom:2px">=</div>';
 h+='<div><div style="color:var(--text3)">Total to pay</div><div style="font-family:var(--mono);font-weight:700;color:var(--error);padding:3px 0">\u0e3f'+fmt(eff)+'</div></div>';
-if(extra>0)h+='<span style="font-size:9px;color:var(--primary)">+\u0e3f'+fmt(extra)+' extra added</span><button class="btn btn-ghost" style="font-size:9px;padding:2px 8px" onclick="setCardBillExtra(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+',\'\')"><i class="fa-solid fa-xmark"></i> Clear extra</button>';
+if(extra>0)h+='<span style="font-size:9px;color:var(--primary)">+\u0e3f'+fmt(extra)+' extra added</span><button class="btn btn-ghost" style="font-size:9px;padding:2px 8px" onclick="setCardBillExtra(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+',\'\',\''+_cbPer+'\')"><i class="fa-solid fa-xmark"></i> Clear extra</button>';
 else h+='<span style="font-size:9px;color:var(--text3)">Add un-recorded spend for this period (leave blank for none)</span>';
 h+='</div>';
 // Paid-status row (synced with Bills Reminder)
-var _pr=cbPaidRec(c.name,y,m);
+var _pr=cbPaidRec(c.name,y,m,_cbPer);
 h+='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);font-size:10px">';
 if(_pr&&_pr.paid){
 h+='<span style="font-size:10px;color:var(--success);font-weight:600"><i class="fa-solid fa-circle-check"></i> Statement paid</span>';
 h+='<span style="font-size:9px;color:var(--text3)">on '+(_pr.paid_date?fmtDate(_pr.paid_date):'—')+(_pr.paid_amount?' · ฿'+fmt(_pr.paid_amount):'')+'</span>';
-h+='<button class="btn btn-ghost" style="font-size:9px;padding:2px 8px" onclick="cbUnpaid(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+')"><i class="fa-solid fa-rotate-left"></i> Mark unpaid</button>';
+h+='<button class="btn btn-ghost" style="font-size:9px;padding:2px 8px" onclick="cbUnpaid(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+',\''+_cbPer+'\')"><i class="fa-solid fa-rotate-left"></i> Mark unpaid</button>';
 }else if(eff>0){
 h+='<span style="font-size:10px;color:var(--warning);font-weight:600"><i class="fa-solid fa-hourglass-half"></i> Not paid yet</span>';
-h+='<button class="btn btn-primary" style="font-size:9px;padding:3px 10px" onclick="cbMarkPaid(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+','+eff+')"><i class="fa-solid fa-check"></i> Mark statement paid</button>';
+h+='<button class="btn btn-primary" style="font-size:9px;padding:3px 10px" onclick="cbMarkPaid(\''+c.name.replace(/'/g,"\\'")+'\','+y+','+m+','+eff+',\''+_cbPer+'\')"><i class="fa-solid fa-check"></i> Mark statement paid</button>';
 }else{
 h+='<span style="font-size:9px;color:var(--text3)">Nothing to pay this month</span>';
 }
@@ -281,8 +363,11 @@ var detail='<tr class="m-detail" data-mrow="'+i+'" style="'+(open?'':'display:no
 '<div><div style="color:var(--text3);margin-bottom:2px">Effective pay</div><div style="padding:3px 0">'+effTxt+'</div></div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px">Deadline</div><div style="display:flex;align-items:center">'+dlHtml+'</div></div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px">Starts</div><div style="display:flex;align-items:center">'+startHtml+'</div></div>'+
+'<div><div style="color:var(--text3);margin-bottom:2px" title="\u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49 (arrears)=\u0e1a\u0e31\u0e15\u0e23/\u0e04\u0e48\u0e32\u0e44\u0e1f/\u0e04\u0e48\u0e32\u0e19\u0e49\u0e33 \u00b7 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49 (advance)=Netflix/iCloud">Billing</div>'+'<select class="sel" style="font-size:9px;width:118px" data-mi="'+i+'" data-f="billing_mode" onchange="readAll();D.monthly['+i+'].billing_mode=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="advance"'+((m.billing_mode==='advance')?' selected':'')+'>\u2192 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49</option><option value="arrears"'+((m.billing_mode==='advance')?'':' selected')+'>\u2190 \u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49</option></select></div>'+
+'<div><div style="color:var(--text3);margin-bottom:2px">Period</div>'+'<select class="sel" style="font-size:9px;width:118px" data-mi="'+i+'" data-f="period_rule" onchange="readAll();D.monthly['+i+'].period_rule=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="prev"'+((m.period_rule==='prev')?' selected':'')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same"'+((m.period_rule==='prev')?'':' selected')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option></select></div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px">Ends</div><div style="display:flex;align-items:center">'+endHtml+'</div></div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px" title="Link this recurring bill to a utility so months with a real UtilityLog bill skip this forecast (no double-count). Saves automatically.">Utility link</div><div style="display:flex;align-items:center"><select class="sel" style="font-size:9px;width:110px" data-mi="'+i+'" data-f="util_link" onchange="D.monthly['+i+'].util_link=this.value;saveD();if(typeof simulate===\'function\')simulate();if(typeof toast===\'function\')toast(\'\\u2705 Saved\')"><option value=""'+(!m.util_link?' selected':'')+'>\u2014 None</option><option value="electric"'+(m.util_link==='electric'?' selected':'')+'>\u26a1 Electricity</option><option value="water"'+(m.util_link==='water'?' selected':'')+'>\ud83d\udca7 Water</option></select></div></div>'+
+'<div style="margin-top:4px"><div style="color:var(--text3);margin-bottom:2px" title="Link this recurring bill to a credit card so months with a real statement (from card_bills) skip this forecast (no double-count). Saves automatically.">Card link</div><div style="display:flex;align-items:center"><select class="sel" style="font-size:9px;width:110px" data-mi="'+i+'" data-f="card_link" onchange="D.monthly['+i+'].card_link=this.value;saveD();if(typeof simulate===\'function\')simulate();if(typeof toast===\'function\')toast(\'\\u2705 Saved\')"><option value=""'+(!m.card_link?' selected':'')+'>\u2014 None</option>'+((D.cards||[]).map(function(_c){return '<option value="'+esc(_c.name)+'"'+(m.card_link===_c.name?' selected':'')+'>\ud83d\udcb3 '+esc(_c.name)+'</option>';}).join(''))+'</select></div></div>'+
 
 '</div></td></tr>';
 return mainRow+detail}).join('')}
@@ -394,6 +479,8 @@ var detail='<tr class="y-detail" data-yrow="'+i+'" style="'+(open?'':'display:no
 '<div><div style="color:var(--text3);margin-bottom:2px">Periods</div>'+periodsHtml+'</div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px">Deadline</div><div style="display:flex;align-items:center">'+dlHtml+'</div></div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px">Starts</div><div style="display:flex;align-items:center">'+startHtml+'</div></div>'+
+'<div><div style="color:var(--text3);margin-bottom:2px" title="\u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49 (arrears) \u00b7 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49 (advance)">Billing</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="billing_mode" onchange="readAll();D.yearly['+i+'].billing_mode=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="advance"'+((y.billing_mode==='advance')?' selected':'')+'>\u2192 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49</option><option value="arrears"'+((y.billing_mode==='advance')?'':' selected')+'>\u2190 \u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49</option></select></div>'+
+'<div><div style="color:var(--text3);margin-bottom:2px">Period</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="period_rule" onchange="readAll();D.yearly['+i+'].period_rule=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="prev"'+((y.period_rule==='prev')?' selected':'')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same"'+((y.period_rule==='prev')?'':' selected')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option></select></div>'+
 '</div></td></tr>';
 return mainRow+detail}).join('')}
 
@@ -656,12 +743,48 @@ all.forEach(function(inst){
 var cc=D.cards.find(function(x){return x.name===inst.card});var _sh=(cc&&inst.billing_day&&inst.billing_day>cc.statement_day)?1:0;
 var _m0=(inst.start_month-1)+_sh,_y0=inst.start_year;while(_m0>11){_m0-=12;_y0++;}while(_m0<0){_m0+=12;_y0--;}
 var _d0=new Date(_y0,_m0,1);
-// only extend for recently-FINISHED items, and cap at 2 months before sim start
-var _cap=new Date(sd.getFullYear(),sd.getMonth()-2,1);
-if((inst.status!=='Active'&&inst.status!=='Planned')&&_d0<_rangeStart&&_d0>=_cap)_rangeStart=_d0;
+// v317 (user Oct 13 2026): extend the matrix START backward to the FIRST payment month of EVERY shown
+// installment (Active/Planned included), not just recently-finished ones. Many installments began a few
+// months before the sim start (e.g. Sony Bravia/Car Insurance from Jul, others from Aug/Sep) — without
+// this their already-paid earlier months were cut off and could never be viewed. Now the full
+// installment history is visible; the per-row "skip months with no payments" rule still hides any
+// truly empty month, so the table stays compact.
+if(_d0<_rangeStart)_rangeStart=_d0;
 });
 var months=[],cur=new Date(_rangeStart.getFullYear(),_rangeStart.getMonth(),1);
 while(cur<=ed){months.push({y:cur.getFullYear(),m:cur.getMonth()});cur.setMonth(cur.getMonth()+1)}
+// v318 (user Oct 13 2026): 'Start from' dropdown so the matrix doesn't grow unbounded as time passes.
+// Populate it with every month in the full range (earliest installment month -> sim end), remember the
+// user's choice across renders in _instMatrixStart, DEFAULT to the current month (so by default you see
+// now onward, not years of history), and clamp the displayed `months` to the chosen start.
+(function(){
+  var MOA=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var sel=document.getElementById('inst-startmonth');
+  var _now=new Date(), _nowKey=_now.getFullYear()+'-'+((_now.getMonth()<10?'0':'')+_now.getMonth());
+  function _mk(mo){return mo.y+'-'+((mo.m<10?'0':'')+mo.m);}
+  // v318b FIX: honor the user's just-made dropdown choice. onchange re-renders, so read the live
+  // <select> value FIRST and store it — otherwise the remembered _instMatrixStart overrode it and the
+  // month never changed.
+  if(sel && sel.value){ window._instMatrixStart=sel.value; }
+  // default start = current month if it's within range, else the earliest month
+  if(typeof window._instMatrixStart==='undefined'||window._instMatrixStart===null){
+    var hasNow=months.some(function(mo){return _mk(mo)===_nowKey;});
+    window._instMatrixStart=hasNow?_nowKey:(months.length?_mk(months[0]):_nowKey);
+  }
+  if(sel){
+    // rebuild options to reflect the current data range
+    var opts='';
+    months.forEach(function(mo){var k=_mk(mo);opts+='<option value="'+k+'"'+(k===window._instMatrixStart?' selected':'')+'>'+MOA[mo.m]+' '+String(mo.y).slice(2)+'</option>';});
+    sel.innerHTML=opts;
+    // if the remembered start is no longer in range, fall back to earliest
+    if(months.length && !months.some(function(mo){return _mk(mo)===window._instMatrixStart;})){ window._instMatrixStart=_mk(months[0]); sel.value=window._instMatrixStart; }
+  }
+  // clamp displayed months to the chosen start
+  if(window._instMatrixStart){
+    var si=-1; for(var _i=0;_i<months.length;_i++){ if(_mk(months[_i])===window._instMatrixStart){si=_i;break;} }
+    if(si>0) months=months.slice(si);
+  }
+})();
 
 // Build matrix: for each installment, determine which months have payments
 var matrix={};// key: instIdx, value: {monthKey: amount}
@@ -777,14 +900,36 @@ function plToggle(i){_plExpanded[i]=!_plExpanded[i];renderPlanned();if(typeof fi
 var _planShowPaid=false;
 function _planIsPaid(p){
   if(!p||!D.bill_payments)return false;
-  var pfx='P|'+(p.name||'')+'|'+(p.date||'')+'::';
   var keys=Object.keys(D.bill_payments);
+  // card-statement injected row (_fromCard) is keyed CB|card|period::dueMonth
+  if(p&&p._fromCard&&p._cardKey){
+    var parts=String(p._cardKey).split('|');
+    var per=parts[parts.length-1], card=parts.slice(0,-1).join('|');
+    var cpfx='CB|'+card+'|'+per+'::';
+    for(var c=0;c<keys.length;c++){if(keys[c].indexOf(cpfx)===0){var rc=D.bill_payments[keys[c]];if(rc&&rc.paid)return true;}}
+    return false;
+  }
+  var pfx='P|'+(p.name||'')+'|'+(p.date||'')+'::';
   for(var i=0;i<keys.length;i++){var k=keys[i];if(k.indexOf(pfx)===0){var r=D.bill_payments[k];if(r&&r.paid)return true;}}
   return false;
 }
+// Status for a planned row: 'paid' | 'overdue' | 'upcoming'. Paid wins; else date<today => overdue.
+function _planStatus(p){
+  if(_planIsPaid(p))return 'paid';
+  var d=p&&p.date?p.date:'';
+  if(d){var t=new Date();var ts=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');if(d<ts)return 'overdue';}
+  return 'upcoming';
+}
+// Small coloured status pill for the Planned table Status column.
+function _planStatusBadge(p){
+  var s=_planStatus(p);
+  if(s==='paid')return '<span style="font-size:8px;padding:1px 6px;border-radius:8px;background:var(--success);color:#fff;white-space:nowrap">\u2705 Paid</span>';
+  if(s==='overdue')return '<span style="font-size:8px;padding:1px 6px;border-radius:8px;background:var(--error);color:#fff;white-space:nowrap">\ud83d\udd34 Overdue</span>';
+  return '<span style="font-size:8px;padding:1px 6px;border-radius:8px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);white-space:nowrap">\ud83d\udd35 Upcoming</span>';
+}
 function renderPlanned(){
 if(!D||!D.planned)return;
-document.getElementById('planned-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllPlanned(this.checked)"></th><th style="width:20px"></th>'+pSH('name','Name')+'<th>I/E</th>'+pSH('type','Type')+pSH('amount','Amount')+'<th>Date</th><th>Card</th><th title="Auto-pay / auto-deduct vs manual">Auto</th><th></th>';
+document.getElementById('planned-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllPlanned(this.checked)"></th><th style="width:20px"></th>'+pSH('name','Name')+'<th>I/E</th>'+pSH('type','Type')+pSH('amount','Amount')+'<th>Date</th><th>Card</th><th>Status</th><th title="Auto-pay / auto-deduct vs manual">Auto</th><th></th>';
 document.getElementById('planned-body').innerHTML=D.planned.map(function(p,i){
 var dirCls=p.direction==='income'?'color:var(--success);font-weight:600':'';
 var open=!!_plExpanded[i];
@@ -796,9 +941,10 @@ var mainRow='<tr class="pl-main" data-plrow="'+i+'" style="'+(p.direction==='inc
 '<td class="r"><input class="inp inp-num" type="text" value="'+fmt(p.amount)+'" style="width:90px;padding:2px 4px;font-size:11px" data-pli="'+i+'" data-f="amount" onfocus="var v=parseFloat(this.value.replace(/,/g,\'\'));this.value=v||\'\';" onblur="this.value=(parseFloat(this.value.replace(/,/g,\'\'))||0).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2});readAll();saveD();simulate();renderAllTabs()"></td>'+
 '<td><input type="date" class="inp" value="'+(p.date||'')+'" style="width:120px;font-size:10px" data-pli="'+i+'" data-f="date" onchange="readAll();saveD();simulate();renderAllTabs()"></td>'+
 '<td><select class="sel" data-pli="'+i+'" data-f="card" onchange="readAll();saveD();simulate();renderAllTabs()">'+cOpts(p.card)+'</select></td>'+
+'<td class="r">'+_planStatusBadge(p)+'</td>'+
 '<td class="r"><input type="checkbox" '+(p.auto_pay?'checked':'')+' title="'+(p.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.planned['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
 '<td><button class="del-btn" onclick="readAll();D.planned.splice('+i+',1);renderPlanned();filterPlanned()"><i class="fa-solid fa-trash"></i></button></td></tr>';
-var detail='<tr class="pl-detail" data-plrow="'+i+'" style="'+(open?'':'display:none;')+(p.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+'"><td></td><td></td><td colspan="8" style="padding:8px 10px">'+
+var detail='<tr class="pl-detail" data-plrow="'+i+'" style="'+(open?'':'display:none;')+(p.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+'"><td></td><td></td><td colspan="9" style="padding:8px 10px">'+
 '<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;font-size:10px">'+
 '<div><div style="color:var(--text3);margin-bottom:2px">Own By</div><select class="sel" data-pli="'+i+'" data-f="own_by" onchange="readAll();saveD()">'+oOpts(p.own_by)+'</select></div>'+
 '<div style="flex:1;min-width:200px"><div style="color:var(--text3);margin-bottom:2px">Notes</div><input class="inp" value="'+esc(p.notes||'')+'" data-pli="'+i+'" data-f="notes" style="font-size:10px;width:100%" onchange="readAll();saveD()"></div>'+
@@ -899,16 +1045,16 @@ if(ft){var cv=ft.value;ft.innerHTML='<option value="">All Types</option>'+Object
 if(fc){var cv2=fc.value;fc.innerHTML='<option value="">All Cards</option>'+Object.keys(cards).sort().map(function(c){return '<option'+(cv2===c?' selected':'')+'>'+esc(c)+'</option>'}).join('')}}
 
 
-function filterPlanned(){var ft=document.getElementById('flt-p-type').value,fc=document.getElementById('flt-p-card').value;
+function filterPlanned(){var ft=document.getElementById('flt-p-type').value,fc=document.getElementById('flt-p-card').value;var fsEl=document.getElementById('flt-p-status');var fs=fsEl?fsEl.value:'';
 var spEl=document.getElementById('flt-p-showpaid');_planShowPaid=spEl?spEl.checked:false;
 var _paidN=0;
 document.querySelectorAll('#planned-body tr').forEach(function(tr){
 var pi=tr.getAttribute('data-plrow');if(pi===null){tr.style.display='';return}
 pi=+pi;if(!D.planned[pi]){tr.style.display='';return}
-var show=true;if(ft&&D.planned[pi].type!==ft)show=false;if(fc&&D.planned[pi].card!==fc)show=false;
+var show=true;if(ft&&D.planned[pi].type!==ft)show=false;if(fc&&D.planned[pi].card!==fc)show=false;if(fs&&_planStatus(D.planned[pi])!==fs)show=false;
 var _paid=_planIsPaid(D.planned[pi]);
 var _isD=tr.classList.contains('pl-detail');
-if(_paid){if(!_isD)_paidN++;if(!_planShowPaid)show=false;}
+if(_paid){if(!_isD)_paidN++;if(!_planShowPaid&&fs!=='paid')show=false;}
 var isDetail=tr.classList.contains('pl-detail');
 tr.style.display=(show&&(!isDetail||_plExpanded[pi]))?'':'none';})
 ;var _pc=document.getElementById('planned-paid-count');if(_pc)_pc.textContent=_paidN>0?('\u00b7 '+_paidN+' paid '+(_planShowPaid?'shown':'hidden')):'';

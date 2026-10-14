@@ -136,7 +136,14 @@ var base=fromISO?new Date(fromISO+'T00:00:00'):new Date();
 var y=base.getFullYear(),m=base.getMonth(),d=base.getDate();
 var n=Math.max(1,t.recur_every||1); // interval multiplier (every N units)
 if(t.recur==='daily'){var nd=new Date(y,m,d+n);return _billISO(nd);}
-if(t.recur==='weekly'){var nd2=new Date(y,m,d+7*n);return _billISO(nd2);}
+if(t.recur==='weekly'){
+// v282 (user Oct 14 2026): weekly recurrence lands on a FIXED weekday (recur_dow), not +7 from the
+// completion date. 'ทุกวันจันทร์' must stay Monday no matter which day it was completed. Find the
+// next occurrence of recur_dow strictly AFTER the base date; for interval n>1 add (n-1) extra weeks.
+var tgt=(t.recur_dow==null)?base.getDay():(parseInt(t.recur_dow)||0);
+var delta=(tgt-base.getDay()+7)%7; if(delta===0)delta=7;  // always move to the NEXT target weekday
+var nd2=new Date(y,m,d+delta+7*(n-1));
+return _billISO(nd2);}
 if(t.recur==='monthly'){var dom=t.recur_dom||d;var nm=m+n,ny=y;while(nm>11){nm-=12;ny++;}var nd3=new Date(ny,nm,Math.min(dom,dim(ny,nm)));return _billISO(nd3);}
 if(t.recur==='yearly'){var mo=(t.recur_month||1)-1,dom2=t.recur_dom||d;var nd4=new Date(y+n,mo,Math.min(dom2,dim(y+n,mo)));return _billISO(nd4);}
 return '';
@@ -484,9 +491,8 @@ el.innerHTML=h;return;
 var _ar=function(col){return _todoSort===col?(_todoAsc?' \u25b2':' \u25bc'):'';};
 if(_todoFrozen){h+='<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);background:var(--primary-bg,rgba(79,70,229,.08));border-radius:6px;padding:5px 10px;margin:6px 0"><i class="fa-solid fa-lock"></i> Order paused while you edit (edited rows outlined)<span style="flex:1"></span><button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="todoResort()"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort now</button></div>';}
 h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%"><thead><tr>'+
-'<th style="width:28px"></th>'+
 '<th><span style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</span><span style="color:var(--text3);font-weight:400"> · </span><span style="cursor:pointer" onclick="setTodoSort(\'category\')">Category'+_ar('category')+'</span><span style="color:var(--text3);font-weight:400"> · </span><span style="cursor:pointer" onclick="setTodoSort(\'priority\')">Priority'+_ar('priority')+'</span><span style="color:var(--text3);font-weight:400"> · Deadline · Link</span></th>'+
-'<th class="todo-st" style="cursor:pointer;width:130px" onclick="setTodoSort(\'urgency\')">Status'+_ar('urgency')+'</th>'+
+'<th class="todo-st" style="cursor:pointer;width:150px" onclick="setTodoSort(\'urgency\')">Status'+_ar('urgency')+'</th>'+
 '<th style="width:40px"></th></tr></thead><tbody>';
 
 var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -517,10 +523,14 @@ if(t.recur&&t.recur!=='none'){recCell+=' <span style="font-size:8px;color:var(--
 var _rs=rowStyle+(_todoTouched[t.id]?';outline:2px solid var(--primary);outline-offset:-2px':'');
 // Two-row layout (Oct 9 2026): row 1 = done ☐ | task + note | status | ✕ ; row 2 = category · priority · deadline · repeat · link
 h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
-'<td class="r" rowspan="2" style="vertical-align:top;padding-top:10px"><input type="checkbox"'+(t.done?' checked':'')+' title="'+(t.done?'Reopen':'Complete')+'" onchange="this.checked?todoComplete(\''+t.id+'\'):todoReopen(\''+t.id+'\')"></td>'+
+
 '<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:600;font-size:12px;width:100%'+(t.done?';text-decoration:line-through':'')+'">'+
 '<input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:10px;color:var(--text3);width:100%"></td>'+
-'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+'</td>'+
+'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+// v285 (user Oct 14 2026): Done/Reopen button lives at the END of the row in the STATUS column
+// (like the Pay button in Bill Reminder), not in front of the task where it overlapped the title.
+'<div style="margin-top:6px">'+(t.done
+  ?'<button class="btn" style="font-size:9px;padding:3px 9px;background:var(--success,#16a34a);color:#fff;border:none;border-radius:5px;white-space:nowrap" title="Reopen this task" onclick="todoReopen(\''+t.id+'\')"><i class="fa-solid fa-rotate-left"></i> Reopen</button>'
+  :'<button class="btn btn-primary" style="font-size:9px;padding:3px 10px;white-space:nowrap" title="Mark this task done" onclick="todoComplete(\''+t.id+'\')"><i class="fa-solid fa-check"></i> Done</button>')+'</div>'+'</td>'+
 '<td rowspan="2" style="vertical-align:top;padding-top:8px"><button class="del-btn" title="Delete" onclick="delTodo(\''+t.id+'\')"><i class="fa-solid fa-xmark"></i></button></td>'+
 '</tr>'+
 '<tr class="todo-r2" style="'+_rs+'"><td>'+
@@ -545,9 +555,9 @@ h+='<div style="display:'+(_todoHistOpen?'':'none')+';margin-top:8px">';
 if(!log.length){h+='<p class="text-muted" style="font-size:11px">No completed tasks yet. Completing a task (including each recurring occurrence) records it here.</p>';}
 else{
 h+='<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn btn-ghost" style="font-size:9px;padding:2px 8px;color:var(--error)" onclick="clearTodoLog()"><i class="fa-solid fa-trash"></i> Clear history</button></div>';
-h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%"><thead><tr><th>Task</th><th>Category</th><th>Done on</th><th>Was due</th><th>Type</th><th></th></tr></thead><tbody>';
+h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%;table-layout:auto"><thead><tr><th style="min-width:220px;text-align:left">Task</th><th style="min-width:90px">Category</th><th>Done on</th><th>Was due</th><th>Type</th><th></th></tr></thead><tbody>';
 log.forEach(function(L){
-h+='<tr><td>'+esc(L.title||'')+'</td>'+
+h+='<tr><td style="min-width:220px;white-space:normal;word-break:normal;overflow-wrap:anywhere">'+esc(L.title||'')+'</td>'+
 '<td style="font-size:10px;color:var(--text3)">'+esc(L.category||'')+'</td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.done_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'done_date\',this)" style="width:130px" title="Completion date (editable)"></td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.due_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'due_date\',this)" style="width:130px" title="Original due date (editable)"></td>'+

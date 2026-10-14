@@ -42,6 +42,16 @@ var _utilActual={electric:{},water:{}};
     if(_lm){_utilActual[pp._utilUtility][_lm]=true;}
   }
 });
+// Credit-card statements auto-synced from card_bills.js (flag _fromCard). For any month that has a
+// real statement for a card, skip that card's Monthly recurring forecast (replace with the real bill).
+var _cardActual={};
+(D.planned||[]).forEach(function(pp){
+  if(pp&&pp._fromCard&&pp._cardName){
+    var _ds=(pp.date||'');var _lm=_ds.length>=7?_ds.slice(0,7):pp._cardPeriod;
+    if(_lm){(_cardActual[pp._cardName]=_cardActual[pp._cardName]||{})[_lm]=true;}
+  }
+});
+function _cardRecurringLink(item){ return (item&&item.card_link)?item.card_link:null; }
 function _isUtilRecurring(item){
   // explicit link wins; fall back to name-guess only when unlinked (legacy rows)
   if(item.util_link==='electric'||item.util_link==='water') return item.util_link;
@@ -56,6 +66,9 @@ mR.forEach(function(ym){D.monthly.forEach(function(item){if(item.status&&item.st
 // skip utility recurring for months that already have a real (auto-synced) utility bill
 var _ur=_isUtilRecurring(item);
 if(_ur){var _mk=ym[0]+'-'+(ym[1]+1<10?'0':'')+(ym[1]+1);if(_utilActual[_ur]&&_utilActual[_ur][_mk])return;}
+// skip card recurring for months that already have a real statement for that card
+var _cl=_cardRecurringLink(item);
+if(_cl){var _cmk=ym[0]+'-'+(ym[1]+1<10?'0':'')+(ym[1]+1);if(_cardActual[_cl]&&_cardActual[_cl][_cmk])return;}
 var ep=effPayment(item);
 var pm=ym[1]+ep.monthShift,py=ym[0];if(pm>11){pm-=12;py++}
 var d=new Date(py,pm,Math.min(ep.day,dim(py,pm)));
@@ -88,12 +101,19 @@ addE(d,'💳',inst.name+tag,-inst.per_period,inst.card,inst.type,'',instInfo)}}}
 // Planned one-time expenses
 D.planned.forEach(function(item){if(!item.date)return;
 var parts=item.date.split('-'),py=parseInt(parts[0]),pm=parseInt(parts[1])-1,pd=parseInt(parts[2]);
+// _fromCard rows carry the REAL statement due date already (from the PDF) — land exactly on it,
+// with NO card payment-day shift, and tag as 'card_pdf' so consolidation treats it as the period total.
+if(item._fromCard){
+  var _cd=new Date(py,pm,Math.min(pd,dim(py,pm)));
+  if(_cd>=sd&&_cd<=ed){addE(_cd,'\ud83d\udcb3',item.name,-(item.amount||0),item.card||'',item.type||'Credit Card','card_pdf','from statement');}
+  return;
+}
 var c=D.cards.find(function(x){return x.name===item.card});
 var payDay=pd,mShift=0;
 if(c&&item.card!=='Cash/Direct'){payDay=c.payment_day;if(pd>c.statement_day)mShift=1}
 var adjM=pm+mShift,adjY=py;if(adjM>11){adjM-=12;adjY++}
 var d=new Date(adjY,adjM,Math.min(payDay,dim(adjY,adjM)));
-if(d>=sd&&d<=ed)addE(d,item.direction==='income'?'\ud83d\udcb0':'\ud83d\udcc5',item.name,(item.direction==='income'?1:-1)*item.amount,item.card!=='Cash/Direct'?item.card:'',item.type)});
+if(d>=sd&&d<=ed){addE(d,item.direction==='income'?'\ud83d\udcb0':'\ud83d\udcc5',item.name,(item.direction==='income'?1:-1)*item.amount,item.card!=='Cash/Direct'?item.card:'',item.type);}});
 // Tax refund or tax owed — computed for EVERY tax year in the simulation window.
 // Each tax year's refund/owed lands in the FOLLOWING year (month = tax_refund_month).
 // The base tax year (D.tax_year) uses actual settings; later years are estimates
@@ -218,14 +238,34 @@ if(p.daily_living>0){var cur=new Date(sd);while(cur<=ed){addE(new Date(cur),'�
 // When enabled (default), individual card-charged EXPENSES become display-only (group 'card_charge',
 // excluded from balance) and one 'Pay [card] statement' cash-out is added on the card's Planned Pay day.
 if(D.consolidate_card_bills!==false){
-var _cardGroups={}; // key: card + '::' + YYYY-MM(of charge's payment date)
+// PDF-managed cards (any bank present in CARD_BILLS) must consolidate by statement PERIOD so Timeline
+// matches Bill Reminder (which groups by period). A card charge/stmt lands on its PAY/DUE date; the
+// period is recovered from that landing month via the inverse of the forecast rule:
+//   period = (statement_day<=15 ? landingMonth-1 : landingMonth).  Non-PDF cards keep the old
+// landing-month grouping (unchanged).
+var _simPdfSet=(typeof window!=='undefined'&&window.cardPdfSet)?window.cardPdfSet():(function(){var st={};((typeof window!=='undefined'&&window.CARD_BILLS&&window.CARD_BILLS.bills)||[]).forEach(function(b){if(b&&b.card)st[b.card]=1;});return st;})();
+function _simCardPeriod(card,ey,em0){
+  var c=(D.cards||[]).find(function(x){return x.name===card;});
+  var S=c&&c.statement_day?parseInt(c.statement_day)||1:1;
+  var per=(S<=15)?(em0-1):em0, y=ey;
+  while(per<0){per+=12;y--;} while(per>11){per-=12;y++;}
+  return {y:y,m:per,key:y+'-'+(per+1<10?'0':'')+(per+1)};
+}
+var _cardGroups={}; // key: card + '::' + YYYY-MM. PDF cards -> PERIOD month; others -> landing month.
 Object.keys(events).forEach(function(_k){events[_k].forEach(function(_e){
 if(_e.amount>=0)return; // expenses only
 var _cd=_e.card;if(!_cd||_cd==='Cash/Direct')return; // real cards only
 if(_e.group==='card_statement')return; // don't re-consolidate
 var _pp=_k.split('-');var _ey=parseInt(_pp[0]),_em=parseInt(_pp[1])-1;
-var _gk=_cd+'::'+_ey+'-'+(_em+1<10?'0':'')+(_em+1);
-if(!_cardGroups[_gk])_cardGroups[_gk]={card:_cd,y:_ey,m:_em,sum:0,count:0};
+var _gy=_ey,_gm=_em;
+if(_simPdfSet[_cd]){ var _pr=_simCardPeriod(_cd,_ey,_em); _gy=_pr.y; _gm=_pr.m; }
+var _gk=_cd+'::'+_gy+'-'+(_gm+1<10?'0':'')+(_gm+1);
+if(!_cardGroups[_gk])_cardGroups[_gk]={card:_cd,y:_gy,m:_gm,sum:0,count:0,pdfAmount:null};
+if(_e.group==='card_pdf'){
+  // PDF statement row (from card_bills) is the AUTHORITATIVE period total: record it as pdfAmount,
+  // keep it display-only, and DO NOT add it to the summed charges (priority: PDF > summed/keyed).
+  _cardGroups[_gk].pdfAmount=Math.abs(_e.amount); _e.group='card_charge'; return;
+}
 _cardGroups[_gk].sum+=Math.abs(_e.amount);_cardGroups[_gk].count++;
 _e.group='card_charge'; // mark display-only (excluded from balance below)
 })});
@@ -248,13 +288,24 @@ var _mk=_g.y+'-'+(_g.m+1<10?'0':'')+(_g.m+1);
 // Card 'Statements from' cutoff: skip statement months before the card's start month.
 if(_cardObj&&_cardObj.statement_start&&_mk<_cardObj.statement_start)return;
 var _extra=parseFloat((D.cardbill_extra||{})[_g.card+'::'+_mk])||0;
-var _eff=(_g.sum||0)+_extra;
+var _hasPdf=(_g.pdfAmount!=null);
+var _eff=_hasPdf?_g.pdfAmount:((_g.sum||0)+_extra);
 if(!(_eff>0))return;
-var _dlDay=_cardObj&&_cardObj.payment_day?_cardObj.payment_day:(_cardObj&&_cardObj.deadline?_cardObj.deadline:28);
-var _dlDate=new Date(_g.y,_g.m,Math.min(_dlDay,dim(_g.y,_g.m)));
+// Statement lands on its DUE date. For PDF-managed cards (period model) the due date is
+// statement_date + due_offset (via the central helper); for non-PDF cards keep the legacy
+// payment_day-in-month behaviour.
+var _dlDate;
+if(_simPdfSet[_g.card] && typeof window!=='undefined' && window.cardDueFor){
+  var _dueISO=window.cardDueFor(_g.card,_mk,'');
+  var _dm=/^(\d{4})-(\d{2})-(\d{2})$/.exec(_dueISO||'');
+  _dlDate=_dm?new Date(+_dm[1],(+_dm[2])-1,+_dm[3]):new Date(_g.y,_g.m,Math.min((_cardObj&&_cardObj.payment_day)||28,dim(_g.y,_g.m)));
+} else {
+  var _dlDay=_cardObj&&_cardObj.payment_day?_cardObj.payment_day:(_cardObj&&_cardObj.deadline?_cardObj.deadline:28);
+  _dlDate=new Date(_g.y,_g.m,Math.min(_dlDay,dim(_g.y,_g.m)));
+}
 if(_dlDate>=sd&&_dlDate<=ed){
-if(_extra>0){addE(_dlDate,'\u2795','Extra spend (keyed in)',-_extra,_g.card,'Card Payment','card_charge','added to statement');}
-addE(_dlDate,'\ud83d\udcb3',_g.card+' statement',-_eff,_g.card,'Card Payment','card_statement',_g.count+' charge'+(_g.count!==1?'s':'')+(_extra>0?' \u00b7 +extra':''))}
+if(_extra>0&&!_hasPdf){addE(_dlDate,'\u2795','Extra spend (keyed in)',-_extra,_g.card,'Card Payment','card_charge','added to statement');}
+addE(_dlDate,'\ud83d\udcb3',_g.card+' statement',-_eff,_g.card,'Card Payment','card_statement',(_hasPdf?('\ud83d\udcc4 from statement'+(_g.count>0?(' \u00b7 '+_g.count+' charge'+(_g.count!==1?'s':'')):'')):(_g.count+' charge'+(_g.count!==1?'s':'')+(_extra>0?' \u00b7 +extra':''))))}
 })}
 // Run
 var bal=p.starting_cash,minB=bal,minDt=new Date(sd),cData=[],mAgg={},dLog=[];var prevMK=null;var cur2=new Date(sd);

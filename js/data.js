@@ -105,7 +105,7 @@ tax_exemptions:[
 tax_ins_selections:{},bill_payments:{},cardbill_overrides:{},cardbill_extra:{},
 tax_refund_month:3,tax_refund_day:15,tax_year:new Date().getFullYear(),
 tax_actual_override:null,
-planned:[],asset_types:['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'],
+card_txns:[],planned:[],asset_types:['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'],
 retirement:{enabled:false,scenario:'layoff',separation_date:'',hire_date:'',years_of_service:0,
 last_salary:0,age_at_separation:0,dob:'',
 epf_balance:0,epf_action:'cashout',epf_cashout_date:'',epf_vesting_pct:100,
@@ -140,7 +140,7 @@ tax_exemptions:[
 {id:'thai_esg',amount:0},{id:'home_loan',amount:0},{id:'donation',amount:0}
 ],
 tax_ins_selections:{},bill_payments:{},cardbill_overrides:{},cardbill_extra:{},tax_refund_month:3,tax_refund_day:15,
-planned:[],asset_types:['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'],
+card_txns:[],planned:[],asset_types:['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'],
 installments:[],
 retirement:{enabled:false,scenario:'layoff',separation_date:'',hire_date:'',years_of_service:0,
 last_salary:0,age_at_separation:0,dob:'',
@@ -250,6 +250,7 @@ if(!Array.isArray(D.monthly))D.monthly=[];
 if(!Array.isArray(D.yearly))D.yearly=[];
 if(!Array.isArray(D.cards))D.cards=[];
 D.cards.forEach(function(c){if(c.statement_start===undefined)c.statement_start='';}); // 'Statements from' month cutoff (blank=always)
+D.cards.forEach(function(c){if(c.due_offset===undefined)c.due_offset=0;}); // PDF-managed cards (any bank present in CARD_BILLS): Due = statement_date + due_offset (days). Default 0 = due on statement date.
 // Credit Card module: extended fields (all default empty/0 — never hardcode real data)
 D.cards.forEach(function(c){
 if(c.bank===undefined)c.bank='';
@@ -315,6 +316,55 @@ if(rec.auto_pay===undefined)rec.auto_pay=(it.auto_pay!==undefined?!!it.auto_pay:
 }
 });
 })();
+// ============================================================================================
+// STEP 2 MIGRATION (v301, Oct 11 2026) — lock the real statement PERIOD into every card-linked
+// paid record, so fold/display can READ it instead of recomputing (the root cause of "paid bills
+// flip to unpaid" + "installment folds under the wrong period"). Verified against the real export:
+// of 107 records only the installments with billing_day>statement_day need re-keying.
+//   For each card-linked record (card && card!='Cash/Direct'):
+//     orig_due = the real billing date (installment: start_month-1+(x-1) @ billing_day; else rec.due)
+//     period   = §2 rule from orig_due & the card's statement_day  (CB keys: take the PERIOD segment)
+//     write rec.period / rec.orig_due / rec.seq ; re-key  KIND|name|extra::period  when it differs.
+// Idempotent via D.bills_schema. One-time backup into D._bill_payments_backup_v2.
+// ============================================================================================
+if((D.bills_schema||0) < 3){
+  (function(){
+    try{ if(!D._bill_payments_backup_v2) D._bill_payments_backup_v2=JSON.parse(JSON.stringify(D.bill_payments||{})); }catch(e){}
+    function _dim(y,m0){return new Date(y,m0+1,0).getDate();}
+    function _ym(y,m0){while(m0<0){m0+=12;y--;}while(m0>11){m0-=12;y++;}return y+'-'+(m0+1<10?'0':'')+(m0+1);}
+    function _cardS(card){var c=(D.cards||[]).find(function(x){return x.name===card;});return (c&&c.statement_day)?parseInt(c.statement_day)||0:0;}
+    function _periodFromDate(card,iso){var S=_cardS(card);if(!S)return null;var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||'');if(!m)return null;var cy=+m[1],cm=(+m[2])-1,pd=+m[3];var M=cm+(pd>S?1:0);var per=(S<=15)?(M-1):M;return _ym(cy,per);}
+    // installment occurrence #x (1-based) real billing date, from the definition
+    function _instOrigDue(name,x){var inst=(D.installments||[]).find(function(i){return i.name===name&&i.status!=='Planned';});if(!inst)return null;var mo=(inst.start_month-1)+(x-1),yy=inst.start_year;while(mo>11){mo-=12;yy++;}var day=inst.billing_day||1;return yy+'-'+(mo+1<10?'0':'')+(mo+1)+'-'+(Math.min(day,_dim(yy,mo))<10?'0':'')+Math.min(day,_dim(yy,mo));}
+    var bp=D.bill_payments||{}, out={};
+    Object.keys(bp).forEach(function(k){
+      var rec=bp[k]; if(!rec||typeof rec!=='object'){out[k]=rec;return;}
+      var head=k.split('::')[0], suffix=(k.indexOf('::')>=0)?k.split('::')[1]:'';
+      var seg=head.split('|'), kind=seg[0], name=seg[1]||'', extra=seg[2]||'';
+      var card=rec.card||'';
+      var sm=/^(\d+)of(\d+)$/.exec(extra);
+      var seq=(kind==='I'&&sm)?(sm[1]+'/'+sm[2]):null;
+      var od=(kind==='I'&&sm)?(_instOrigDue(name,parseInt(sm[1]))||rec.due||''):(rec.due||'');
+      var period;
+      if(kind==='CB'){ period=seg[2]||suffix; }                              // CB|card|PERIOD::dueMonth
+      else if(card&&card!=='Cash/Direct'){ period=_periodFromDate(card,od)||suffix; }
+      else { period=suffix; }
+      if(period)rec.period=period;
+      if(od)rec.orig_due=od;
+      if(seq)rec.seq=seq;
+      var nk=k;
+      if(period&&period!==suffix&&card&&card!=='Cash/Direct'&&kind!=='CB'){
+        nk=kind+'|'+name+(extra?('|'+extra):'')+'::'+period;
+      }
+      if(out[nk]){ // collision: keep later paid_date, remember the other amount (never drop money)
+        var a=out[nk].paid_date||'', b=rec.paid_date||'';
+        if(b>=a){rec._mergedFrom=out[nk].paid_amount;out[nk]=rec;}else{out[nk]._mergedFrom=rec.paid_amount;}
+      }else out[nk]=rec;
+    });
+    D.bill_payments=out;
+  })();
+  D.bills_schema=3;
+}
 // Credit Card Bills: manual per-card, per-month override amounts, keyed "cardName::YYYY-MM"
 if(!D.cardbill_overrides||typeof D.cardbill_overrides!=='object')D.cardbill_overrides={};
 if(!D.cardbill_extra||typeof D.cardbill_extra!=='object')D.cardbill_extra={};
@@ -344,10 +394,12 @@ if(!D.profile.name)D.profile.name='';
 if(!D.types)D.types=defaultData().types;if(!D.profile.start_date)D.profile.start_date='2026-09-15';if(!D.profile.dob)D.profile.dob='';if(!D.profile.end_date)D.profile.end_date='2027-05-31';
 if(!D.planned)D.planned=[];if(D.tax_actual_override===undefined)D.tax_actual_override=null;if(!D.tax_refund_month)D.tax_refund_month=3;if(D.tax_refund_day==null)D.tax_refund_day=15;if(!D.tax_year)D.tax_year=parseInt(D.profile.start_date.slice(0,4))||new Date().getFullYear();
 if(!D.installments)D.installments=[];
+if(!D.card_txns)D.card_txns=[];
 if(!D.todos)D.todos=[];if(!D.wishlist)D.wishlist=[];if(!D.todo_log)D.todo_log=[];
 D.todos.forEach(function(t){if(t&&t.recur_every==null)t.recur_every=1;});
 D.todos.forEach(function(t){if(t&&t.recur_until===undefined)t.recur_until='';});
 D.monthly.forEach(function(m){if(m&&m.util_link===undefined)m.util_link='';});
+D.monthly.forEach(function(m){if(m&&m.card_link===undefined)m.card_link='';});  // card statement link (parallel to util_link)
 // One-time cleanup: the retired utilAddBill() button used to push utility Planned rows
 // (named 'ค่าไฟ YYYY-MM' / 'ค่าน้ำ YYYY-MM') WITHOUT the _fromUtility flag. Those legacy rows
 // duplicate the auto-synced ones (which carry _fromUtility) and are invisible to the dedup/skip
@@ -365,6 +417,16 @@ if(Array.isArray(D.planned)){
     if(p._utilUtility&&p._utilPeriod)return;
     var mm=_utilNameCap.exec(p.name||'');
     if(mm){p._utilUtility=(mm[1]==='\u0e04\u0e48\u0e32\u0e44\u0e1f'?'electric':'water');p._utilPeriod=mm[2];}
+  });
+}
+// Credit-card statements auto-synced from card_bills.js live in D.planned (flag _fromCard) with
+// _cardName + _cardPeriod. Repair older rows missing those tags (derive from name '<card> <YYYY-MM>').
+if(Array.isArray(D.planned)){
+  D.planned.forEach(function(p){
+    if(!p||!p._fromCard)return;
+    if(p._cardName&&p._cardPeriod)return;
+    var mm=/^(.*)\s+(\d{4}-\d{2})$/.exec(p.name||'');
+    if(mm){p._cardName=mm[1];p._cardPeriod=mm[2];}
   });
 }
 if(!D.todo_cats)D.todo_cats=defaultData().todo_cats;if(!D.wish_cats)D.wish_cats=defaultData().wish_cats;

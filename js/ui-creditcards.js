@@ -213,6 +213,7 @@ case 'term':return ccCreditTermDays(c);
 case 'statement':return c.statement_day||1;
 case 'deadline':return c.deadline||c.payment_day||1;
 case 'expiry':return (c.expiry||'9999-99');
+case 'points':return (function(){var _lp=ccLatestPoints(c);return _lp?(_lp.points||0):-1;})();
 default:return 0;
 }
 }
@@ -226,6 +227,16 @@ function _ccSortArrow(col){return _ccSort.col===col?(_ccSort.dir>0?' \u25b2':' \
 function renderCreditCards(){
 var el=document.getElementById('creditcards-content'); if(!el)return;
 if(!D){el.innerHTML='<p class="text-muted">No data.</p>';return;}
+// v319 one-time migration (user-locked Oct 13 2026): stamp each card's period_rule so the
+// period/due model is a STORED setting, never re-computed. Default = legacy rule (statement_day<=15
+// -> 'prev', else 'same') which matches all user-confirmed cards (ttb=same, BAY/JCB/UOB/BBL/KBank=prev,
+// AIA=same). Idempotent: runs once, only fills cards that have no period_rule yet.
+if(D&&!D._period_rule_migrated&&Array.isArray(D.cards)){
+  var _ch=false;
+  D.cards.forEach(function(c){if(c&&(c.period_rule!=='prev'&&c.period_rule!=='same')){c.period_rule=((parseInt(c.statement_day)||1)<=15)?'prev':'same';_ch=true;}});
+  D._period_rule_migrated=true; _ch=true;
+  try{if(typeof saveD==='function')saveD();}catch(_e){}
+}
 var cards=(D.cards||[]).slice().sort(function(a,b){return a.name.localeCompare(b.name);});
 var h='';
 
@@ -250,7 +261,7 @@ else{
 var ranked=cards.slice().sort(function(a,b){return ccCreditTermDays(b)-ccCreditTermDays(a);});
 var best=ranked[0];
 var sorted=_ccSortCards(cards);var _tLim=0,_tBal=0,_tAvail=0;var _sh='cursor:pointer;user-select:none;white-space:nowrap';
-var sorted=_ccSortCards(cards);var _sh='cursor:pointer;user-select:none;white-space:nowrap';h+='<table class="tbl" style="font-size:10px"><thead><tr>'+'<th style="'+_sh+'" onclick="ccSortSummary(&#39;name&#39;)">Card'+_ccSortArrow('name')+'</th>'+'<th style="'+_sh+'" onclick="ccSortSummary(&#39;bank&#39;)">Bank'+_ccSortArrow('bank')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;limit&#39;)">Limit'+_ccSortArrow('limit')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;balance&#39;)">Balance'+_ccSortArrow('balance')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;avail&#39;)">Available'+_ccSortArrow('avail')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;term&#39;)" title="Interest-free days">Credit Term'+_ccSortArrow('term')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;statement&#39;)">Statement'+_ccSortArrow('statement')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;deadline&#39;)">Deadline'+_ccSortArrow('deadline')+'</th>'+'<th style="'+_sh+'" onclick="ccSortSummary(&#39;expiry&#39;)">Expiry'+_ccSortArrow('expiry')+'</th>'+'<th></th></tr></thead><tbody>';
+var sorted=_ccSortCards(cards);var _sh='cursor:pointer;user-select:none;white-space:nowrap';h+='<table class="tbl" style="font-size:10px"><thead><tr>'+'<th style="'+_sh+'" onclick="ccSortSummary(&#39;name&#39;)">Card'+_ccSortArrow('name')+'</th>'+'<th style="'+_sh+'" onclick="ccSortSummary(&#39;bank&#39;)">Bank'+_ccSortArrow('bank')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;limit&#39;)">Limit'+_ccSortArrow('limit')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;balance&#39;)">Balance'+_ccSortArrow('balance')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;avail&#39;)">Available'+_ccSortArrow('avail')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;term&#39;)" title="Interest-free days">Credit Term'+_ccSortArrow('term')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;statement&#39;)">Statement'+_ccSortArrow('statement')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;deadline&#39;)">Deadline'+_ccSortArrow('deadline')+'</th>'+'<th style="'+_sh+'" onclick="ccSortSummary(&#39;expiry&#39;)">Expiry'+_ccSortArrow('expiry')+'</th>'+'<th class="r" style="'+_sh+'" onclick="ccSortSummary(&#39;points&#39;)" title="Latest reward points">Points'+_ccSortArrow('points')+'</th>'+'<th></th></tr></thead><tbody>';
 sorted.forEach(function(c){
 var term=ccCreditTermDays(c); var avail=ccAvail(c);
 var util=(c.credit_limit>0)?(c.current_balance/c.credit_limit*100):0;
@@ -267,7 +278,7 @@ h+='<tr'+(isBest?' style="background:var(--primary-bg)"':'')+'>'+
 '<td class="r" style="font-weight:700;color:var(--primary)">'+term+'d</td>'+
 '<td class="r">'+ord(c.statement_day||1)+'</td>'+
 '<td class="r">'+ord(c.deadline||c.payment_day||1)+'</td>'+
-'<td style="white-space:nowrap">'+expTxt+'</td>'+'<td class="r">'+(c.url?('<a href="'+esc(c.url)+'" target="_blank" rel="noopener" title="'+esc(c.url)+'" style="color:var(--primary)"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>'):'')+'</td></tr>';
+'<td style="white-space:nowrap">'+expTxt+'</td>'+'<td class="r" style="font-family:var(--mono);font-size:9px;color:#7c3aed">'+(function(){var _lp=ccLatestPoints(c);return _lp?fmt(_lp.points||0):'<span style="color:var(--text3)">—</span>';})()+'</td>'+'<td class="r">'+(c.url?('<a href="'+esc(c.url)+'" target="_blank" rel="noopener" title="'+esc(c.url)+'" style="color:var(--primary)"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>'):'')+'</td></tr>';
 });
 h+='</tbody><tfoot><tr style="border-top:2px solid var(--border);font-weight:700">'+'<td colspan="2">Total ('+sorted.length+' cards)</td>'+'<td class="r" style="font-family:var(--mono)">฿'+fmt(_tLim)+'</td>'+'<td class="r" style="font-family:var(--mono);color:var(--error)">฿'+fmt(_tBal)+'</td>'+'<td class="r" style="font-family:var(--mono);color:'+(_tAvail>0?'var(--success)':'var(--text3)')+'">฿'+fmt(_tAvail)+'</td>'+'<td colspan="5"></td></tr></tfoot></table>';
 if(best&&ccCreditTermDays(best)>0){
@@ -315,6 +326,7 @@ h+='<i class="fa-solid fa-credit-card" style="color:var(--primary)"></i><b style
 if(c.last4)h+='<span style="font-size:9px;color:var(--text3)">••••'+esc(c.last4)+'</span>';
 if(c.bank)h+='<span style="font-size:9px;color:var(--text3);display:inline-flex;align-items:center;gap:4px">'+bankBadge(c.bank,false)+esc(c.bank)+'</span>';
 h+='<span style="flex:1"></span>'+expBadge;
+if(lp)h+='<span style="font-size:9px;color:#7c3aed;font-weight:600;display:inline-flex;align-items:center;gap:3px" title="Latest reward points'+(lp.date?(' as of '+fmtDate(lp.date)):'')+'"><i class="fa-solid fa-star" style="font-size:8px"></i>'+fmt(lp.points||0)+' pts</span>';
 h+='<span style="font-size:10px;color:var(--primary);font-weight:600">'+ccCreditTermDays(c)+'d term</span></div>';
 // body
 h+='<div id="'+gid+'" style="display:'+(_ccOpen[i]?'':'none')+';padding:10px">';
@@ -326,7 +338,8 @@ h+='<div><label style="color:var(--text3)">Bank</label><select style="width:100%
 h+=_ccField(i,'last4','Last 4 digits','text',cardVal(i,'last4'));
 h+=_ccField(i,'expiry','Expiry (month)','month',cardVal(i,'expiry'));
 h+=_ccNum(i,'statement_day','Statement day',cardVal(i,'statement_day'));
-h+=_ccNum(i,'payment_day','Planned Pay day',cardVal(i,'payment_day'));
+h+=_ccPeriodRule(i,cardVal(i,'period_rule'),cardVal(i,'statement_day'));
+h+=_ccOffset(i,'due_offset','Due offset (days after statement)',cardVal(i,'due_offset'));
 h+=_ccNum(i,'deadline','Deadline day',cardVal(i,'deadline'));
 h+=_ccField(i,'statement_start','Statements from','month',cardVal(i,'statement_start'));
 h+=_ccMoney(i,'credit_limit','Credit limit (฿)',cardVal(i,'credit_limit'));
@@ -494,8 +507,86 @@ function cardVal(i,f){if(_ccDraft[i]&&_ccDraft[i][f]!==undefined)return _ccDraft
 function _ccMarkDirty(i){_ccDirty[i]=true;var bar=document.getElementById('ccsave_'+i);if(bar)bar.style.display='flex';var bd=document.getElementById('ccdirty_'+i);if(bd)bd.style.display='inline';}
 function ccSet(i,f,v){if(!D.cards[i])return;_ccEnsureDraft(i)[f]=v;_ccMarkDirty(i);}
 function ccSetNum(i,f,v){if(!D.cards[i])return;_ccEnsureDraft(i)[f]=parseInt(v)||1;_ccMarkDirty(i);}
+function ccSetOffset(i,f,v){if(!D.cards[i])return;var n=parseInt(v);if(isNaN(n)||n<0)n=0;_ccEnsureDraft(i)[f]=n;_ccMarkDirty(i);}
+function _ccPeriodRule(i,val,sday){
+// v319 (user-locked Oct 13 2026): period month relative to the statement cutoff is a stored SETTING,
+// not a computed heuristic. 'prev' = period is the month BEFORE the cutoff (e.g. BAY cut 9th -> period
+// is previous month); 'same' = period is the cutoff's own month (e.g. ttb cut 22nd -> period = that month).
+var eff=(val==='prev'||val==='same')?val:(((parseInt(sday)||1)<=15)?'prev':'same');
+var o1=(eff==='prev')?' selected':'',o2=(eff==='same')?' selected':'';
+return '<div><label style="color:var(--text3)">Period</label>'+
+'<select style="width:100%;padding:3px 6px;font-size:10px" onchange="ccSet('+i+',\'period_rule\',this.value)">'+
+'<option value="prev"'+o1+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option>'+
+'<option value="same"'+o2+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option>'+
+'</select></div>';
+}
+function _ccOffset(i,f,label,val){
+return '<div><label style="color:var(--text3)">'+label+'</label><input type="number" min="0" max="31" value="'+((val==null||val==='')?0:val)+'" style="width:100%;padding:3px 6px;font-size:10px" onchange="ccSetOffset('+i+',\''+f+'\',this.value)"></div>';
+}
 function ccSetMoney(i,f,v){if(!D.cards[i])return;_ccEnsureDraft(i)[f]=parseFloat(String(v).replace(/,/g,''))||0;_ccMarkDirty(i);}
-function ccSaveCard(i){if(!D.cards[i])return;if(_ccDraft[i]){D.cards[i]=_ccDraft[i];}delete _ccDraft[i];delete _ccDirty[i];saveD();toast('\u2705 Saved '+(D.cards[i].name||'card'));renderCreditCards();if(typeof renderDashCards==='function')try{renderDashCards()}catch(e){}if(typeof renderBanks==='function')try{renderBanks()}catch(e){}}
+// ===== Card RENAME migration (v305) — keeps history attached when a card is renamed =====
+// Root-cause guard for the ttb->ttb so smart duplicate case (requirements §3.9): the ledger keys
+// a card by its NAME, so renaming A->B must move EVERY reference A->B atomically, or history
+// orphans under the old name and a new row is created for the same real card => duplicate.
+// Covers all 6 reference sites: CB| ledger keys (2nd segment) + rec.card; definition .card on
+// monthly/yearly/installments/planned; planned _cardKey/_cardName. Idempotent & safe (no-op if
+// old==new or old unused). Returns a summary {keys,recs,defs,planned} for the toast.
+function _ccMigrateCardName(oldName,newName){
+  var sum={keys:0,recs:0,defs:0,planned:0};
+  if(!oldName||!newName||oldName===newName)return sum;
+  // 1) bill_payments: re-key CB|old|... -> CB|new|... and update rec.card everywhere
+  if(D.bill_payments&&typeof D.bill_payments==='object'){
+    var bp=D.bill_payments, oldPfx='CB|'+oldName+'|';
+    Object.keys(bp).forEach(function(k){
+      var r=bp[k];
+      if(k.indexOf(oldPfx)===0){
+        var nk='CB|'+newName+'|'+k.slice(oldPfx.length);
+        if(nk!==k){
+          if(bp[nk]){ // collision: keep the later paid_date, note the merge
+            var a=bp[nk], b=r;
+            var keep=((b.paid_date||'')>=(a.paid_date||''))?b:a;
+            keep._mergedFrom=(keep._mergedFrom||'')+' '+(k)+'->'+nk;
+            bp[nk]=keep;
+          } else { bp[nk]=r; }
+          delete bp[k];
+          sum.keys++;
+        }
+        if(bp[nk]&&bp[nk].card===oldName){bp[nk].card=newName;}
+      } else if(r&&r.card===oldName){ r.card=newName; sum.recs++; }
+    });
+  }
+  // 2) definitions that store .card
+  ['monthly','yearly','installments','planned'].forEach(function(coll){
+    (D[coll]||[]).forEach(function(it){ if(it&&it.card===oldName){it.card=newName;sum.defs++;} });
+  });
+  // 3) planned _fromCard rows: _cardName + _cardKey ('card|period')
+  (D.planned||[]).forEach(function(p){
+    if(!p)return;
+    if(p._cardName===oldName){p._cardName=newName;sum.planned++;}
+    if(typeof p._cardKey==='string'&&p._cardKey.indexOf(oldName+'|')===0){
+      p._cardKey=newName+'|'+p._cardKey.slice((oldName+'|').length);
+    }
+  });
+  return sum;
+}
+function ccSaveCard(i){if(!D.cards[i])return;
+  var _oldName=(D.cards[i]&&D.cards[i].name)||'';
+  var _newName=(_ccDraft[i]&&_ccDraft[i].name!==undefined)?_ccDraft[i].name:_oldName;
+  if(_ccDraft[i]){D.cards[i]=_ccDraft[i];}
+  delete _ccDraft[i];delete _ccDirty[i];
+  // If the name changed, migrate ALL references so history follows the card (no orphan/dup).
+  if(_oldName&&_newName&&_oldName!==_newName){
+    var _m=_ccMigrateCardName(_oldName,_newName);
+    saveD();
+    toast('\u2705 Renamed "'+_oldName+'" \u2192 "'+_newName+'" \u00b7 moved '+(_m.keys+_m.recs)+' payment ref, '+_m.defs+' bill def, '+_m.planned+' planned');
+    renderCreditCards();
+    if(typeof renderAllTabs==='function')try{renderAllTabs()}catch(e){}
+    else{ if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){} if(typeof renderPlanned==='function')try{renderPlanned();filterPlanned()}catch(e){} }
+    if(typeof renderDashCards==='function')try{renderDashCards()}catch(e){}
+    if(typeof renderBanks==='function')try{renderBanks()}catch(e){}
+    return;
+  }
+  saveD();toast('\u2705 Saved '+(D.cards[i].name||'card'));renderCreditCards();if(typeof renderDashCards==='function')try{renderDashCards()}catch(e){}if(typeof renderBanks==='function')try{renderBanks()}catch(e){}}
 function ccCancelCard(i){delete _ccDraft[i];delete _ccDirty[i];toast('\u21a9\ufe0f Reverted');renderCreditCards();}
 function ccDeleteCard(i){if(!D.cards[i])return;if(!confirm('Delete card "'+D.cards[i].name+'"? This also removes it from bills that use it.'))return;D.cards.splice(i,1);saveD();renderCreditCards();if(typeof renderAllTabs==='function')try{renderAllTabs()}catch(e){}}
 function ccAddPoint(i){if(!D.cards[i])return;var c=_ccEnsureDraft(i);if(!Array.isArray(c.points_log))c.points_log=[];

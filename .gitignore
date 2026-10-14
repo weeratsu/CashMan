@@ -4,3 +4,7 @@ scripts/Code.gs
 scripts/cashman_sheet_checklist.html
 scripts/sheet_test.html
 scripts/set_password.html
+
+# Private: detailed credit-card transactions (merchant lines) - login+Sheet only, NEVER public
+data/card_txns_local.json
+data/card_txns_local.js
