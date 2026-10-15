@@ -1,4 +1,27 @@
 {
- "generated_at": "2026-10-14T15:38:09",
- "bills": []
+ "generated_at": "2026-10-15T17:16:22",
+ "bills": [
+  {
+   "card": "UOB Preferred Platinum",
+   "last4": "5868",
+   "period": "2026-09",
+   "stmt_date": "2026-10-13",
+   "due_date": "2026-11-05",
+   "amount_due": 4015.35,
+   "min_due": 322.0,
+   "txn_total": 4286.35,
+   "installment_total": null,
+   "adjustment_total": null,
+   "total_payments": 8599.05,
+   "prev_balance": 8328.05,
+   "points_balance": 17802,
+   "points_date": "2026-10-13",
+   "source_file": "eStatement.pdf",
+   "payments": [],
+   "paid_total": 0.0,
+   "paid_date": null,
+   "paid_full": false,
+   "remaining": 4015.35
+  }
+ ]
 }
