@@ -3,7 +3,7 @@
 function swBills(el,tab){document.querySelectorAll('#tab-bills .sub-panel').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('#tab-bills .sub-tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');document.getElementById('bp-'+tab).classList.add('active');
 if(tab==='installments'){try{renderInstMatrix()}catch(e){}}
 if(tab==='cardbills'){try{renderCardBills()}catch(e){console.error('renderCardBills:',e)}}
-if(tab==='utilities'){try{renderUtilities()}catch(e){console.error('renderUtilities:',e)}}}
+if(tab==='utilities'){try{renderUtilities()}catch(e){console.error('renderUtilities:',e)}}if(tab==='cardtxns'){try{renderCardTxns()}catch(e){console.error('renderCardTxns:',e)}}if(tab==='cardsummary'){try{renderCardSummary()}catch(e){console.error('renderCardSummary:',e)}}}
 
 // Bulk-apply a single start date to all bills.
 // Monthly -> start_mode/start_date; Yearly -> start_mode/start_from;

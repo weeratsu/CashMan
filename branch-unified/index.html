@@ -230,22 +230,26 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
    horizontally if ever needed (never overflows the card). Mobile (<=640px): the table reflows to
    stacked cards (thead hidden; each row block-level; status + Done button drop below the title). */
 .todo-fit{overflow-x:auto;max-width:100%}
-/* v287: let the Task column FLEX to fill the card (fixed layout left the right half empty). auto
-   layout distributes by content; Task takes remaining width, Status stays compact, delete narrow. */
 .todo-tbl{table-layout:auto!important;width:100%}
-.todo-tbl th:first-child,.todo-tbl td:first-child{width:auto;min-width:300px}
-.todo-tbl td.todo-st,.todo-tbl th.todo-st{width:1%;white-space:nowrap}
-.todo-tbl td:last-child,.todo-tbl th:last-child{width:1%}
+/* v288 (user Oct 14 2026): REAL columns — Task flexes to fill; Category/Priority/Deadline/Status/Delete
+   each size to content and sit as their own aligned columns (no more left-cluster + empty right). */
+.todo-tbl th,.todo-tbl td{vertical-align:top}
+.todo-tbl th:first-child,.todo-tbl td:first-child{width:auto;min-width:220px;text-align:left}
+.todo-tbl th:not(:first-child),.todo-tbl td:not(:first-child){white-space:nowrap;width:1%}
+.todo-tbl th{text-align:left;color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;padding:6px 10px}
+.todo-tbl td{padding:6px 10px}
+.todo-tbl td.todo-st,.todo-tbl th.todo-st{text-align:left}
 @media(max-width:640px){
   .todo-fit{overflow-x:visible}
   .todo-tbl{min-width:0;display:block}
   .todo-tbl thead{display:none}
   .todo-tbl tbody{display:block}
   .todo-tbl tr{display:block}
-  .todo-tbl tr.todo-r1{border-top:1px solid var(--border,#e5e7eb);padding-top:8px}
-  .todo-tbl td{display:block;width:auto!important;padding:2px 0!important;white-space:normal!important}
-  .todo-tbl td.todo-st,.todo-tbl th.todo-st{width:auto!important}
-  .todo-tbl td.r{width:auto!important}
+  .todo-tbl tr.todo-r1{border-top:2px solid var(--border,#e5e7eb);padding-top:8px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:flex-start}
+  .todo-tbl tr.todo-r1 td{display:block;width:auto!important;padding:2px 0!important;white-space:normal!important}
+  .todo-tbl tr.todo-r1 td:first-child{flex:1 1 100%;min-width:0}
+  .todo-tbl tr.todo-r2 td{display:block;width:auto!important;padding:2px 0!important;white-space:normal!important}
+  .todo-tbl td.todo-st{flex:1 1 100%}
   .todo-tbl input.inp-inline{width:100%!important}
   .todo-meta{width:100%}
 }
@@ -263,9 +267,10 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <button class="nav-tab" data-tab="paytax" title="Payroll & Tax"><i class="fa-solid fa-money-check-dollar"></i><span>Payroll &amp; Tax</span></button>
 <div class="nav-subwrap" data-parent="paytax"><button class="nav-sub" data-tab="paytax" data-sub="payroll-setup"><span>Payroll Setup</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-earn"><span>Monthly Earnings</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-calc"><span>Tax Calculator</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-exempt"><span>Tax Exemptions</span></button></div>
 <button class="nav-tab" data-tab="bills" title="Bills & Plans"><i class="fa-solid fa-receipt"></i><span>Bills &amp; Plans</span></button>
-<div class="nav-subwrap" data-parent="bills"><button class="nav-sub" data-tab="bills" data-sub="recurring"><span>Recurring</span></button><button class="nav-sub" data-tab="bills" data-sub="installments"><span>Installments</span></button><button class="nav-sub" data-tab="bills" data-sub="planned"><span>Planned</span></button><button class="nav-sub" data-tab="bills" data-sub="cardbills"><span>Card Bills</span></button><button class="nav-sub" data-tab="bills" data-sub="utilities"><span>Utilities</span></button><button class="nav-sub" data-tab="bills" data-sub="carddata"><span>Card Data (raw)</span></button></div>
+<div class="nav-subwrap" data-parent="bills"><button class="nav-sub" data-tab="bills" data-sub="recurring"><span>Recurring</span></button><button class="nav-sub" data-tab="bills" data-sub="installments"><span>Installments</span></button><button class="nav-sub" data-tab="bills" data-sub="planned"><span>Planned</span></button><button class="nav-sub" data-tab="bills" data-sub="cardbills"><span>Card Bills</span></button><button class="nav-sub" data-tab="bills" data-sub="utilities"><span>Utilities</span></button></div>
 <button class="nav-tab" data-tab="billreminder" title="Bills Reminder"><i class="fa-solid fa-bell"></i><span>Bills Reminder</span></button>
 <button class="nav-tab" data-tab="creditcards" title="Credit Cards"><i class="fa-solid fa-credit-card"></i><span>Credit Cards</span></button>
+<div class="nav-subwrap" data-parent="creditcards"><button class="nav-sub" data-tab="creditcards" data-sub="overview"><span>Overview</span></button><button class="nav-sub" data-tab="creditcards" data-sub="ccsummary"><span>Card Summary</span></button><button class="nav-sub" data-tab="creditcards" data-sub="cctxns"><span>Card Transactions</span></button><button class="nav-sub" data-tab="creditcards" data-sub="ccdata"><span>Card Data (raw)</span></button></div>
 <div class="nav-group">Planning</div>
 <button class="nav-tab" data-tab="todos" title="To-Do"><i class="fa-solid fa-list-check"></i><span>To-Do</span></button>
 <button class="nav-tab" data-tab="wishlist" title="Wishlist"><i class="fa-solid fa-star"></i><span>Wishlist</span></button>
@@ -306,7 +311,11 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 
 <!-- ===== CREDIT CARDS ===== -->
 <div id="tab-creditcards" class="tab-content">
-<div id="creditcards-content"></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swCC(this,'overview')">Overview</span><span class="sub-tab" onclick="swCC(this,'ccsummary')">Card Summary</span><span class="sub-tab" onclick="swCC(this,'cctxns')">Card Transactions</span><span class="sub-tab" onclick="swCC(this,'ccdata')">Card Data (raw)</span></div>
+<div id="cc-overview" class="sub-panel active"><div id="creditcards-content"></div></div>
+<div id="cc-ccsummary" class="sub-panel"><div class="card"><p class="muted" style="font-size:10px;margin:0 0 6px">สรุปบิลบัตรเครดิตต่อใบ/งวด — ยกมา/รูดใหม่/บิลรวม/จ่าย/ค้าง · คลิกงวดเพื่อดู transaction</p><div id="cardsummary-content"></div></div></div>
+<div id="cc-cctxns" class="sub-panel"><div class="card"><p class="muted" style="font-size:10px;margin:0 0 6px">รายการ transaction รายรายการของบัตรเครดิต (D.card_txns) — อ่าน-อย่างเดียว กรองตามบัตร/งวดได้</p><div id="cardtxns-content"></div></div></div>
+<div id="cc-ccdata" class="sub-panel"><div class="card"><p class="muted" style="font-size:10px;margin:0 0 6px">ข้อมูลดิบจากหลังบ้าน (window.CARD_BILLS + D.cards) read-only</p><div id="carddata-content"></div></div></div>
 </div>
 
 <!-- ===== ANALYSIS ===== -->
@@ -410,7 +419,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 
 <!-- ===== BILLS & PLANS ===== -->
 <div id="tab-bills" class="tab-content">
-<div class="sub-tabs"><span class="sub-tab active" onclick="swBills(this,'recurring')">Recurring</span><span class="sub-tab" onclick="swBills(this,'installments')">Installments</span><span class="sub-tab" onclick="swBills(this,'planned')">Planned</span><span class="sub-tab" onclick="swBills(this,'cardbills')">Card Bills</span><span class="sub-tab" onclick="swBills(this,'utilities')">Utilities</span><span class="sub-tab" onclick="swBills(this,'carddata');try{renderCardRaw()}catch(e){console.error(e)}">Card Data (raw)</span></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swBills(this,'recurring')">Recurring</span><span class="sub-tab" onclick="swBills(this,'installments')">Installments</span><span class="sub-tab" onclick="swBills(this,'planned')">Planned</span><span class="sub-tab" onclick="swBills(this,'cardbills')">Card Bills</span><span class="sub-tab" onclick="swBills(this,'utilities')">Utilities</span></div>
 <details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:11px;color:var(--text3);padding:4px 2px"><i class="fa-solid fa-calendar-day" style="margin-right:4px"></i>Set start date for all bills (advanced)</summary><div style="margin-top:8px"><div class="card" style="margin-bottom:10px;background:var(--primary-bg);border:1px solid var(--primary)"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span style="font-size:11px;font-weight:600"><i class="fa-solid fa-calendar-day" style="margin-right:4px"></i>Set start date for all bills:</span><input type="date" class="inp" id="bulk-start-date" style="width:150px;padding:2px 6px;font-size:11px"><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-monthly" checked> Monthly</label><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-yearly" checked> Yearly</label><label style="font-size:10px;display:flex;align-items:center;gap:3px"><input type="checkbox" id="bulk-apply-inst" checked> Installments</label><button class="btn btn-primary" style="font-size:10px;padding:4px 12px" onclick="applyBulkStartDate()"><i class="fa-solid fa-wand-magic-sparkles"></i> Apply</button><span style="font-size:9px;color:var(--text3)">Applies to Monthly &amp; Yearly (Starts) and Installments (Hide Before). Leave blank + Apply to clear. Overwrites existing per-bill start dates.</span></div></div></div></details>
 
 <!-- SUB: Recurring -->
@@ -537,7 +546,9 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div id="bp-cardbills" class="sub-panel">
 <div class="card"><h2><i class="fa-solid fa-credit-card"></i> Credit Card Bills</h2><p class="text-muted mb-3" style="font-size:10px">Amount due per card per month — auto-summed from everything charged to each card (monthly, yearly, installments, planned). Set a manual override to use your actual statement figure.</p><div id="cardbills-content"></div></div>
 </div><!-- /bp-cardbills -->
-<div id="bp-carddata" class="sub-panel"><div class="card"><p class="muted" style="font-size:10px;margin:0 0 6px">หน้านี้แสดง<b>ข้อมูลดิบ</b>จากหลังบ้าน (window.CARD_BILLS + D.cards) แบบ read-only ไม่คำนวณใหม่ — ไว้ตรวจว่าข้อมูลที่เก็บจริงถูกไหม</p><div id="carddata-content"></div></div></div><!-- /bp-carddata -->
+
+
+
 <!-- SUB: Utilities -->
 <div id="bp-utilities" class="sub-panel">
 <div id="utilities-content"></div>
@@ -645,18 +656,18 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-setup.js?v=252"></script>
 
 <script src="js/ui-payroll.js?v=252"></script>
-<script src="js/ui-bills.js?v=323"></script>
+<script src="js/ui-bills.js?v=325"></script>
 <script src="js/ui-creditcards.js?v=307"></script>
 
 <script src="js/ui-timeline.js?v=252"></script>
-<script src="js/ui-dashboard.js?v=277"></script>
+<script src="js/ui-dashboard.js?v=279"></script>
 <script src="js/help-data.js?v=252"></script>
 <script src="js/trx-io.js?v=264"></script>
 <script src="js/retirement-calc.js?v=252"></script>
 <script src="js/ui-retirement.js?v=252"></script>
 
 <script src="js/ui-billreminder.js?v=325"></script>
-<script src="js/ui-todos.js?v=285"></script>
+<script src="js/ui-todos.js?v=288"></script>
 <script src="js/ui-wishlist.js?v=252"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
@@ -670,8 +681,10 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-utilities.js?v=278"></script>
 <script src="js/ui-cardsync.js?v=311"></script>
 <script src="js/ui-cardraw.js?v=3"></script>
+<script src="js/ui-cardtxns.js?v=1"></script>
+<script src="js/ui-cardsummary.js?v=14"></script>
 <script src="js/drive-view.js?v=2"></script>
-<script src="js/app.js?v=287"></script>
+<script src="js/app.js?v=290"></script>
 <script src="js/pull-refresh.js?v=2"></script>
 <script src="js/table-fit.js?v=3"></script>
 <script src="js/table-search.js?v=1"></script>

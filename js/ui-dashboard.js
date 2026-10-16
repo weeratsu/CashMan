@@ -362,14 +362,23 @@ var isToday=(y===now.getFullYear()&&m===now.getMonth()&&day===now.getDate());
 var _dow=new Date(y,m,day).getDay();var _isWe=(_dow===0||_dow===6);
 var _act=dayStatus[day]||0;// 2=overdue,1=due today (manual, unpaid)
 // Background priority: overdue (red) > due-today (amber) > today (blue) > weekend (soft amber) > normal.
-var cellBg=_act===2?'rgba(220,38,38,0.10)':(_act===1?'rgba(245,158,11,0.12)':(isToday?'rgba(59,130,246,0.10)':(_isWe?'rgba(245,158,11,0.06)':'var(--bg2)')));
+var cellBg=_act===2?'rgba(220,38,38,0.10)':(_act===1?'rgba(245,158,11,0.12)':(isToday?'rgba(59,130,246,0.06)':(_isWe?'rgba(245,158,11,0.06)':'var(--bg2)')));
 // Border priority: keep today's blue ring; else overdue red / due-today amber; else weekend/normal.
-var cellBd=isToday?'border:1px solid var(--accent)':(_act===2?'border:1px solid var(--error)':(_act===1?'border:1px solid var(--warning)':(_isWe?'border:1px solid rgba(245,158,11,0.25)':'border:1px solid var(--border)')));
+var cellBd=isToday?'border:2px solid rgba(59,130,246,0.55)':(_act===2?'border:1px solid var(--error)':(_act===1?'border:1px solid var(--warning)':(_isWe?'border:1px solid rgba(245,158,11,0.25)':'border:1px solid var(--border)')));
 // Left accent bar for action days (doesn't shift layout).
 var cellBar=_act===2?'box-shadow:inset 3px 0 0 var(--error);':(_act===1?'box-shadow:inset 3px 0 0 var(--warning);':'');
+// v289 (user Oct 15 2026): make TODAY unmistakable — outer blue ring/glow around the whole cell
+// (box-shadow doesn't shift layout) on top of the 2px blue border.
+if(isToday){ cellBar += 'box-shadow:0 0 0 2px rgba(59,130,246,0.45);'; }
 var _dk=_calDayReg(new Date(y,m,day),billByDay[day],taskByDay[day]);
 h+='<div onclick="dashCalDay('+_dk+',event)" title="Tap for the full list of this day" style="cursor:pointer;min-height:74px;background:'+cellBg+';'+cellBd+';'+cellBar+'border-radius:6px;padding:3px 4px;overflow:hidden">';
-h+='<div style="font-size:10px;font-weight:600;color:'+(isToday?'var(--accent)':'var(--text3)')+';margin-bottom:2px">'+day+'</div>';
+// v290 (user Oct 15 2026): lighter tone + no "วันนี้" tag. Today = soft blue pill (light bg,
+// blue number), subtle ring/border. Just the number in a light pill, nothing else.
+if(isToday){
+  h+='<div style="margin-bottom:2px"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:rgba(59,130,246,0.16);color:var(--accent);font-size:10px;font-weight:700">'+day+'</span></div>';
+}else{
+  h+='<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:2px">'+day+'</div>';
+}
 var bills=billByDay[day]||[],tasks=taskByDay[day]||[];
 bills.forEach(function(o){h+=_calBillLine(o,false);});
 _calTaskSort(tasks).forEach(function(t){h+=_calTaskLine(t,false);});

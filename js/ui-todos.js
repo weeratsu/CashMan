@@ -318,6 +318,28 @@ return '<span style="font-size:8px;color:var(--primary);background:var(--primary
 // ---- To-Do calm summary (Oct 9 2026) ----
 var _todoEditOpen={};
 function todoEditToggle(id){ _todoEditOpen[id]=!_todoEditOpen[id]; var el=document.getElementById('tedit_'+id); if(el) el.style.display=_todoEditOpen[id]?'flex':'none'; }
+// v288 (user Oct 14 2026): per-column chip builders so the task list shows REAL columns
+// (Task / Category / Priority / Deadline / Status / Delete) instead of cramming everything into
+// one left cell. Each returns a bare chip (or '' / dash) for its own <td>.
+function _tdCat(t){ return t.category?'<span class="tchip">'+esc(t.category)+'</span>':'<span style="color:var(--text3)">\u2014</span>'; }
+function _tdPri(t){ if(t.priority===1)return '<span class="tchip t-hi">\ud83d\udd34 High</span>'; if(t.priority===3)return '<span class="tchip">\u26aa Low</span>'; return '<span class="tchip">\ud83d\udfe1 Med</span>'; }
+function _tdDue(t,MON,DOW){
+ var out=[];
+ var dl='';
+ if(t.deadline_mode==='date'&&t.due_date){ var d=t.due_date.split('-'); dl='\ud83d\udcc5 '+(+d[2])+' '+MON[(+d[1])-1]+(+d[0]!==new Date().getFullYear()?' '+d[0]:''); }
+ else if(t.deadline_mode==='asap') dl='\u26a1 ASAP';
+ if(t.due_time) dl+=(dl?' ':'\u23f0 ')+esc(String(t.due_time).slice(0,5));
+ if(dl) out.push('<span class="tchip">'+dl+'</span>');
+ if(t.recur&&t.recur!=='none'){
+  var n=+(t.recur_every||1), u={daily:'\u0e27\u0e31\u0e19',weekly:'\u0e2a\u0e31\u0e1b\u0e14\u0e32\u0e2b\u0e4c',monthly:'\u0e40\u0e14\u0e37\u0e2d\u0e19',yearly:'\u0e1b\u0e35'}[t.recur]||'';
+  var r='\ud83d\udd01 '+(n>1?'\u0e17\u0e38\u0e01 '+n+' '+u:{daily:'\u0e17\u0e38\u0e01\u0e27\u0e31\u0e19',weekly:'\u0e17\u0e38\u0e01\u0e2a\u0e31\u0e1b\u0e14\u0e32\u0e2b\u0e4c',monthly:'\u0e17\u0e38\u0e01\u0e40\u0e14\u0e37\u0e2d\u0e19',yearly:'\u0e17\u0e38\u0e01\u0e1b\u0e35'}[t.recur]);
+  if(t.recur==='weekly') r+=' ('+DOW[t.recur_dow||0]+')';
+  if(t.recur==='monthly') r+=' (\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48 '+(t.recur_dom||1)+')';
+  out.push('<span class="tchip">'+r+'</span>');
+ }
+ if(t.link) out.push('<span class="tchip">\ud83d\udd17 link</span>');
+ return out.length?out.join(' '):'<span style="color:var(--text3)">\u2014</span>';
+}
 function _todoSummary(t,MON,DOW){
  var p=[];
  if(t.category) p.push('<span class="tchip">'+esc(t.category)+'</span>');
@@ -491,7 +513,7 @@ el.innerHTML=h;return;
 var _ar=function(col){return _todoSort===col?(_todoAsc?' \u25b2':' \u25bc'):'';};
 if(_todoFrozen){h+='<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);background:var(--primary-bg,rgba(79,70,229,.08));border-radius:6px;padding:5px 10px;margin:6px 0"><i class="fa-solid fa-lock"></i> Order paused while you edit (edited rows outlined)<span style="flex:1"></span><button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="todoResort()"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort now</button></div>';}
 h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%"><thead><tr>'+
-'<th><span style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</span><span style="color:var(--text3);font-weight:400"> · </span><span style="cursor:pointer" onclick="setTodoSort(\'category\')">Category'+_ar('category')+'</span><span style="color:var(--text3);font-weight:400"> · </span><span style="cursor:pointer" onclick="setTodoSort(\'priority\')">Priority'+_ar('priority')+'</span><span style="color:var(--text3);font-weight:400"> · Deadline · Link</span></th>'+
+'<th style="text-align:left"><span style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</span></th>'+'<th style="cursor:pointer;white-space:nowrap" onclick="setTodoSort(\'category\')">Category'+_ar('category')+'</th>'+'<th style="cursor:pointer;white-space:nowrap" onclick="setTodoSort(\'priority\')">Priority'+_ar('priority')+'</th>'+'<th style="white-space:nowrap">Deadline</th>'+
 '<th class="todo-st" style="cursor:pointer;width:150px" onclick="setTodoSort(\'urgency\')">Status'+_ar('urgency')+'</th>'+
 '<th style="width:40px"></th></tr></thead><tbody>';
 
@@ -525,8 +547,7 @@ var _rs=rowStyle+(_todoTouched[t.id]?';outline:2px solid var(--primary);outline-
 h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
 
 '<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:600;font-size:12px;width:100%'+(t.done?';text-decoration:line-through':'')+'">'+
-'<input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:10px;color:var(--text3);width:100%"></td>'+
-'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+// v285 (user Oct 14 2026): Done/Reopen button lives at the END of the row in the STATUS column
+'<input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:10px;color:var(--text3);width:100%"></td>'+'<td rowspan="2" style="vertical-align:top;padding-top:10px;white-space:nowrap">'+_tdCat(t)+'</td>'+'<td rowspan="2" style="vertical-align:top;padding-top:10px;white-space:nowrap">'+_tdPri(t)+'</td>'+'<td rowspan="2" style="vertical-align:top;padding-top:10px">'+_tdDue(t,MON,DOW)+'</td>'+'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+// v285 (user Oct 14 2026): Done/Reopen button lives at the END of the row in the STATUS column
 // (like the Pay button in Bill Reminder), not in front of the task where it overlapped the title.
 '<div style="margin-top:6px">'+(t.done
   ?'<button class="btn" style="font-size:9px;padding:3px 9px;background:var(--success,#16a34a);color:#fff;border:none;border-radius:5px;white-space:nowrap" title="Reopen this task" onclick="todoReopen(\''+t.id+'\')"><i class="fa-solid fa-rotate-left"></i> Reopen</button>'
