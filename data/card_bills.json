@@ -1,71 +1,9 @@
 {
- "generated_at": "2026-10-16T16:58:19",
+ "generated_at": "2026-10-17T10:43:21",
  "bills": [
   {
-   "card": "BAY",
-   "last4": "6425",
-   "period": "2026-08",
-   "stmt_date": "2026-09-09",
-   "due_date": "2026-09-29",
-   "amount_due": 3254.5,
-   "min_due": 3161.5,
-   "txn_total": 93.0,
-   "installment_total": 3161.5,
-   "adjustment_total": null,
-   "total_payments": -5551.5,
-   "prev_balance": 5551.5,
-   "points_balance": 4410,
-   "points_date": "2026-09-09",
-   "source_file": "BAY_2026-08.pdf",
-   "payments": [
-    {
-     "amount": 3254.5,
-     "paid_at": "2026-09-11T13:46:44",
-     "ref": "KS0000000894014414",
-     "carry": false
-    }
-   ],
-   "paid_total": 3254.5,
-   "paid_date": "2026-09-11T13:46:44",
-   "paid_full": true,
-   "remaining": 0.0
-  },
-  {
-   "card": "BAY",
-   "last4": "6425",
-   "period": "2026-09",
-   "stmt_date": "2026-10-09",
-   "due_date": "2026-10-29",
-   "amount_due": 3929.5,
-   "min_due": 3461.5,
-   "txn_total": 792.0,
-   "installment_total": 3161.5,
-   "adjustment_total": -24.0,
-   "total_payments": -3254.5,
-   "prev_balance": 3254.5,
-   "points_balance": 4410,
-   "points_date": "2026-10-09",
-   "source_file": "BAY_2026-09.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "unmatched_payments": [
-    {
-     "amount": 3099.14,
-     "paid_at": "2026-06-11T11:23:00",
-     "ref": "KS0000000612006905"
-    },
-    {
-     "amount": 5551.5,
-     "paid_at": "2026-08-11T11:40:04",
-     "ref": "KS0000000798172777"
-    }
-   ],
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3929.5
-  },
-  {
-   "card": "BAY AIA",
+   "card": "BAY AIA Visa Platinum",
+   "card_id": "c2",
    "last4": "3243",
    "period": "2026-09",
    "stmt_date": "2026-09-25",
@@ -79,7 +17,7 @@
    "prev_balance": 0.0,
    "points_balance": 375,
    "points_date": "2026-09-25",
-   "source_file": "BAY AIA_2026-09.pdf",
+   "source_file": "BAY AIA Visa Platinum_2026-09.pdf",
    "payments": [
     {
      "amount": 1796.55,
@@ -101,7 +39,8 @@
    "remaining": 0.0
   },
   {
-   "card": "BAY JCB",
+   "card": "BAY JCB Platinum",
+   "card_id": "c3",
    "last4": "8172",
    "period": "2026-04",
    "stmt_date": "2026-05-09",
@@ -115,7 +54,7 @@
    "prev_balance": 25846.97,
    "points_balance": 5023,
    "points_date": "2026-05-09",
-   "source_file": "BAY JCB_2026-04.pdf",
+   "source_file": "BAY JCB Platinum_2026-04.pdf",
    "payments": [
     {
      "amount": 16755.27,
@@ -130,7 +69,8 @@
    "remaining": 0.0
   },
   {
-   "card": "BAY JCB",
+   "card": "BAY JCB Platinum",
+   "card_id": "c3",
    "last4": "8172",
    "period": "2026-08",
    "stmt_date": "2026-09-09",
@@ -144,7 +84,7 @@
    "prev_balance": 20898.45,
    "points_balance": 7812,
    "points_date": "2026-09-09",
-   "source_file": "BAY JCB_2026-08.pdf",
+   "source_file": "BAY JCB Platinum_2026-08.pdf",
    "payments": [
     {
      "amount": 22548.11,
@@ -159,7 +99,8 @@
    "remaining": 0.0
   },
   {
-   "card": "BAY JCB",
+   "card": "BAY JCB Platinum",
+   "card_id": "c3",
    "last4": "8172",
    "period": "2026-09",
    "stmt_date": "2026-10-09",
@@ -173,7 +114,7 @@
    "prev_balance": 22548.11,
    "points_balance": null,
    "points_date": "2026-10-09",
-   "source_file": "BAY JCB_2026-09.pdf",
+   "source_file": "BAY JCB Platinum_2026-09.pdf",
    "payments": [
     {
      "amount": 2772.0,
@@ -205,8 +146,74 @@
    "remaining": 0.0
   },
   {
+   "card": "BAY Visa Platinum",
+   "card_id": "c1",
+   "last4": "6425",
+   "period": "2026-08",
+   "stmt_date": "2026-09-09",
+   "due_date": "2026-09-29",
+   "amount_due": 3254.5,
+   "min_due": 3161.5,
+   "txn_total": 93.0,
+   "installment_total": 3161.5,
+   "adjustment_total": null,
+   "total_payments": -5551.5,
+   "prev_balance": 5551.5,
+   "points_balance": 4410,
+   "points_date": "2026-09-09",
+   "source_file": "BAY Visa Platinum_2026-08.pdf",
+   "payments": [
+    {
+     "amount": 3254.5,
+     "paid_at": "2026-09-11T13:46:44",
+     "ref": "KS0000000894014414",
+     "carry": false
+    }
+   ],
+   "paid_total": 3254.5,
+   "paid_date": "2026-09-11T13:46:44",
+   "paid_full": true,
+   "remaining": 0.0
+  },
+  {
+   "card": "BAY Visa Platinum",
+   "card_id": "c1",
+   "last4": "6425",
+   "period": "2026-09",
+   "stmt_date": "2026-10-09",
+   "due_date": "2026-10-29",
+   "amount_due": 3929.5,
+   "min_due": 3461.5,
+   "txn_total": 792.0,
+   "installment_total": 3161.5,
+   "adjustment_total": -24.0,
+   "total_payments": -3254.5,
+   "prev_balance": 3254.5,
+   "points_balance": 4410,
+   "points_date": "2026-10-09",
+   "source_file": "BAY Visa Platinum_2026-09.pdf",
+   "payments": [],
+   "paid_total": 0.0,
+   "unmatched_payments": [
+    {
+     "amount": 3099.14,
+     "paid_at": "2026-06-11T11:23:00",
+     "ref": "KS0000000612006905"
+    },
+    {
+     "amount": 5551.5,
+     "paid_at": "2026-08-11T11:40:04",
+     "ref": "KS0000000798172777"
+    }
+   ],
+   "paid_date": null,
+   "paid_full": false,
+   "remaining": 3929.5
+  },
+  {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2025-12",
    "stmt_date": "2026-01-05",
    "due_date": "2026-01-20",
@@ -219,7 +226,7 @@
    "prev_balance": 2130.45,
    "points_balance": 4,
    "points_date": "2026-01-05",
-   "source_file": "KBGC_1000000012545180_260105_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2025-12.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -228,7 +235,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-01",
    "stmt_date": "2026-02-05",
    "due_date": "2026-02-20",
@@ -241,7 +249,7 @@
    "prev_balance": 5990.44,
    "points_balance": 4,
    "points_date": "2026-02-05",
-   "source_file": "KBGC_1000000012545180_260205_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-01.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -250,7 +258,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-02",
    "stmt_date": "2026-03-05",
    "due_date": "2026-03-20",
@@ -263,7 +272,7 @@
    "prev_balance": 4956.73,
    "points_balance": 4,
    "points_date": "2026-03-05",
-   "source_file": "KBGC_1000000012545180_260305_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-02.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -272,7 +281,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-03",
    "stmt_date": "2026-04-05",
    "due_date": "2026-04-20",
@@ -285,7 +295,7 @@
    "prev_balance": 2317.43,
    "points_balance": 4,
    "points_date": "2026-04-05",
-   "source_file": "KBGC_1000000012545180_260405_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-03.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -294,7 +304,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-04",
    "stmt_date": "2026-05-05",
    "due_date": "2026-05-20",
@@ -307,7 +318,7 @@
    "prev_balance": 1315.93,
    "points_balance": null,
    "points_date": "2026-05-05",
-   "source_file": "KBGC_1000000012545180_260505_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-04.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -316,7 +327,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-05",
    "stmt_date": "2026-06-05",
    "due_date": "2026-06-20",
@@ -329,7 +341,7 @@
    "prev_balance": 3572.0,
    "points_balance": 1,
    "points_date": "2026-06-05",
-   "source_file": "KBGC_1000000012545180_260605_2026-07-07.pdf",
+   "source_file": "KBank PLUSTINUM_2026-05.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -338,7 +350,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-06",
    "stmt_date": "2026-07-05",
    "due_date": "2026-07-20",
@@ -351,7 +364,7 @@
    "prev_balance": 3916.4,
    "points_balance": 1,
    "points_date": "2026-07-05",
-   "source_file": "KBGC_1000000012545180_260705_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-06.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -360,7 +373,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-07",
    "stmt_date": "2026-08-05",
    "due_date": "2026-08-20",
@@ -373,7 +387,7 @@
    "prev_balance": 422.0,
    "points_balance": null,
    "points_date": "2026-08-05",
-   "source_file": "KBGC_1000000012545180_260805_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-07.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -382,7 +396,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-08",
    "stmt_date": "2026-09-05",
    "due_date": "2026-09-20",
@@ -395,7 +410,7 @@
    "prev_balance": 2388.41,
    "points_balance": 524,
    "points_date": "2026-09-05",
-   "source_file": "KBGC_1000000012545180_260905_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-08.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -404,7 +419,8 @@
   },
   {
    "card": "KBank PLUSTINUM",
-   "last4": null,
+   "card_id": "c5",
+   "last4": "8033",
    "period": "2026-09",
    "stmt_date": "2026-10-05",
    "due_date": "2026-10-20",
@@ -417,7 +433,7 @@
    "prev_balance": 2323.41,
    "points_balance": 605,
    "points_date": "2026-10-05",
-   "source_file": "KBGC_1000000012545180_261005_2026-10-16.pdf",
+   "source_file": "KBank PLUSTINUM_2026-09.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
@@ -426,6 +442,7 @@
   },
   {
    "card": "UOB Preferred Platinum",
+   "card_id": "c9",
    "last4": "5868",
    "period": "2026-09",
    "stmt_date": "2026-10-13",
@@ -448,6 +465,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-01",
    "stmt_date": "2026-01-22",
@@ -470,6 +488,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-02",
    "stmt_date": "2026-02-22",
@@ -492,6 +511,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-03",
    "stmt_date": "2026-03-22",
@@ -514,6 +534,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-04",
    "stmt_date": "2026-04-22",
@@ -536,6 +557,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-05",
    "stmt_date": "2026-05-22",
@@ -558,6 +580,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-06",
    "stmt_date": "2026-06-22",
@@ -580,6 +603,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-07",
    "stmt_date": "2026-07-22",
@@ -602,6 +626,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-08",
    "stmt_date": "2026-08-22",
@@ -624,6 +649,7 @@
   },
   {
    "card": "ttb so smart",
+   "card_id": "c8",
    "last4": "1394",
    "period": "2026-09",
    "stmt_date": "2026-09-22",
