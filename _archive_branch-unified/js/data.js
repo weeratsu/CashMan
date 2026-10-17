@@ -390,6 +390,8 @@ if(!D.asset_types)D.asset_types=['Savings','Investment','Property','Vehicle','In
 if(!Array.isArray(D.banks))D.banks=[]; // user-managed bank list for the Card Details bank dropdown
 // Auto-seed the bank list (one-time) from bank names already entered on cards, when the list is empty.
 if(!D.banks.length){var _bk={};(D.cards||[]).forEach(function(c){if(c.bank&&c.bank.trim())_bk[c.bank.trim()]=1;});D.banks=Object.keys(_bk).sort();}
+if(!Array.isArray(D.limit_groups))D.limit_groups=[]; // user-managed shared credit-limit group list (Setup chip UI)
+if(!D.limit_groups.length){var _lg={};(D.cards||[]).forEach(function(c){if(c.limit_group&&c.limit_group.trim())_lg[c.limit_group.trim()]=1;});D.limit_groups=Object.keys(_lg).sort();}
 if(!D.profile.name)D.profile.name='';
 if(!D.types)D.types=defaultData().types;if(!D.profile.start_date)D.profile.start_date='2026-09-15';if(!D.profile.dob)D.profile.dob='';if(!D.profile.end_date)D.profile.end_date='2027-05-31';
 if(!D.planned)D.planned=[];if(D.tax_actual_override===undefined)D.tax_actual_override=null;if(!D.tax_refund_month)D.tax_refund_month=3;if(D.tax_refund_day==null)D.tax_refund_day=15;if(!D.tax_year)D.tax_year=parseInt(D.profile.start_date.slice(0,4))||new Date().getFullYear();
@@ -526,7 +528,7 @@ var _fe=document.getElementById('f-end');if(_fe)_fe.value=p.end_date;
 if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),p.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),p.cat_expense);
 if(document.getElementById('f-catname'))document.getElementById('f-catname').value=p.cat_names||'';
-renderTypes();renderOwners();renderAssetTypes();renderBanks();renderTodoCats();renderWishCats();if(typeof renderDashLayout==='function')renderDashLayout()}
+renderTypes();renderOwners();renderAssetTypes();renderBanks();renderLimitGroups();renderTodoCats();renderWishCats();if(typeof renderDashLayout==='function')renderDashLayout()}
 
 function renderTypes(){var c=document.getElementById('types-list');
 c.innerHTML=sTypes().map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmType('+i+')">&times;</span></span>'}).join('')+
@@ -567,6 +569,14 @@ el.innerHTML=(D.banks||[]).map(function(t,i){return '<span class="type-chip">'+e
 '<span class="type-add" onclick="addBank()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 function addBank(){var n=prompt('New bank:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.banks))D.banks=[];if(D.banks.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.banks.push(n);D.banks.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
 function rmBank(i){if(!confirm('Remove bank "'+D.banks[i]+'"?'))return;D.banks.splice(i,1);saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+// Shared credit-limit groups — user-managed list for the limit_group dropdown (Setup chip UI). v313.
+function renderLimitGroups(){var el=document.getElementById('limitgroups-list');if(!el)return;
+el.innerHTML=(D.limit_groups||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmLimitGroup('+i+')">&times;</span></span>'}).join('')+
+'<span class="type-add" onclick="addLimitGroup()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
+function addLimitGroup(){var n=prompt('New shared limit group:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.limit_groups))D.limit_groups=[];if(D.limit_groups.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.limit_groups.push(n);D.limit_groups.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function rmLimitGroup(i){if(!confirm('Remove limit group "'+D.limit_groups[i]+'"? Cards keep their current group value.'))return;D.limit_groups.splice(i,1);saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+// <option> list for a limit-group <select>; includes the current value even if not in the list, plus a blank.
+function limitGroupOpts(sel){var h='<option value="">\u2014 none \u2014</option>';var list=(D.limit_groups||[]).slice();if(sel&&list.indexOf(sel)<0)list.push(sel);list.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});list.forEach(function(b){h+='<option'+(sel===b?' selected':'')+'>'+esc(b)+'</option>'});return h}
 // To-Do categories — user-managed list for the To-Do module (Setup chip UI).
 function renderTodoCats(){var el=document.getElementById('todocats-list');if(!el)return;
 el.innerHTML=(D.todo_cats||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmTodoCat('+i+')">&times;</span></span>'}).join('')+

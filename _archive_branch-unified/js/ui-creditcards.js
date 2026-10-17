@@ -310,7 +310,7 @@ h+='</div>';
 h+='<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><h2 style="font-size:12px;flex:1"><i class="fa-solid fa-credit-card"></i> Card Details</h2>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="ccExportForAI()"><i class="fa-solid fa-robot"></i> Export for AI</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="ccBackupCards()" title="Download all card data as a JSON backup"><i class="fa-solid fa-download"></i> Backup Cards</button>';
-h+='<button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="addCard();renderCreditCards()"><i class="fa-solid fa-plus"></i> Add Card</button></div>';
+h+='<button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="ccAddCardPopup()"><i class="fa-solid fa-plus"></i> Add Card</button></div>';
 if(!cards.length){h+='<p class="text-muted" style="font-size:11px">No cards yet.</p>';}
 cards.forEach(function(c){
 var i=(D.cards||[]).indexOf(c);
@@ -346,7 +346,7 @@ h+=_ccMoney(i,'credit_limit','Credit limit (฿)',cardVal(i,'credit_limit'));
 h+=_ccMoney(i,'current_balance','Current balance (฿)',cardVal(i,'current_balance'));
 var _dbt=ccCalcDebt(c.name);
 if(_dbt.total>0){h+='<div><label style="color:var(--text3)">Calculated debt (from transactions)</label><div style="font-family:var(--mono);font-weight:600;color:var(--error);padding:3px 0">฿'+fmt(_dbt.total)+'<div style="font-size:8px;color:var(--text3);font-weight:400">installments ฿'+fmt(_dbt.inst)+' + planned ฿'+fmt(_dbt.planned)+(_dbt.extra>0?' + extra ฿'+fmt(_dbt.extra):'')+'</div>';h+='<div style="display:flex;gap:8px;align-items:center;margin-top:2px">';h+='<span id="ccdebtcx_'+i+'" style="cursor:pointer;user-select:none;font-size:9px;color:var(--primary)" onclick="ccToggleDebt('+i+')">'+(_ccDebtOpen[i]?'▼':'▶')+' details ('+_dbt.items.length+')</span>';h+='<button class="btn btn-ghost" style="font-size:8px;padding:1px 8px" onclick="ccUseCalcDebt('+i+')"><i class="fa-solid fa-arrow-down"></i> Use as balance</button>';h+='</div>';h+='<div id="ccdebt_'+i+'" style="display:'+(_ccDebtOpen[i]?'':'none')+';margin-top:4px">';if(_dbt.items.length){h+='<table class="tbl" style="font-size:9px"><thead><tr><th>Item</th><th>Kind</th><th>Detail</th><th class="r">Remaining</th></tr></thead><tbody>';_dbt.items.slice().sort(function(a,b){return (b._future?-1:b.remaining)-(a._future?-1:a.remaining);}).forEach(function(it){var _fu=it._future;h+='<tr style="'+(_fu?'opacity:.55':'')+'"><td style="font-weight:600">'+esc(it.name)+'</td><td><span style="font-size:8px;padding:1px 5px;border-radius:4px;background:'+(it.kind==='Installment'?'var(--primary-bg);color:var(--primary)':'var(--bg3);color:var(--text2)')+'">'+esc(it.kind)+(it.source&&it.source!=='Manual'&&it.source!=='Planned'?' · '+esc(it.source):'')+'</span>'+(_fu?' <span style="font-size:7px;padding:1px 4px;border-radius:3px;background:var(--bg3);color:var(--text3)">future</span>':'')+'</td><td style="font-size:8px;color:var(--text3)">'+esc(it.note||'')+'</td><td class="r" style="font-family:var(--mono);color:'+(_fu?'var(--text3)':'var(--error)')+'">'+(_fu?'not counted':'฿'+fmt(it.remaining))+'</td></tr>';});h+='</tbody></table>';}else{h+='<div style="font-size:9px;color:var(--text3)">No future charges.</div>';}h+='</div>';h+='</div></div>';}
-h+=_ccField(i,'limit_group','Shared limit group','text',cardVal(i,'limit_group'));
+h+='<div><label style="color:var(--text3)">Shared limit group</label><select style="width:100%;padding:3px 6px;font-size:10px" onchange="ccSet('+i+',\'limit_group\',this.value)">'+(typeof limitGroupOpts==='function'?limitGroupOpts(cardVal(i,'limit_group')):'')+'</select></div>';
 h+='<div><label style="color:var(--text3)">Card details URL</label><input type="url" value="'+esc(cardVal(i,'url')||'')+'" placeholder="https://..." style="width:100%;padding:3px 6px;font-size:10px" onchange="ccSet('+i+',&#39;url&#39;,this.value)">'+((cardVal(i,'url'))?'<a href="'+esc(cardVal(i,'url'))+'" target="_blank" rel="noopener" style="font-size:8px;color:var(--primary)"><i class="fa-solid fa-arrow-up-right-from-square"></i> open</a>':'')+'</div>';
 var _grp=ccGroupInfo(c.limit_group||'');
 if(_grp){
@@ -357,7 +357,7 @@ h+='<div><label style="color:var(--text3)">Available</label><div style="font-fam
 h+='<div><label style="color:var(--text3)">Credit term (interest-free)</label><div style="font-family:var(--mono);font-weight:600;color:var(--primary);padding:3px 0">'+ccCreditTermDays(c)+' days</div></div>';
 h+='</div>';
 // long text fields
-h+='<div style="margin-top:8px;font-size:10px"><label style="color:var(--text3)">Benefits / perks (for AI to read)</label>'+_ccArea(i,'benefits',cardVal(i,'benefits'),'List rewards, cashback %, categories, lounge access, travel insurance, etc.')+'</div>';
+h+='<div style="margin-top:8px;font-size:10px"><label style="color:var(--text3)">Benefits / perks (for AI to read)</label>'+_ccAreaTall(i,'benefits',cardVal(i,'benefits'),'List rewards, cashback %, categories, lounge access, travel insurance, etc.')+'</div>';
 h+='<div style="margin-top:6px;font-size:10px"><label style="color:var(--text3)">Fee-waiver conditions</label>'+_ccArea(i,'fee_waiver',cardVal(i,'fee_waiver'),'e.g. spend ฿100,000/yr to waive annual fee')+'</div>';
 // Fee-waiver: mode (amount / count / either) + target(s) + manual + progress
 var _fwm=(cardVal(i,'fee_waiver_mode')||'amount');
@@ -497,6 +497,11 @@ return '<div><label style="color:var(--text3)">'+label+'</label>'+
 function _ccArea(i,f,val,ph){
 return '<textarea rows="2" placeholder="'+esc(ph)+'" style="width:100%;padding:4px 6px;font-size:10px;resize:vertical" onchange="ccSet('+i+',\''+f+'\',this.value)">'+esc(val||'')+'</textarea>';
 }
+// v312 (user Oct 16 2026): taller variant for long freeform fields (e.g. Benefits) — more rows so
+// long perk text is readable without a tiny scroll box.
+function _ccAreaTall(i,f,val,ph){
+return '<textarea rows="5" placeholder="'+esc(ph)+'" style="width:100%;padding:4px 6px;font-size:10px;resize:vertical;min-height:80px" onchange="ccSet('+i+',\''+f+'\',this.value)">'+esc(val||'')+'</textarea>';
+}
 
 // ---- DRAFT model: edits go to _ccDraft[i] (a working copy); nothing is saved to D.cards
 // until the user clicks Save. Cancel discards the draft (revert). Setters do NOT re-render
@@ -567,6 +572,23 @@ function _ccMigrateCardName(oldName,newName){
       p._cardKey=newName+'|'+p._cardKey.slice((oldName+'|').length);
     }
   });
+  // 4) cardbill_extra: re-key 'old::period' -> 'new::period' (manual extra-spend estimates). v306
+  // (Oct 16 2026): was missing — a rename left old-name extras as orphan "ghost" bills (same class
+  // of bug as the UOB->UOB Preferred Platinum leftover extras).
+  if(D.cardbill_extra&&typeof D.cardbill_extra==='object'){
+    var ce=D.cardbill_extra, oPfx=oldName+'::';
+    Object.keys(ce).forEach(function(k){
+      if(k.indexOf(oPfx)===0){
+        var nk=newName+'::'+k.slice(oPfx.length);
+        if(nk!==k){ if(ce[nk]===undefined){ce[nk]=ce[k];} delete ce[k]; sum.keys++; }
+      }
+    });
+  }
+  // 5) card_txns: the per-transaction detail (Card Summary / Card Transactions read t.card). v306:
+  // move them too, or the renamed card loses its whole transaction history in those views.
+  if(Array.isArray(D.card_txns)){
+    D.card_txns.forEach(function(t){ if(t&&t.card===oldName){t.card=newName;sum.recs++;} });
+  }
   return sum;
 }
 function ccSaveCard(i){if(!D.cards[i])return;
@@ -579,6 +601,12 @@ function ccSaveCard(i){if(!D.cards[i])return;
     var _m=_ccMigrateCardName(_oldName,_newName);
     saveD();
     toast('\u2705 Renamed "'+_oldName+'" \u2192 "'+_newName+'" \u00b7 moved '+(_m.keys+_m.recs)+' payment ref, '+_m.defs+' bill def, '+_m.planned+' planned');
+    // v307 (user Oct 16 2026): remind next steps after a rename so nothing is forgotten.
+    try{ alert('\u2705 \u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e31\u0e15\u0e23: "'+_oldName+'" \u2192 "'+_newName+'"\n'+
+      '\u2022 \u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e43\u0e19\u0e41\u0e2d\u0e1b (\u0e08\u0e48\u0e32\u0e22/\u0e1a\u0e34\u0e25/planned/extra/transactions) \u0e22\u0e49\u0e32\u0e22\u0e43\u0e2b\u0e49\u0e41\u0e25\u0e49\u0e27\u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34\n\n'+
+      '\u0e2a\u0e34\u0e48\u0e07\u0e17\u0e35\u0e48\u0e15\u0e49\u0e2d\u0e07\u0e17\u0e33\u0e15\u0e48\u0e2d:\n'+
+      '1) \u0e23\u0e31\u0e19 run_cardbills.bat \u0e23\u0e2d\u0e1a\u0e16\u0e31\u0e14\u0e44\u0e1b (\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2d schedule 11:10) \u2192 \u0e23\u0e27\u0e21\u0e42\u0e1f\u0e25\u0e40\u0e14\u0e2d\u0e23\u0e4c PDF \u0e0a\u0e37\u0e48\u0e2d\u0e40\u0e01\u0e48\u0e32\u0e40\u0e02\u0e49\u0e32\u0e0a\u0e37\u0e48\u0e2d\u0e43\u0e2b\u0e21\u0e48\u0e43\u0e2b\u0e49\n'+
+      '2) \u0e16\u0e49\u0e32\u0e43\u0e0a\u0e49 config.json \u0e41\u0e1a\u0e1a\u0e44\u0e21\u0e48\u0e1e\u0e36\u0e48\u0e07 Sheet \u2192 \u0e41\u0e01\u0e49\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e31\u0e15\u0e23\u0e43\u0e19 config.json \u0e43\u0e2b\u0e49\u0e15\u0e23\u0e07\u0e14\u0e49\u0e27\u0e22'); }catch(e){}
     renderCreditCards();
     if(typeof renderAllTabs==='function')try{renderAllTabs()}catch(e){}
     else{ if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){} if(typeof renderPlanned==='function')try{renderPlanned();filterPlanned()}catch(e){} }
@@ -669,4 +697,70 @@ var h='<div class="card" style="border:1px solid var(--warning);background:rgba(
 alerts.forEach(function(x){var s=x.st;h+='<li>'+esc(x.c.name)+(x.c.last4?' ••••'+esc(x.c.last4):'')+' — '+(s.state==='expired'?'<b style="color:var(--error)">expired</b>':'expires in <b>'+s.days+'d</b>')+' ('+_ccMon(x.c.expiry)+')</li>';});
 h+='</ul></div>';
 el.innerHTML=h;
+}
+
+
+// ===== Add Card popup (v310, user Oct 16 2026) =====
+// Replaces the old "push a blank 'New Card' then sort" flow — a renamed row sorted into the middle of
+// the list was hard to find. This opens a modal (like Add task), collects the key fields, creates the
+// card, then re-renders with that card EXPANDED and scrolled into view so it's obvious where it went.
+function ccAddCardPopup(){
+  if(document.getElementById('cc-add-ov')) return;
+  var ov=document.createElement('div');
+  ov.id='cc-add-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  function fld(label,inner){ return '<div style="display:flex;flex-direction:column;gap:2px;flex:1"><label style="font-size:10px;color:var(--text2)">'+label+'</label>'+inner+'</div>'; }
+  var prOpts='<option value="prev">\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same">\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option>';
+  // Bank dropdown: distinct banks already used in D.cards + an "Other" sentinel that reveals a text box.
+  var _banks={}; (D.cards||[]).forEach(function(c){ var b=(c.bank||'').trim(); if(b)_banks[b]=1; });
+  var bankList=Object.keys(_banks).sort();
+  var bankOpts='<option value="">\u2014</option>'+bankList.map(function(b){return '<option value="'+b.replace(/"/g,'&quot;')+'">'+b+'</option>';}).join('')+'<option value="__other__">\u0e2d\u0e37\u0e48\u0e19 \u0e46 / Other\u2026</option>';
+  var body=''+
+    fld('\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e31\u0e15\u0e23 / Card name','<input id="ca-name" placeholder="e.g. KBank PLATINUM" style="font-size:12px;padding:5px 8px">')+
+    '<div style="display:flex;gap:8px">'+fld('\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23 / Bank','<select id="ca-bank" style="font-size:12px;padding:5px 8px" onchange="ccAddBankChanged()">'+bankOpts+'</select><input id="ca-bank-other" placeholder="\u0e0a\u0e37\u0e48\u0e2d\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23\u0e43\u0e2b\u0e21\u0e48" style="font-size:12px;padding:5px 8px;margin-top:4px;display:none">')+fld('\u0e40\u0e25\u0e02 4 \u0e15\u0e31\u0e27\u0e17\u0e49\u0e32\u0e22 / Last 4','<input id="ca-last4" maxlength="4" placeholder="1234" style="font-size:12px;padding:5px 8px">')+'</div>'+
+    '<div style="display:flex;gap:8px">'+fld('\u0e27\u0e31\u0e19\u0e15\u0e31\u0e14\u0e23\u0e2d\u0e1a (statement day)','<input id="ca-sd" type="number" min="1" max="31" value="1" style="font-size:12px;padding:5px 8px">')+fld('Due offset (\u0e27\u0e31\u0e19\u0e2b\u0e25\u0e31\u0e07 statement)','<input id="ca-off" type="number" min="0" max="31" value="1" style="font-size:12px;padding:5px 8px">')+fld('Deadline (\u0e27\u0e31\u0e19\u0e04\u0e23\u0e1a\u0e01\u0e33\u0e2b\u0e19\u0e14)','<input id="ca-dl" type="number" min="1" max="31" value="15" style="font-size:12px;padding:5px 8px">')+'</div>'+
+    '<div style="display:flex;gap:8px">'+fld('\u0e23\u0e2d\u0e1a\u0e1a\u0e34\u0e25 (period rule)','<select id="ca-pr" style="font-size:12px;padding:5px 8px">'+prOpts+'</select>')+fld('\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19 / Credit limit','<input id="ca-limit" type="number" min="0" value="0" style="font-size:12px;padding:5px 8px">')+'</div>'+
+    '<div style="display:flex;gap:8px">'+fld('\u0e01\u0e25\u0e38\u0e48\u0e21\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19 / Limit group','<select id="ca-lg" style="font-size:12px;padding:5px 8px">'+(typeof limitGroupOpts==='function'?limitGroupOpts(''):'<option value="">\u2014 none \u2014</option>')+'</select>')+fld('\u0e27\u0e31\u0e19\u0e2b\u0e21\u0e14\u0e2d\u0e32\u0e22\u0e38 / Expiry (MM/YY)','<input id="ca-exp" placeholder="12/28" style="font-size:12px;padding:5px 8px">')+'</div>'+
+    fld('\u0e2a\u0e34\u0e17\u0e18\u0e34\u0e1b\u0e23\u0e30\u0e42\u0e22\u0e0a\u0e19\u0e4c / Benefits','<textarea id="ca-ben" rows="4" placeholder="(\u0e40\u0e27\u0e49\u0e19\u0e44\u0e14\u0e49)" style="font-size:12px;padding:5px 8px;resize:vertical;min-height:70px"></textarea>')+
+    '<div style="display:flex;gap:8px">'+fld('URL','<input id="ca-url" placeholder="https://" style="font-size:12px;padding:5px 8px">')+fld('\u0e40\u0e23\u0e34\u0e48\u0e21\u0e2d\u0e2d\u0e01 statement \u0e15\u0e31\u0e49\u0e07\u0e41\u0e15\u0e48 (YYYY-MM)','<input id="ca-ss" type="month" style="font-size:12px;padding:5px 8px">')+'</div>'+
+    fld('\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38 / Remarks','<input id="ca-rem" placeholder="(\u0e40\u0e27\u0e49\u0e19\u0e44\u0e14\u0e49)" style="font-size:12px;padding:5px 8px">');
+  ov.innerHTML='<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;max-width:520px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.3)">'+
+    '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-credit-card" style="color:var(--primary)"></i><span style="font-weight:700;font-size:13px">\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e1a\u0e31\u0e15\u0e23\u0e43\u0e2b\u0e21\u0e48 / Add Card</span><span style="flex:1"></span><button class="del-btn" onclick="ccAddCardCancel()"><i class="fa-solid fa-xmark"></i></button></div>'+
+    '<div style="padding:16px;display:flex;flex-direction:column;gap:10px">'+body+
+    
+    '</div>'+
+    '<div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-ghost" onclick="ccAddCardCancel()">Cancel</button><button class="btn btn-primary" onclick="ccAddCardSave()"><i class="fa-solid fa-check"></i> Add</button></div>'+
+    '</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('keydown',function(e){ if(e.key==='Escape')ccAddCardCancel(); if(e.key==='Enter'&&e.target.tagName!=='SELECT'&&e.target.tagName!=='TEXTAREA')ccAddCardSave(); });
+  var nm=document.getElementById('ca-name'); if(nm)nm.focus();
+}
+function ccAddCardCancel(){ var ov=document.getElementById('cc-add-ov'); if(ov)ov.remove(); }
+function ccAddBankChanged(){ var sel=document.getElementById('ca-bank'); var oth=document.getElementById('ca-bank-other'); if(!sel||!oth)return; if(sel.value==='__other__'){ oth.style.display=''; oth.focus(); } else { oth.style.display='none'; } }
+if(typeof window!=='undefined'){ window.ccAddCardPopup=ccAddCardPopup; window.ccAddCardCancel=ccAddCardCancel; window.ccAddCardSave=ccAddCardSave; window.ccAddBankChanged=ccAddBankChanged; }
+function ccAddCardSave(){
+  var gv=function(id){var el=document.getElementById(id);return el?el.value:'';};
+  var name=gv('ca-name').trim();
+  if(!name){ alert('\u0e43\u0e2a\u0e48\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e31\u0e15\u0e23\u0e01\u0e48\u0e2d\u0e19'); return; }
+  if(typeof readAll==='function')readAll();
+  if(!D.cards)D.cards=[];
+  var sd=parseInt(gv('ca-sd'))||1, off=parseInt(gv('ca-off')); if(isNaN(off))off=1;
+  var bank=gv('ca-bank'); if(bank==='__other__') bank=gv('ca-bank-other').trim(); else bank=(bank||'').trim();
+  var card={name:name, bank:bank, last4:gv('ca-last4').trim(),
+    statement_day:sd, payment_day:Math.min(sd+off,31), deadline:parseInt(gv('ca-dl'))||15,
+    due_offset:off, period_rule:(gv('ca-pr')==='same'?'same':'prev'),
+    statement_start:gv('ca-ss')||'', expiry:gv('ca-exp').trim(), credit_limit:parseFloat(gv('ca-limit'))||0,
+    current_balance:0, benefits:gv('ca-ben').trim(), fee_waiver:'',
+    fee_waiver_target:0, fee_waiver_mode:'amount', fee_waiver_manual:0, fee_waiver_target_count:0,
+    fee_waiver_manual_count:0, remarks:gv('ca-rem').trim(), limit_group:gv('ca-lg').trim(), url:gv('ca-url').trim(), points_log:[]};
+  D.cards.push(card);
+  D.cards.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
+  saveD();
+  ccAddCardCancel();
+  // re-render then expand + scroll to the new card so it's obvious where it landed
+  var ni=D.cards.indexOf(card);
+  if(typeof _ccOpen==='object' && ni>=0){ _ccOpen[ni]=true; }
+  renderCreditCards();
+  try{ var row=document.querySelector('[data-ci="'+ni+'"]'); if(row&&row.scrollIntoView) row.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+  if(typeof toast==='function') toast('\u2705 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e1a\u0e31\u0e15\u0e23 "'+name+'" \u0e41\u0e25\u0e49\u0e27');
 }

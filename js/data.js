@@ -169,9 +169,9 @@ function sCards(){return D.cards.slice().sort(function(a,b){return a.name.locale
 
 function sTypes(){return D.types.slice().sort()}
 
-function cOpts(sel){var h='<option value="Cash/Direct"'+(sel==='Cash/Direct'?' selected':'')+'>Cash/Direct</option>';sCards().forEach(function(c){h+='<option value="'+esc(c.name)+'"'+(sel===c.name?' selected':'')+'>'+esc(c.name)+' (pay:'+ord(c.payment_day)+', due:'+ord(c.deadline)+')</option>'});return h}
+function cOpts(sel){var _s=(typeof window.cardResolve==='function'&&sel&&sel!=='Cash/Direct')?((window.cardResolve(sel)||{}).id||sel):sel;var h='<option value="Cash/Direct"'+(_s==='Cash/Direct'?' selected':'')+'>Cash/Direct</option>';sCards().forEach(function(c){h+='<option value="'+esc(c.id)+'"'+(_s===c.id?' selected':'')+'>'+esc(c.name)+' (pay:'+ord(c.payment_day)+', due:'+ord(c.deadline)+')</option>'});return h}
 
-function cOnlyOpts(sel){var h='';sCards().forEach(function(c){h+='<option value="'+esc(c.name)+'"'+(sel===c.name?' selected':'')+'>'+esc(c.name)+'</option>'});return h}
+function cOnlyOpts(sel){var _s=(typeof window.cardResolve==='function'&&sel&&sel!=='Cash/Direct')?((window.cardResolve(sel)||{}).id||sel):sel;var h='';sCards().forEach(function(c){h+='<option value="'+esc(c.id)+'"'+(_s===c.id?' selected':'')+'>'+esc(c.name)+'</option>'});return h}
 
 function dirOpts(v){return '<option value="expense"'+(v==='expense'?' selected':'')+'>Expense</option><option value="income"'+(v==='income'?' selected':'')+'>Income</option>'}
 
@@ -237,7 +237,7 @@ function saveAll(){readAll();saveD();simulate();renderAllTabs();toast('\u2705 Sa
 
 function resetAll(){if(confirm('This will DELETE all your data and start fresh. Are you sure?')){D=emptyData();sS(SKEY,JSON.stringify(D));location.reload()}}
 
-function exportData(){readAll();saveD();var b=new Blob([JSON.stringify(D,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='cashflow_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('\ud83d\udce5 Exported')}
+function exportData(){readAll();saveD();var b=new Blob([JSON.stringify(D,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);var _n=new Date(),_p=function(x){return (x<10?'0':'')+x;};var _fn='cashflow_'+_n.getFullYear()+'-'+_p(_n.getMonth()+1)+'-'+_p(_n.getDate())+'_'+_p(_n.getHours())+_p(_n.getMinutes())+_p(_n.getSeconds())+'.json';a.download=_fn;a.click();toast('\ud83d\udce5 Exported')}
 
 function importData(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{D=JSON.parse(ev.target.result);saveD();location.reload()}catch(err){alert('Error: '+err.message)}};r.readAsText(f);e.target.value=''}
 
@@ -270,6 +270,103 @@ if(c.fee_waiver_target_count===undefined)c.fee_waiver_target_count=0; // count t
 if(c.fee_waiver_manual_count===undefined)c.fee_waiver_manual_count=0; // manual extra swipes for 'either' mode
 if(!Array.isArray(c.points_log))c.points_log=[];
 });
+
+// ===== CARD IDENTITY (Oct 17 2026): immutable id (primary key) vs mutable name (description) =====
+// PRINCIPLE (user-locked): every setup-able entity separates an immutable `id` from a rename-able
+// `name`. For cards, references in data (CB|name|period keys, t.card, _cardName, cardbill_extra,
+// CARD_BILLS[].card) historically stored the NAME, so a rename orphaned them. The resolver below
+// recovers the CURRENT name from last4 (a stable natural key on every card record and PDF bill/txn),
+// so stale names in old data resolve to the live name without data migration.
+(function(){
+  // id = opaque running number 'c<N>' (NEVER derived from last4/name/any card data — user-locked
+  // Oct 17 2026). D._card_id_seq is the monotonic counter; it only ever increases, so a deleted
+  // card's id is never reused. last4 is a BRIDGE for the PDF parser (which only reads last4), not
+  // the identity.
+  if(typeof D._card_id_seq!=='number'||!isFinite(D._card_id_seq)) D._card_id_seq=0;
+  // seed the counter past any existing c<N> ids so we never collide
+  D.cards.forEach(function(c){ var m=/^c(\d+)$/.exec(String(c&&c.id||'')); if(m){ var n=+m[1]; if(n>D._card_id_seq)D._card_id_seq=n; } });
+  function _nextId(){ D._card_id_seq++; return 'c'+D._card_id_seq; }
+  D.cards.forEach(function(c){ if(!c.id||!/^c\d+$/.test(String(c.id))) c.id=_nextId(); });
+  window.cardNextId=_nextId;  // used by Add-Card so new cards get a running-number id
+  D._card_id_migrated=true;
+})();
+
+window.cardById=function(id){ if(!id)return null; for(var i=0;i<D.cards.length;i++){ if(D.cards[i].id===id)return D.cards[i]; } return null; };
+window.cardByLast4=function(l4){ if(!l4)return null; l4=String(l4).replace(/\D/g,''); if(!l4)return null; for(var i=0;i<D.cards.length;i++){ if(String(D.cards[i].last4||'').replace(/\D/g,'')===l4)return D.cards[i]; } return null; };
+window.cardByName=function(nm){ if(!nm)return null; for(var i=0;i<D.cards.length;i++){ if(D.cards[i].name===nm)return D.cards[i]; } return null; };
+window.cardIdByName=function(nm){ var c=window.cardByName(nm); return c?c.id:''; };
+window.cardDisplayName=function(x, last4Hint){
+  var c=null;
+  if(x && typeof x==='object'){ c=x.id?window.cardById(x.id):null; if(!c&&x.last4)c=window.cardByLast4(x.last4); if(!c&&x.card)c=window.cardByName(x.card); if(!c&&x.name)c=window.cardByName(x.name); }
+  else if(typeof x==='string'){ if(/^c\d+$/.test(x)||/^card_/.test(x))c=window.cardById(x); if(!c)c=window.cardByName(x); }
+  if(!c && last4Hint) c=window.cardByLast4(last4Hint);
+  return c?c.name:(typeof x==='string'?x:(x&&x.card)||(x&&x.name)||'');
+};
+window.cardResolve=function(x, last4Hint){
+  var c=null;
+  if(x && typeof x==='object'){ c=x.id?window.cardById(x.id):null; if(!c&&x.last4)c=window.cardByLast4(x.last4); if(!c&&x.card)c=window.cardByName(x.card); }
+  else if(typeof x==='string'){ if(/^c\d+$/.test(x)||/^card_/.test(x))c=window.cardById(x); if(!c)c=window.cardByName(x); }
+  if(!c && last4Hint) c=window.cardByLast4(last4Hint);
+  return c;
+};
+
+// ===== S1: card REFERENCE -> card_id migration (Oct 17 2026, user-locked full id-everywhere) =====
+// One-time, idempotent, merge-not-overwrite. Converts every STORED card reference from name -> id:
+//   def.card (monthly/yearly/installments/planned), bill_payments CB|<id>|period::due keys,
+//   cardbill_extra <id>::period keys, planned _cardKey/_cardId. 'Cash/Direct' is NOT a card -> kept.
+// Runs AFTER the card_id migration + resolvers above, so cardByName/cardById are available.
+(function(){
+  if(D._card_ref_id_migrated) return;
+  var KEEP={'Cash/Direct':1,'cash':1,'':1};
+  function toId(x){
+    if(x==null) return x;
+    if(KEEP[x]) return x;
+    if(typeof x==='string' && /^c\d+$/.test(x)) return x;      // already an id
+    var c=window.cardByName(x); return (c&&c.id)?c.id:x;        // name -> id (unknown kept as-is, never blanked)
+  }
+  // 1) def.card
+  ['monthly','yearly','installments','planned'].forEach(function(coll){
+    (D[coll]||[]).forEach(function(it){ if(it && it.card!=null && !KEEP[it.card]) it.card=toId(it.card); });
+  });
+  // 2) bill_payments CB|<name>|period::due -> CB|<id>|...  (merge on collision, keep later paid_date)
+  if(D.bill_payments && typeof D.bill_payments==='object'){
+    var bp=D.bill_payments, out={};
+    function pd(r){ return (r&&r.paid_date)||''; }
+    Object.keys(bp).forEach(function(k){
+      var v=bp[k], nk=k;
+      if(k.indexOf('CB|')===0){
+        var parts=k.split('|');
+        if(parts.length>=3 && !KEEP[parts[1]]){ parts[1]=toId(parts[1]); nk=parts.join('|'); }
+      }
+      if(v && typeof v==='object' && v.card!=null && !KEEP[v.card]) v.card=toId(v.card);
+      if(out[nk]){ out[nk] = (pd(v)>=pd(out[nk])) ? v : out[nk]; }
+      else out[nk]=v;
+    });
+    D.bill_payments=out;
+  }
+  // 3) cardbill_extra <name>::period -> <id>::period  (sum on collision)
+  if(D.cardbill_extra && typeof D.cardbill_extra==='object'){
+    var ce=D.cardbill_extra, oce={};
+    Object.keys(ce).forEach(function(k){
+      var nm=k.split('::')[0], nk=k;
+      if(!KEEP[nm]){ var rest=(k.indexOf('::')>=0)?k.slice(k.indexOf('::')+2):''; nk=toId(nm)+'::'+rest; }
+      if(oce[nk]!==undefined){ var a=parseFloat(oce[nk])||0,b=parseFloat(ce[k])||0; oce[nk]=a+b; }
+      else oce[nk]=ce[k];
+    });
+    D.cardbill_extra=oce;
+  }
+  // 4) planned _cardKey ('<name>|period' -> '<id>|period') + _cardId
+  (D.planned||[]).forEach(function(pl){
+    if(!pl||typeof pl!=='object') return;
+    if(typeof pl._cardKey==='string' && pl._cardKey.indexOf('|')>=0){
+      var nm=pl._cardKey.split('|')[0], rest=pl._cardKey.slice(nm.length+1);
+      if(!KEEP[nm]) pl._cardKey=toId(nm)+'|'+rest;
+    }
+    if(pl._cardName!=null && !KEEP[pl._cardName]) pl._cardId=toId(pl._cardName);
+  });
+  D._card_ref_id_migrated=true;
+})();
+
 if(!Array.isArray(D.installments))D.installments=[];
 if(!Array.isArray(D.planned))D.planned=[];
 if(!Array.isArray(D.payroll))D.payroll=[];
@@ -390,6 +487,8 @@ if(!D.asset_types)D.asset_types=['Savings','Investment','Property','Vehicle','In
 if(!Array.isArray(D.banks))D.banks=[]; // user-managed bank list for the Card Details bank dropdown
 // Auto-seed the bank list (one-time) from bank names already entered on cards, when the list is empty.
 if(!D.banks.length){var _bk={};(D.cards||[]).forEach(function(c){if(c.bank&&c.bank.trim())_bk[c.bank.trim()]=1;});D.banks=Object.keys(_bk).sort();}
+if(!Array.isArray(D.limit_groups))D.limit_groups=[]; // user-managed shared credit-limit group list (Setup chip UI)
+if(!D.limit_groups.length){var _lg={};(D.cards||[]).forEach(function(c){if(c.limit_group&&c.limit_group.trim())_lg[c.limit_group.trim()]=1;});D.limit_groups=Object.keys(_lg).sort();}
 if(!D.profile.name)D.profile.name='';
 if(!D.types)D.types=defaultData().types;if(!D.profile.start_date)D.profile.start_date='2026-09-15';if(!D.profile.dob)D.profile.dob='';if(!D.profile.end_date)D.profile.end_date='2027-05-31';
 if(!D.planned)D.planned=[];if(D.tax_actual_override===undefined)D.tax_actual_override=null;if(!D.tax_refund_month)D.tax_refund_month=3;if(D.tax_refund_day==null)D.tax_refund_day=15;if(!D.tax_year)D.tax_year=parseInt(D.profile.start_date.slice(0,4))||new Date().getFullYear();
@@ -526,7 +625,7 @@ var _fe=document.getElementById('f-end');if(_fe)_fe.value=p.end_date;
 if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),p.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),p.cat_expense);
 if(document.getElementById('f-catname'))document.getElementById('f-catname').value=p.cat_names||'';
-renderTypes();renderOwners();renderAssetTypes();renderBanks();renderTodoCats();renderWishCats();if(typeof renderDashLayout==='function')renderDashLayout()}
+renderTypes();renderOwners();renderAssetTypes();renderBanks();renderLimitGroups();renderTodoCats();renderWishCats();if(typeof renderDashLayout==='function')renderDashLayout()}
 
 function renderTypes(){var c=document.getElementById('types-list');
 c.innerHTML=sTypes().map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmType('+i+')">&times;</span></span>'}).join('')+
@@ -567,6 +666,14 @@ el.innerHTML=(D.banks||[]).map(function(t,i){return '<span class="type-chip">'+e
 '<span class="type-add" onclick="addBank()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 function addBank(){var n=prompt('New bank:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.banks))D.banks=[];if(D.banks.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.banks.push(n);D.banks.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
 function rmBank(i){if(!confirm('Remove bank "'+D.banks[i]+'"?'))return;D.banks.splice(i,1);saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+// Shared credit-limit groups — user-managed list for the limit_group dropdown (Setup chip UI). v313.
+function renderLimitGroups(){var el=document.getElementById('limitgroups-list');if(!el)return;
+el.innerHTML=(D.limit_groups||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmLimitGroup('+i+')">&times;</span></span>'}).join('')+
+'<span class="type-add" onclick="addLimitGroup()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
+function addLimitGroup(){var n=prompt('New shared limit group:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.limit_groups))D.limit_groups=[];if(D.limit_groups.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.limit_groups.push(n);D.limit_groups.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function rmLimitGroup(i){if(!confirm('Remove limit group "'+D.limit_groups[i]+'"? Cards keep their current group value.'))return;D.limit_groups.splice(i,1);saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+// <option> list for a limit-group <select>; includes the current value even if not in the list, plus a blank.
+function limitGroupOpts(sel){var h='<option value="">\u2014 none \u2014</option>';var list=(D.limit_groups||[]).slice();if(sel&&list.indexOf(sel)<0)list.push(sel);list.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});list.forEach(function(b){h+='<option'+(sel===b?' selected':'')+'>'+esc(b)+'</option>'});return h}
 // To-Do categories — user-managed list for the To-Do module (Setup chip UI).
 function renderTodoCats(){var el=document.getElementById('todocats-list');if(!el)return;
 el.innerHTML=(D.todo_cats||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmTodoCat('+i+')">&times;</span></span>'}).join('')+

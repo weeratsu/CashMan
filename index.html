@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script>
+window.APP_VERSION="2026-10-17 19:55";
 window.addEventListener("error",function(e){
 try{
 // Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
@@ -12,7 +13,7 @@ var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>CashMan v278</title>
+<title>CashMan</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="icon" type="image/x-icon" href="images/cashman-favicon.ico?v=252">
 <link rel="icon" type="image/png" sizes="32x32" href="images/cashman-favicon-32.png?v=252">
@@ -257,7 +258,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 </head>
 <body>
 <nav class="nav">
-<div class="nav-brand"><img src="images/cashman-icon.svg?v=278" alt="CashMan" style="width:22px;height:22px;vertical-align:middle;border-radius:5px;margin-right:4px"> <span class="brand-txt">CashMan <span style='font-size:9px;color:var(--text3)'>v278</span></span></div>
+<div class="nav-brand"><img src="images/cashman-icon.svg?v=278" alt="CashMan" style="width:22px;height:22px;vertical-align:middle;border-radius:5px;margin-right:4px"> <span class="brand-txt">CashMan <span id="app-ver" style='font-size:9px;color:var(--text3)'>v278</span></span></div>
 <button class="sb-toggle" id="sb-toggle" title="Collapse / expand menu" onclick="sidebarToggle()"><i class="fa-solid fa-angles-left"></i></button>
 <div id="sb-today" style="font-size:10px;color:var(--text2);padding:4px 8px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:5px" title="Today's date"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i><span class="sb-today-txt"></span></div>
 <div class="nav-tabs" id="nav-tabs">
@@ -349,8 +350,10 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div class="card"><h2><i class="fa-solid fa-users"></i> Owners</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">People who own or are responsible for items. Used in Installments and Planned expenses.</p><div class="types-list" id="owners-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-box-open"></i> Asset Types</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for retirement assets. Used in the Retirement &rarr; Assets page.</p><div class="types-list" id="asset-types-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-building-columns"></i> Banks</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Bank issuers for the Bank dropdown in Credit Cards &rarr; Card Details.</p><div class="types-list" id="banks-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-link"></i> Shared Limit Groups</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">กลุ่มวงเงินร่วม — สำหรับ dropdown "Shared limit group" ใน Credit Cards &rarr; Card Details.</p><div class="types-list" id="limitgroups-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-list-check"></i> To-Do Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for the To-Do module (Planning &rarr; To-Do).</p><div class="types-list" id="todocats-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-star"></i> Wishlist Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for the Wishlist module (Planning &rarr; Wishlist).</p><div class="types-list" id="wishcats-list"></div></div>
+<div class="card"><h2><i class="fa-solid fa-cloud"></i> Google Sheet Sync</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">ปกติข้อมูลจะ sync กับ Google Sheet อัตโนมัติ. ติ๊กด้านล่างเพื่อหยุด sync ชั่วคราว (เซฟแค่ในเครื่อง) ระหว่างแก้ข้อมูล แล้วค่อยกด Push เมื่อพร้อม.</p><label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="checkbox" id="set-sync-pause" onchange="cmSyncTogglePause(this.checked)"><span>หยุด sync ชั่วคราว (local only)</span></label><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="window.cmSyncPush&&window.cmSyncPush()"><i class="fa-solid fa-cloud-arrow-up"></i> Push ขึ้น Sheet ตอนนี้</button><span id="set-sync-status" style="font-size:10px;color:var(--text3)"></span></div></div>
 <div class="card"><h2><i class="fa-solid fa-table-columns"></i> Dashboard Layout</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Choose which cards show on the Dashboard and their order. Toggle to show/hide; use ▲▼ to reorder.</p><div id="dashlayout-list"></div></div>
 <div class="flex gap-2 flex-wrap" style="margin-top:8px">
 <button class="btn btn-primary" onclick="saveAll()"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
@@ -643,21 +646,21 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
-<script src="js/data.js?v=301"></script>
+<script src="js/data.js?v=310"></script>
 <script src="js/unified.js?v=6"></script>
-<script src="js/unified-adapter.js?v=9"></script>
+<script src="js/unified-adapter.js?v=16"></script>
 <script>window.CM_USE_UNIFIED=true;/* Step 2: Bill Reminder/Timeline/Calendar read the unified generator via billOccurrencesUnified. Set false to A/B against legacy. */</script>
 <!-- Google Sheet sync (local only): config-sheet.js is in .gitignore; if missing (e.g. GitHub Pages) CashMan uses localStorage only -->
 <script src="js/config-sheet.js" onerror="window.CM_SHEET_CFG=null"></script>
-<script src="js/sheet-sync.js?v=5"></script>
+<script src="js/sheet-sync.js?v=10"></script>
 </script>
 <script src="js/simulation.js?v=284"></script>
 
 <script src="js/ui-setup.js?v=252"></script>
 
 <script src="js/ui-payroll.js?v=252"></script>
-<script src="js/ui-bills.js?v=325"></script>
-<script src="js/ui-creditcards.js?v=307"></script>
+<script src="js/ui-bills.js?v=326"></script>
+<script src="js/ui-creditcards.js?v=313"></script>
 
 <script src="js/ui-timeline.js?v=252"></script>
 <script src="js/ui-dashboard.js?v=279"></script>
@@ -666,7 +669,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/retirement-calc.js?v=252"></script>
 <script src="js/ui-retirement.js?v=252"></script>
 
-<script src="js/ui-billreminder.js?v=325"></script>
+<script src="js/ui-billreminder.js?v=346"></script>
 <script src="js/ui-todos.js?v=288"></script>
 <script src="js/ui-wishlist.js?v=252"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
@@ -679,10 +682,10 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script>document.write('<script src="data/card_bills.js?t='+Date.now()+'"><\/script>');</script>
 <script>document.write('<script src="data/card_txns_local.js?t='+Date.now()+'" onerror="window.CARD_TXNS_LOCAL=null"><\/script>');</script>
 <script src="js/ui-utilities.js?v=278"></script>
-<script src="js/ui-cardsync.js?v=311"></script>
+<script src="js/ui-cardsync.js?v=315"></script>
 <script src="js/ui-cardraw.js?v=3"></script>
-<script src="js/ui-cardtxns.js?v=1"></script>
-<script src="js/ui-cardsummary.js?v=14"></script>
+<script src="js/ui-cardtxns.js?v=2"></script>
+<script src="js/ui-cardsummary.js?v=17"></script>
 <script src="js/drive-view.js?v=2"></script>
 <script src="js/app.js?v=290"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
@@ -697,6 +700,14 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 (function(){function _draw(){if(typeof Highcharts==='undefined')return false;try{if(typeof renderDash==='function')renderDash();}catch(e){console.warn('renderDash:',e);}return true;}
 if(!_draw()){var _n=0,_t=setInterval(function(){_n++;if(_draw()||_n>40)clearInterval(_t);},150);}
 })();
+</script>
+<script>
+(function(){ try{
+  var v=window.APP_VERSION||''; if(!v) return;
+  var sh=v.replace(/^20(\d\d)-(\d\d)-(\d\d)\s+(\d\d):(\d\d).*$/, '$1$2$3.$4$5'); // 2026-10-17 14:30 -> 261017.1430
+  var el=document.getElementById('app-ver'); if(el) el.textContent='v'+sh;
+  document.title='CashMan v'+sh;
+}catch(e){} })();
 </script>
 </body>
 </html>

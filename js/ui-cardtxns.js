@@ -21,6 +21,7 @@
   function _ctNum(v){ var n=(typeof v==='number')?v:parseFloat(String(v||'').replace(/,/g,'')); return isNaN(n)?0:n; }
   function _ctFmt(n){ return _ctNum(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function _ctEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function _ctName(t){ try{ if(typeof window.cardDisplayName==='function') return window.cardDisplayName((t&&(t.card_id))||(t&&t.card), t&&t.last4); }catch(e){} return (t&&t.card)||''; }
 
   var _KIND={purchase:{t:'ซื้อ',c:'var(--text1)'},payment:{t:'จ่าย',c:'var(--success,#16a34a)'},
              adjustment:{t:'ปรับปรุง',c:'var(--warning,#d97706)'},installment:{t:'ผ่อน',c:'var(--accent,#2563eb)'}};
@@ -37,7 +38,7 @@
       case 'desc':     return String(t.desc||'').toLowerCase();
       case 'amount':   return _ctNum(t.amount);
       case 'kind':     return String(t.kind||'');
-      case 'card':     return String(t.card||'').toLowerCase();
+      case 'card':     return String(_ctName(t)||'').toLowerCase();
       case 'period':   return String(t.period||'');
       default:         return '';
     }
@@ -66,13 +67,13 @@
       }
       // distinct cards + periods for filters
       var cards={}, periods={};
-      rows.forEach(function(t){ if(t.card)cards[t.card]=1; if(t.period)periods[t.period]=1; });
+      rows.forEach(function(t){ var _nm=_ctName(t); if(_nm)cards[_nm]=1; if(t.period)periods[t.period]=1; });
       var cardList=Object.keys(cards).sort();
       var perList=Object.keys(periods).sort().reverse();
 
       // apply filters
       var view=rows.filter(function(t){
-        if(_ctCard && t.card!==_ctCard) return false;
+        if(_ctCard && _ctName(t)!==_ctCard) return false;
         if(_ctPeriod && t.period!==_ctPeriod) return false;
         return true;
       });
@@ -128,7 +129,7 @@
         h+='<td style="white-space:nowrap">'+_ctDMY(t.txn_date||t.post_date)+'</td>';
         h+='<td>'+_ctEsc(t.desc||'-')+inst+'</td>';
         h+='<td style="white-space:nowrap">'+_ctKindBadge(t.kind)+'</td>';
-        if(!_ctCard) h+='<td style="white-space:nowrap">'+_ctEsc(t.card||'-')+'</td>';
+        if(!_ctCard) h+='<td style="white-space:nowrap">'+_ctEsc(_ctName(t)||'-')+'</td>';
         if(!_ctPeriod) h+='<td style="white-space:nowrap">'+_ctEsc(t.period||'-')+'</td>';
         h+='<td style="white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums">'+_ctFmt(t.amount)+'</td>';
         h+='</tr>';

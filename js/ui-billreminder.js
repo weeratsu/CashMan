@@ -39,6 +39,7 @@ function _cardStmtPer(o){try{if(o&&o.kind==='Card Statement'&&typeof o.key==='st
 // statements) so you can see which billing period the row belongs to. Card statements use their
 // statement period (card_period); utilities use their usage period (service_period); everything
 // else uses service_period, falling back to card_period then the due month.
+function _cardDisp(x){ if(!x||x==='Cash/Direct')return x||''; try{ if(typeof window.cardDisplayName==='function'){ var n=window.cardDisplayName(x); if(n) return n; } }catch(e){} return x; }
 function _rowPer(o){try{
   if(!o) return '';
   var cp=_cardStmtPer(o); if(cp) return cp;
@@ -85,8 +86,8 @@ if(!D||!D.bill_payments||!D.bill_payments[key]){alert('Record not found.');retur
 var r=D.bill_payments[key];
 // Build a card datalist from known cards + Cash/Direct.
 var nm=key.split('::')[0].split('|')[1]||key;
-var dueD=r.due?fmtDate(r.due):'';           // dd/mm/yyyy
-var paidD=r.paid_date?fmtDate(r.paid_date):''; // dd/mm/yyyy
+var dueD=(r.due&&/^\d{4}-\d{2}-\d{2}$/.test(r.due))?r.due:'';           // ISO for <input type=date>
+var paidD=(r.paid_date&&/^\d{4}-\d{2}-\d{2}$/.test(r.paid_date))?r.paid_date:''; // ISO for <input type=date>
 var amt=(r.paid_amount!=null?r.paid_amount:0);
 var typ=r.type||'';var card=r.card||'';var ap=!!r.auto_pay;
 var isStmt=(typeof key==='string'&&key.indexOf('CB|')===0);
@@ -105,9 +106,9 @@ var rowsHtml=''+
 '<div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Method</label>'+
 '<select id="he-auto" style="font-size:12px;padding:5px 8px"><option value="manual"'+(!ap?' selected':'')+'>\u270b Manual</option><option value="auto"'+(ap?' selected':'')+'>\u26a1 Auto</option></select></div></div>'+
 '<div style="display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Due date</label>'+
-'<input id="he-due" value="'+dueD+'" placeholder="dd/mm/yyyy" style="font-size:12px;padding:5px 8px;font-family:var(--mono)"></div>'+
+'<input id="he-due" type="date" value="'+dueD+'" style="font-size:12px;padding:5px 8px"></div>'+
 '<div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Marked paid</label>'+
-'<input id="he-paid" value="'+paidD+'" placeholder="dd/mm/yyyy" style="font-size:12px;padding:5px 8px;font-family:var(--mono)"></div></div>';
+'<input id="he-paid" type="date" value="'+paidD+'" style="font-size:12px;padding:5px 8px"></div></div>';
 ov.innerHTML='<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.3)">'+
 '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-pen" style="color:var(--primary)"></i><span style="font-weight:700;font-size:13px">Edit payment record</span><span style="flex:1"></span><button class="del-btn" onclick="histCancelEdit()"><i class="fa-solid fa-xmark"></i></button></div>'+
 '<div style="padding:16px;display:flex;flex-direction:column;gap:10px">'+rowsHtml+
@@ -139,6 +140,85 @@ saveD();
 histCancelEdit();
 renderBillReminder();
 if(typeof renderDash==='function'&&typeof SIM!=='undefined'&&SIM)try{renderDashBills()}catch(e){}
+}
+
+// v341 (user Oct 17 2026): PER-OCCURRENCE OVERRIDE editor. Edit card/amount/due/paid_date for ONE
+// occurrence (this bill, this period) without touching the recurring/installment template. Stored in
+// D.occ_overrides keyed '<billKey>::<period>'. The adapter applies it when building that occurrence.
+function occEditOverride(billKey, period, fullKey, defCard, defAmt, defDue){
+  if(!billKey){ alert('No bill key'); return; }
+  if(!/^\d{4}-\d{2}$/.test(period||'')){ alert('No period'); return; }
+  var okey=billKey+'::'+period;
+  var ov=(D.occ_overrides&&D.occ_overrides[okey])||{};
+  // current paid record (if any) for showing paid_date default
+  var pr=(fullKey&&D.bill_payments&&D.bill_payments[fullKey])?D.bill_payments[fullKey]:null;
+  // Defaults shown in the form = the occurrence's CURRENT effective values (override if set, else the
+  // recurring/installment template value passed in from the row). So the popup opens pre-filled.
+  var curCard=ov.card||defCard||'';
+  var curAmt=(ov.amount!=null?ov.amount:(defAmt!=null&&defAmt!==''?defAmt:''));
+  var curDue=ov.due||(/^\d{4}-\d{2}-\d{2}$/.test(defDue||'')?defDue:'');
+  var curPaid=ov.paid_date||(pr&&pr.paid_date)||'';
+  var ovv=document.createElement('div');
+  ovv.id='occ-edit-ov'; ovv.setAttribute('data-okey',okey); ovv.setAttribute('data-fullkey',fullKey||'');
+  ovv.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  var rows=''+
+   '<div style="display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">\u0e1a\u0e31\u0e15\u0e23\u0e17\u0e35\u0e48\u0e08\u0e48\u0e32\u0e22 (\u0e40\u0e09\u0e1e\u0e32\u0e30\u0e07\u0e27\u0e14\u0e19\u0e35\u0e49)</label>'+
+   '<select id="occ-card" style="font-size:12px;padding:5px 8px"><option value="">\u2014 \u0e43\u0e0a\u0e49\u0e04\u0e48\u0e32 default \u2014</option>'+cOpts(curCard)+'</select></div>'+
+   '<div style="display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">\u0e22\u0e2d\u0e14 (\u0e3f)</label>'+
+   '<input id="occ-amt" type="number" step="0.01" value="'+curAmt+'" placeholder="default" style="font-size:12px;padding:5px 8px"></div>'+
+   '<div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">\u0e27\u0e31\u0e19\u0e15\u0e31\u0e14/\u0e04\u0e23\u0e1a\u0e01\u0e33\u0e2b\u0e19\u0e14</label>'+
+   '<input id="occ-due" type="date" value="'+curDue+'" style="font-size:12px;padding:5px 8px"></div></div>'+
+   '<div style="display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">\u0e27\u0e31\u0e19\u0e08\u0e48\u0e32\u0e22\u0e08\u0e23\u0e34\u0e07 (\u0e16\u0e49\u0e32\u0e08\u0e48\u0e32\u0e22\u0e41\u0e25\u0e49\u0e27)</label>'+
+   '<input id="occ-paid" type="date" value="'+curPaid+'" style="font-size:12px;padding:5px 8px"></div>';
+  ovv.innerHTML='<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.3)">'+
+   '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-pen" style="color:var(--primary)"></i><span style="font-weight:700;font-size:13px">\u0e41\u0e01\u0e49\u0e07\u0e27\u0e14\u0e19\u0e35\u0e49 \u00b7 '+esc(period)+'</span><span style="flex:1"></span><button class="del-btn" onclick="occCancelEdit()"><i class="fa-solid fa-xmark"></i></button></div>'+
+   '<div style="padding:16px;display:flex;flex-direction:column;gap:10px">'+rows+
+   '<div style="font-size:10px;color:var(--text3)">\u0e01\u0e32\u0e23\u0e41\u0e01\u0e49\u0e19\u0e35\u0e49\u0e21\u0e35\u0e1c\u0e25\u0e40\u0e09\u0e1e\u0e32\u0e30\u0e07\u0e27\u0e14 '+esc(period)+' \u0e40\u0e17\u0e48\u0e32\u0e19\u0e31\u0e49\u0e19 \u2014 \u0e07\u0e27\u0e14\u0e2d\u0e37\u0e48\u0e19\u0e44\u0e21\u0e48\u0e01\u0e23\u0e30\u0e17\u0e1a</div>'+
+   '</div>'+
+   '<div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between"><button class="btn btn-ghost" onclick="occClearOverride()" style="color:var(--error)">\u0e25\u0e49\u0e32\u0e07 override</button><span style="flex:1"></span><button class="btn btn-ghost" onclick="occCancelEdit()">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button><button class="btn btn-primary" onclick="occSaveOverride()"><i class="fa-solid fa-check"></i> \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>'+
+   '</div>';
+  document.body.appendChild(ovv);
+  ovv.addEventListener('mousedown',function(e){if(e.target===ovv)occCancelEdit();});
+}
+function occCancelEdit(){var ov=document.getElementById('occ-edit-ov');if(ov)ov.remove();}
+function occClearOverride(){
+  var ov=document.getElementById('occ-edit-ov');var okey=ov?ov.getAttribute('data-okey'):'';
+  if(okey&&D.occ_overrides&&D.occ_overrides[okey]){ delete D.occ_overrides[okey]; saveD(); }
+  occCancelEdit(); _billRerenderAll();
+}
+function occSaveOverride(){
+  var ov=document.getElementById('occ-edit-ov');if(!ov)return;
+  var okey=ov.getAttribute('data-okey'), fullKey=ov.getAttribute('data-fullkey')||'';
+  var gv=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var card=gv('occ-card'), amt=gv('occ-amt'), due=gv('occ-due'), paid=gv('occ-paid');
+  if(!D.occ_overrides)D.occ_overrides={};
+  var o={};
+  if(card)o.card=card;
+  if(amt!==''&&!isNaN(parseFloat(amt)))o.amount=parseFloat(amt);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(due))o.due=due;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(paid))o.paid_date=paid;
+  if(Object.keys(o).length) D.occ_overrides[okey]=o; else delete D.occ_overrides[okey];
+  // v346: a paid_date in the override MARKS the occurrence PAID. The ledger key is '<billKey>::<period>'
+  // (okey itself) — the same key the paid ledger uses. If a paid record exists, update its paid_date
+  // (and card/amount/due if overridden). If NONE exists yet (e.g. AIS never paid), CREATE one so the
+  // Reminder stops showing it as overdue and the fold-by-paid-date logic can place it. Clearing the
+  // paid_date (left blank) UN-marks it: delete the record so it returns to actionable/overdue.
+  if(!D.bill_payments)D.bill_payments={};
+  var _lk=okey;                        // '<billKey>::<period>'
+  var _per=(okey.indexOf('::')>=0)?okey.split('::')[1]:'';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(paid)){
+    var _rec=D.bill_payments[_lk]||{};
+    _rec.paid=true;
+    _rec.paid_date=paid;
+    if(o.amount!=null) _rec.paid_amount=o.amount; else if(_rec.paid_amount==null && amt!=='' && !isNaN(parseFloat(amt))) _rec.paid_amount=parseFloat(amt);
+    if(o.card) _rec.card=o.card; else if(!_rec.card && card) _rec.card=card;
+    if(o.due) _rec.due=o.due; if(o.due) _rec.orig_due=o.due;
+    if(/^\d{4}-\d{2}$/.test(_per)) _rec.period=_per;
+    D.bill_payments[_lk]=_rec;
+  }
+  // NOTE: leaving paid_date blank does NOT auto-delete an existing paid record (it may have been paid
+  // via the normal Pay button / History). To un-mark a payment, use the Pay toggle or History ✕.
+  saveD(); occCancelEdit(); _billRerenderAll();
 }
 
 function histBulkDelete(){var sel=histSelected();if(!sel.length){toast('Select entries first');return;}
@@ -344,7 +424,7 @@ var cashOcc=occ.filter(function(o){return !o.card||o.card==='Cash/Direct';});
 var cardOcc=occ.filter(function(o){return o.card&&o.card!=='Cash/Direct';});
 // Set of card names that are PDF-managed (appear in CARD_BILLS). Used to tag forecast
 // statements (a card-managed statement for a period that has no real PDF yet).
-var _pdfCardSet={};try{((window.CARD_BILLS&&window.CARD_BILLS.bills)||[]).forEach(function(_b){if(_b&&_b.card)_pdfCardSet[_b.card]=1;});}catch(_e){}
+var _pdfCardSet={};try{((window.CARD_BILLS&&window.CARD_BILLS.bills)||[]).forEach(function(_b){if(_b&&_b.card){var _cid=(typeof window.cardResolve==='function'&&((window.cardResolve(_b.card,_b.last4)||{}).id))||_b.card;_pdfCardSet[_cid]=1;_pdfCardSet[_b.card]=1;}});}catch(_e){}
 // PERIOD-BASED GROUPING (PDF-managed cards only — ANY bank present in CARD_BILLS, not bank-specific). CM normally groups card charges into a
 // statement by the MONTH OF THE DUE DATE. For PDF cards that breaks: a statement's period (usage
 // month) can differ from its due month (due may cross a month boundary, e.g. stmt day 30 + offset).
@@ -353,9 +433,48 @@ var _pdfCardSet={};try{((window.CARD_BILLS&&window.CARD_BILLS.bills)||[]).forEac
 // of month M (M = chargeMonth if pd<=S else chargeMonth+1); period month = (S<=15 ? M-1 : M).
 // _fromCard rows already carry _cardPeriod from the parser — use it verbatim.
 function _ym(y,m){while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}return y+'-'+(m+1<10?'0':'')+(m+1);}
+// v332 (user rule Oct 17): a card-linked bill folds by its ACTUAL PAID DATE, not its cut date.
+// _periodForDateOnCard(cardRef, iso): which statement period the card was in on date `iso`.
+function _periodForDateOnCard(cardRef, iso){
+  var c=(D.cards||[]).find(function(x){return x.id===cardRef||x.name===cardRef;});
+  if(!c||!c.statement_day) return null;
+  var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); if(!m) return null;
+  var S=parseInt(c.statement_day)||1, cy=+m[1], cm=(+m[2])-1, pd=+m[3];
+  // v336: honor the card's period_rule (same setting Bill Reminder/adapter use), not the S<=15 heuristic.
+  var _pr=c.period_rule;
+  var M=cm+(pd>S?1:0);                       // statement month that closes the cycle this date is in
+  var shift=(_pr==='prev')?1:(_pr==='same')?0:((S<=15)?1:0);
+  var per=M-shift, y=cy;
+  while(per<0){per+=12;y--;} while(per>11){per-=12;y++;}
+  return y+'-'+(per+1<10?'0':'')+(per+1);
+}
+// _chargePaidRec(o): the paid-ledger record for a card charge occurrence (keyed by its fullKey/key).
+// Returns the record if paid, else null. Used to decide fold (paid) vs surface (unpaid).
+function _chargePaidRec(o){
+  if(!o||!D.bill_payments) return null;
+  var k=o.fullKey||o.key; if(!k) return null;
+  var r=D.bill_payments[k];
+  if(r&&r.paid) return r;
+  // v335 (Oct 17): match ONLY the paid record for THIS occurrence's own service period.
+  // The occurrence key (e.g. 'M|AIS Fiber') has no period suffix, so compute the service
+  // period from this occurrence's own charge date (orig_due, else due) and look up the exact
+  // '<key>::<period>' record. The OLD prefix fallback matched ANY period sharing the key
+  // prefix, so an UNPAID Oct/Nov occurrence wrongly adopted the PAID Sep record and folded
+  // into the wrong statement. Per-period exact match fixes that.
+  try{
+    var base=(o.orig_due instanceof Date)?o.orig_due:(o.due instanceof Date?o.due:null);
+    if(base){
+      var per=base.getFullYear()+'-'+((base.getMonth()+1)<10?'0':'')+(base.getMonth()+1);
+      var kk=(o.key||'')+'::'+per;
+      var rr=D.bill_payments[kk];
+      if(rr&&rr.paid) return rr;
+    }
+  }catch(e){}
+  return null;
+}
 function _cardOccPeriod(o){
   if(o._fromCard&&/^\d{4}-\d{2}$/.test(o._cardPeriod||''))return o._cardPeriod;
-  var c=(D.cards||[]).find(function(x){return x.name===o.card;});
+  var c=(D.cards||[]).find(function(x){return x.id===o.card||x.name===o.card;});
   if(!c||!c.statement_day)return null;
   var S=parseInt(c.statement_day)||1;
   // use the occurrence's ORIGINAL (un-shifted) charge date if available, else its due date
@@ -373,15 +492,27 @@ cardOcc.forEach(function(o){
 // is assigned HERE, at anchor time, and the group's y/m are derived FROM the period string — never
 // from o.due and never re-keyed later. That removes the due-month-vs-period desync that caused the
 // v312 class of bugs (JCB 2026-04 shown as 2026-05, BAY 2026-08 split into two rows, vanished months).
-var mk=_cardOccPeriod(o);
+var mk, _foldCard=o.card;
+if(o._fromCard){ mk=_cardOccPeriod(o); }           // PDF statement row: its own period
+else {
+  // v334 (user concept Oct 17): a linked charge folds ONLY by its ACTUAL PAID DATE.
+  //  - UNPAID  -> do NOT fold into any statement group; it stays a standalone actionable row.
+  //  - PAID    -> fold under the PAYING card, into the statement period whose date-range contains
+  //               paid_date (computed from that card's statement_day/period_rule via _periodForDateOnCard).
+  var _pr=_chargePaidRec(o);
+  if(!(_pr&&_pr.paid&&_pr.paid_date)) return;        // unpaid linked charge -> skip grouping entirely
+  _foldCard=_pr.card||o.card;
+  mk=_periodForDateOnCard(_foldCard,_pr.paid_date);
+  if(!mk) return;                                     // can't resolve a period -> don't fold
+}
 if(!mk){ mk=o.due.getFullYear()+'-'+(o.due.getMonth()+1<10?'0':'')+(o.due.getMonth()+1); }
-var gk=o.card+'::'+mk;
+var gk=_foldCard+'::'+mk;
 // g.y/g.m ALWAYS reflect the period month (mk) when mk is a valid YYYY-MM, so downstream
 // due/deadline/extra-key math is consistent with the bucket for every card (PDF or not).
 var _gy,_gm;
 if(/^(\d{4})-(\d{2})$/.test(mk)){ _gy=+mk.slice(0,4); _gm=(+mk.slice(5,7))-1; }
 else { _gy=o.due.getFullYear(); _gm=o.due.getMonth(); }
-if(!groups[gk])groups[gk]={card:o.card,y:_gy,m:_gm,items:[],sum:0,latest:o.due,deadline:o.deadline};
+if(!groups[gk])groups[gk]={card:_foldCard,y:_gy,m:_gm,items:[],sum:0,latest:o.due,deadline:o.deadline};
 var g=groups[gk];g.items.push(o);
 // PDF statement row (_fromCard, from card_bills) is the AUTHORITATIVE total for the whole period:
 // keep it as a child (so installments/charges stay visible) but DO NOT add it to g.sum, and record
@@ -406,7 +537,7 @@ if(isNaN(oy)||isNaN(omo))return;
 // statement_day closes this period (period+1 when statement_day<=15, else the period month).
 // For non-PDF cards keep the legacy payment_day-based due. g.y/g.m MUST stay the PERIOD so the
 // later .map() computes due/deadline consistently with charge-backed buckets.
-var cObj=(D.cards||[]).find(function(x){return x.name===oc;});
+var cObj=(D.cards||[]).find(function(x){return x.id===oc||x.name===oc;});
 var sdue;
 if(_pdfCardSet[oc]){
   var _o2=(cObj&&typeof cObj.due_offset==='number')?cObj.due_offset:(cObj&&cObj.due_offset?parseInt(cObj.due_offset)||0:0);
@@ -498,11 +629,13 @@ if(o._fromCard)return;
 // NOT surface — it folds under its statement instead (and shows its paid date there). Detect paid by
 // the charge's OWN CC-period key (I|/M|name::period via _cardOccPeriod), NOT the due-month, because a
 // shifted charge's due month differs from its statement period.
-var _cp=(typeof _cardOccPeriod==='function')?_cardOccPeriod(o):null;
-if(_cp){ var _ck=o.key+'::'+_cp; var _cr=(D.bill_payments||{})[_ck]; if(_cr&&_cr.paid)return; }
-var mk=o.due.getFullYear()+'-'+(o.due.getMonth()+1<10?'0':'')+(o.due.getMonth()+1);
-var gk=o.card+'::'+mk;if(!groups[gk])return;// only if it actually rolled into a statement
-var s=Object.assign({},o);s._surfaced=true;s._inStmtCard=o.card;
+// v332 (user rule Oct 17): a PAID linked charge folds under the statement of its PAID DATE and must
+// NOT surface. An UNPAID linked charge ALWAYS surfaces as its own actionable row (even if that card's
+// statement for some period is already paid) and does not fold.
+var _pr=_chargePaidRec(o);
+if(_pr&&_pr.paid) return;                 // paid -> folded under paid-date statement, don't surface
+// unpaid -> surface as its own actionable row (standalone; not folded into any statement)
+var s=Object.assign({},o);s._surfaced=true;s._inStmtCard=o.card;s._unpaidStandalone=true;
 // Keep s.due = the charge's own due (cardOcc items already carry due=charge due here,
 // since consolidation groups by o.due). periodKey/paid-state stay consistent with the child.
 // (orig_due is used by the display cell via o.orig_due||o.due, so no separate _dispDue needed.)
@@ -675,7 +808,10 @@ function _mkPaidRec(o,pd,extra){
 function markRowPaid(fullKey,amount,dueISO,typ,card,autoPay,utilUtility,utilPeriod,period){
 if(!D.bill_payments)D.bill_payments={};
 var di=document.getElementById('brpd_'+fullKey.replace(/[^a-zA-Z0-9]/g,'_'));
-var pd=(di&&di.value)?di.value:_billISO(_billToday());
+// v327 (user Oct 16 2026): REQUIRE a chosen payment date — never silently default to today
+// (that was overwriting real paid dates with 16/10 when the user clicked Pay without picking a day).
+var pd=(di&&di.value)?di.value:'';
+if(!/^\d{4}-\d{2}-\d{2}$/.test(pd)){ alert('\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48\u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19 (Pick the payment date first)'); if(di)try{di.focus();}catch(e){} return; }
 D.bill_payments[fullKey]={paid:true,paid_date:pd,paid_amount:amount,due:dueISO||'',type:typ||'',card:card||'',auto_pay:!!autoPay};
 // v323: lock period (statement cycle) + orig_due (bill's own date) so History can fold + badge it.
 if(/^\d{4}-\d{2}$/.test(period||''))D.bill_payments[fullKey].period=period;
@@ -1054,9 +1190,9 @@ if(_dfl)stBadge+='<br><span style="font-size:9px;font-weight:700;color:'+(_dfl.s
 var diff=Math.round(((o.orig_due||o.due)-today)/86400000);
 var dueRel=o.paid?'':(diff===0?' (today)':diff>0?' (in '+diff+'d)':' ('+(-diff)+'d ago)');
 var method=o.auto_pay?
-'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff" title="Auto-charged to '+esc(o.card)+'">\u26a1 Auto</span>':
+'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff" title="Auto-charged to '+esc(_cardDisp(o.card))+'">\u26a1 Auto</span>':
 '<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--warning);color:#fff" title="You must pay this manually">\u270b Manual</span>';
-var cardTxt=o.card&&o.card!=='Cash/Direct'?' <span style="font-size:9px;color:var(--text3)">'+esc(o.card)+'</span>':'';
+var cardTxt=o.card&&o.card!=='Cash/Direct'?' <span style="font-size:9px;color:var(--text3)">'+esc(_cardDisp(o.card))+'</span>':'';
 // Highlight rows needing attention with a subtle tint + left accent bar (inset box-shadow keeps table layout intact).
 // Overdue = red; Manual Due today = amber. Auto due-today is intentionally NOT highlighted (no action needed).
 var rowStyle=st==='overdue'?'background:rgba(220,38,38,0.06);box-shadow:inset 3px 0 0 var(--error)':((_disp==='due_today'&&!o.auto_pay)?'background:rgba(245,158,11,0.08);box-shadow:inset 3px 0 0 var(--warning)':((o.paid||st==='auto_paid')?'opacity:.6':''));
@@ -1064,7 +1200,7 @@ var _hasKids=o.children&&o.children.length;
 var _gid=_hasKids?('brk_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')):'';
 h+='<tr style="'+rowStyle+'">'+
 '<td class="r"><input type="checkbox" class="br-chk" data-key="'+esc(o.fullKey)+'" data-amt="'+o.amount+'" data-due="'+_billISO(o.due)+'" data-type="'+esc(o.type||'')+'" data-card="'+esc(o.card||'')+'" data-auto="'+(o.auto_pay?'1':'0')+'" data-paid="'+(o.paid?'1':'0')+'" onchange="brUpdateSelCount()"></td>'+
-'<td>'+(_hasKids?'<span style="cursor:pointer;user-select:none;color:var(--text3);margin-right:4px" onclick="var r=document.querySelectorAll(\'.'+_gid+'\');var open=r.length&&r[0].style.display!==\'none\';for(var _i=0;_i<r.length;_i++)r[_i].style.display=open?\'none\':\'\';this.textContent=open?\'\u25b6\':\'\u25bc\'">\u25b6</span>':'')+_billIcon(o)+' '+esc(o.name)+_perBadge(_rowPer(o))+(o.info?' <span style="font-size:8px;color:var(--text3)">'+esc(o.info)+'</span>':'')+(o._surfaced?' <span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px" title="This charge is already included in the '+esc(o._inStmtCard)+' statement total below — surfaced here because you pay it manually">↳ in '+esc(o._inStmtCard)+' statement</span>':'')+((!o.children||!o.children.length)&&o.kind&&o.kind!=='Card Statement'&&!o._surfaced?' <button title="Delete this bill from your setup" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:9px;padding:0 3px" onclick="event.stopPropagation();brDeleteSource('+_ri+')"><i class="fa-solid fa-trash"></i></button>':'')+'</td>'+
+'<td>'+(_hasKids?'<span style="cursor:pointer;user-select:none;color:var(--text3);margin-right:4px" onclick="var r=document.querySelectorAll(\'.'+_gid+'\');var open=r.length&&r[0].style.display!==\'none\';for(var _i=0;_i<r.length;_i++)r[_i].style.display=open?\'none\':\'\';this.textContent=open?\'\u25b6\':\'\u25bc\'">\u25b6</span>':'')+_billIcon(o)+' '+esc(o.name)+_perBadge(_rowPer(o))+(o.info?' <span style="font-size:8px;color:var(--text3)">'+esc(o.info)+'</span>':'')+(o._surfaced?' <span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px" title="This charge is already included in the '+esc(_cardDisp(o._inStmtCard))+' statement total below — surfaced here because you pay it manually">↳ in '+esc(_cardDisp(o._inStmtCard))+' statement</span>':'')+((!o.children||!o.children.length)&&o.kind&&o.kind!=='Card Statement'&&!o._surfaced?' <button title="Delete this bill from your setup" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:9px;padding:0 3px" onclick="event.stopPropagation();brDeleteSource('+_ri+')"><i class="fa-solid fa-trash"></i></button>':'')+'</td>'+
 '<td>'+esc(o.type)+'</td>'+
 '<td>'+method+cardTxt+'</td>'+
 '<td class="r" style="font-family:var(--mono)'+(o._income?';color:#10b981;font-weight:600':'')+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount)+'</td>'+
@@ -1073,7 +1209,8 @@ h+='<tr style="'+rowStyle+'">'+
 '<td>'+stBadge+
 (o.paid?'<div style="margin-top:3px"><span style="font-size:8px;color:var(--text3)">'+(o._income?'received ':'paid ')+(D.bill_payments&&D.bill_payments[o.fullKey]&&D.bill_payments[o.fullKey].paid_date?fmtDate(D.bill_payments[o.fullKey].paid_date):'')+'</span> <button class="btn btn-ghost" style="font-size:8px;padding:1px 6px" onclick="toggleBillPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\',0,false,\'\',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\')"><i class="fa-solid fa-rotate-left"></i> Unmark</button></div>'
 :((o.auto_pay||st==='auto_paid')&&!(D&&D.autopay_cancelled&&D.autopay_cancelled[o.fullKey]))?'<div style="margin-top:3px"><span style="font-size:8px;color:var(--text3)">'+(st==='auto_paid'?'charged automatically \u00b7 no action needed':'will be auto-charged \u00b7 no action needed')+'</span></div>'
-:'<div style="margin-top:3px;display:flex;gap:3px;align-items:center"><input type="date" id="brpd_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')+'" value="'+_billISO(today)+'" style="font-size:8px;padding:1px 3px;width:104px" title="'+(o._income?'Received date':'Payment date')+'"><button class="btn '+(o._income?'btn-ghost" style="font-size:8px;padding:2px 7px;background:#10b981;color:#fff"':'btn-primary" style="font-size:8px;padding:2px 7px"')+' onclick="markRowPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\','+o.amount+',\''+_billISO(o.orig_due||o.due)+'\',\''+(o.type||'').replace(/'/g,"\\'")+'\',\''+(o.card||'').replace(/'/g,"\\'")+'\','+(o.auto_pay?'true':'false')+',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\',\''+(o.card_period||'')+'\')"><i class="fa-solid fa-'+(o._income?'hand-holding-dollar':'check')+'"></i> '+(o._income?'Received':'Pay')+'</button></div>')
+:'<div style="margin-top:3px;display:flex;gap:3px;align-items:center"><input type="date" id="brpd_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')+'" value="" style="font-size:8px;padding:1px 3px;width:104px" title="'+(o._income?'Received date':'Payment date')+'"><button class="btn '+(o._income?'btn-ghost" style="font-size:8px;padding:2px 7px;background:#10b981;color:#fff"':'btn-primary" style="font-size:8px;padding:2px 7px"')+' onclick="markRowPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\','+o.amount+',\''+_billISO(o.orig_due||o.due)+'\',\''+(o.type||'').replace(/'/g,"\\'")+'\',\''+(o.card||'').replace(/'/g,"\\'")+'\','+(o.auto_pay?'true':'false')+',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\',\''+(o.card_period||'')+'\')"><i class="fa-solid fa-'+(o._income?'hand-holding-dollar':'check')+'"></i> '+(o._income?'Received':'Pay')+'</button></div>')+
+(( o.kind && o.kind!=='Card Statement' && !o._income )?('<div style="margin-top:3px"><button title="\u0e41\u0e01\u0e49\u0e44\u0e02\u0e40\u0e09\u0e1e\u0e32\u0e30\u0e07\u0e27\u0e14\u0e19\u0e35\u0e49 (card/amount/due/paid)" style="background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text3);font-size:9px;padding:1px 6px" onclick="occEditOverride(\''+(o.key||'').replace(/'/g,"\\'")+'\',\''+_rowPer(o)+'\',\''+(o.fullKey||'').replace(/'/g,"\\'")+'\',\''+(o.card||'').replace(/'/g,"\\'")+'\','+(o.amount||0)+',\''+_billISO(o.orig_due||o.due)+'\')"><i class=\"fa-solid fa-pen\"></i> \u0e41\u0e01\u0e49\u0e07\u0e27\u0e14\u0e19\u0e35\u0e49'+((D.occ_overrides&&D.occ_overrides[o.key+'::'+_rowPer(o)])?' \u2022':'')+'</button></div>'):'')+
 '</td></tr>';
 // Statement detail: list the underlying charges as greyed, non-actionable rows
 if(o.children&&o.children.length){
@@ -1128,7 +1265,7 @@ var _seq=(_pfx==='I'&&_sm)?('('+_sm[1]+'/'+_sm[2]+')'):'';
 // records that never stored a `period` field, and feeds the fold match a correct period.
 var _ksuf2=(k.indexOf('::')>=0)?k.split('::')[1]:'';
 var _recPeriod=r.period||((_pfx==='CB')?(k.split('::')[0].split('|')[2]||''):((/^\d{4}-\d{2}$/.test(_ksuf2))?_ksuf2:''));
-return{key:k,name:nm,paid_date:r.paid_date||'',amount:r.paid_amount||0,due:r.due||k.split('::')[1]||'',type:r.type||'',card:r.card||'',auto_pay:r.auto_pay,kind:_kindMap[_pfx]||'',info:_seq,period:_recPeriod,orig_due:r.orig_due||''};})
+var _dispNm=nm; if(_pfx==='CB'){var _cnm=_cardDisp(nm); _dispNm=(_cnm&&_cnm!==nm?_cnm:nm)+(_recPeriod?(' '+_recPeriod):'');} return{key:k,name:_dispNm,paid_date:r.paid_date||'',amount:r.paid_amount||0,due:r.due||k.split('::')[1]||'',type:r.type||'',card:r.card||'',auto_pay:r.auto_pay,kind:_kindMap[_pfx]||'',info:_seq,period:_recPeriod,orig_due:r.orig_due||''};})
 ;
 // Utility dedup for Payment History: a util-linked Monthly recurring (Electricity/Water) may have
 // its OWN stale paid-ledger entry for a month that ALSO has a real utility bill (auto-synced Planned
@@ -1191,8 +1328,45 @@ var rnm=(''+(r.name||'')).trim().toLowerCase();
 // KEY suffix already carries the correct statement period, so reading it folds them under the right
 // card statement without guessing. Master config stays the single source for the live occurrence.
 var _ksuf=(typeof r.key==='string'&&r.key.indexOf('::')>=0)?r.key.split('::')[1]:'';
-var rper=(r.period&&/^\d{4}-\d{2}$/.test(r.period))?r.period:((/^\d{4}-\d{2}$/.test(_ksuf))?_ksuf:'');
-var st=rper?(stmts[ncd+'::'+rper]||null):((dm&&stmts[ncd+'::'+dm])||(pmo&&stmts[ncd+'::'+pmo])||null);
+// v336 (user-locked fold rule Oct 17 2026): a card-linked PAID charge folds into the statement
+// period whose date-range CONTAINS its real paid_date, on the card it was paid with — NOT the
+// stored period field / key suffix (which reflect the bill's own cut month, so a late payment
+// landed under the wrong, already-closed statement). Compute that period from the paying card's
+// statement_day/period_rule via _periodForDateOnCard. Fall back to the stored period / key suffix
+// / due / paid month only when paid_date or the card period can't be resolved (legacy records).
+var _payCard=r.card||cd;
+// v337: compute the fold period from paid_date INLINE (the _periodForDateOnCard helper lives in a
+// different closure and isn't in scope here). Same rule: statement period on the paying card whose
+// cutoff range contains paid_date, honoring the card's period_rule (fallback S<=15 heuristic).
+var _foldPer='';
+(function(){
+  var _pc=(D.cards||[]).find(function(x){return x.id===_payCard||x.name===_payCard;});
+  if(!_pc||!_pc.statement_day)return;
+  // v340 (user-locked Oct 17 2026): fold period source date.
+  //  - INSTALLMENT (kind 'Installment', key 'I|...'): ALWAYS the CUT date (orig_due) — the day the
+  //    purchase was swiped. Each installment period posts on its own swipe date into whatever card
+  //    statement period contains that date. NEVER paid_date, and NEVER trust auto_pay (that field is
+  //    unreliable in the data — some installments are stored auto_pay:false).
+  //  - Other card charges: auto-debit (auto_pay) posts on its charge date (orig_due); a manually-paid
+  //    charge (e.g. AIS paid by hand) folds by its paid_date.
+  var _isInst=(typeof r.key==='string' && r.key.indexOf('I|')===0) || r.kind==='Installment';
+  var _srcDate=(_isInst? (r.orig_due||r.due)
+               : (r.auto_pay? (r.orig_due||r.due) : (r.paid_date||r.orig_due||r.due)))||'';
+  var _mm=/^(\d{4})-(\d{2})-(\d{2})/.exec(_srcDate); if(!_mm)return;
+  var _S=parseInt(_pc.statement_day,10)||1, _cy=+_mm[1], _cm=(+_mm[2])-1, _pd=+_mm[3];
+  var _prr=_pc.period_rule;
+  var _M=_cm+(_pd>_S?1:0);
+  var _shift=(_prr==='prev')?1:(_prr==='same')?0:((_S<=15)?1:0);
+  var _per=_M-_shift, _yy=_cy;
+  while(_per<0){_per+=12;_yy--;} while(_per>11){_per-=12;_yy++;}
+  _foldPer=_yy+'-'+((_per+1)<10?'0':'')+(_per+1);
+})();
+var rper=(_foldPer&&/^\d{4}-\d{2}$/.test(_foldPer))?_foldPer
+        :((r.period&&/^\d{4}-\d{2}$/.test(r.period))?r.period:((/^\d{4}-\d{2}$/.test(_ksuf))?_ksuf:''));
+// statements map is keyed by the statement's card token (the id, e.g. 'c8') + period. _payCard is
+// that same id, so match on _ncard(_payCard). Keep the original-card key as a fallback.
+var ncd2=_ncard(_payCard);
+var st=rper?(stmts[ncd2+'::'+rper]||stmts[ncd+'::'+rper]||null):((dm&&stmts[ncd+'::'+dm])||(pmo&&stmts[ncd+'::'+pmo])||null);
 if(st){
 // v289 (user-reversed v238): charges tied to a PDF-managed card statement are FOLDED under that
 // statement's expandable row (not shown flat) so Payment History isn't cluttered
@@ -1222,7 +1396,7 @@ keep.push(r);return;
 // Hiding it (old option A) made it invisible in History -> user couldn't see it was paid or
 // cancel/edit it. Keep it as its own top-level row, flagged so the UI can note it's a standalone
 // card charge not yet folded into a statement.
-if(_histFoldCard){r._soloCardCharge=true;keep.push(r);return;}
+if(_histFoldCard){r._soloCardCharge=true;r._targetPeriod=rper||'';r._targetCard=_payCard||'';keep.push(r);return;}
 }
 keep.push(r);
 });
@@ -1236,9 +1410,9 @@ hist=hist.filter(function(r){var dstr=(_histFilterBy==='due'?r.due:r.paid_date)|
 if(_histFType!=='')hist=hist.filter(function(r){return (r.kind||'')===_histFType;});
 if(_histFCat!=='')hist=hist.filter(function(r){return (r.type||'')===_histFCat;});
 if(_histFMethod!=='')hist=hist.filter(function(r){return (r.auto_pay?'auto':'manual')===_histFMethod;});
-if(_histFCard!=='')hist=hist.filter(function(r){var cd=(r.card||'Cash/Direct');return _histFCard==='Cash/Direct'?(!r.card||r.card==='Cash/Direct'):(cd===_histFCard);});
+if(_histFCard!=='')hist=hist.filter(function(r){var cd=(r.card&&r.card!=='Cash/Direct')?_cardDisp(r.card):'Cash/Direct';return _histFCard==='Cash/Direct'?(cd==='Cash/Direct'):(cd===_histFCard);});
 // Sort comparator per _histSort / _histAsc
-var _hcmp=function(a,b){var r;if(_histSort==='name')r=(a.name||'').localeCompare(b.name||'');else if(_histSort==='amount')r=(a.amount||0)-(b.amount||0);else if(_histSort==='due')r=(a.due||'').localeCompare(b.due||'');else if(_histSort==='type')r=(((a.kind||'')+' '+(a.type||'')).trim()).localeCompare(((b.kind||'')+' '+(b.type||'')).trim());else if(_histSort==='method')r=(((a.auto_pay?'0 Auto':'1 Manual')+' '+(a.card||''))).localeCompare(((b.auto_pay?'0 Auto':'1 Manual')+' '+(b.card||'')));else r=(a.paid_date||'').localeCompare(b.paid_date||'');return _histAsc?r:-r;};
+var _hcmp=function(a,b){var r;if(_histSort==='name')r=(a.name||'').localeCompare(b.name||'');else if(_histSort==='amount')r=(a.amount||0)-(b.amount||0);else if(_histSort==='due')r=(a.due||'').localeCompare(b.due||'');else if(_histSort==='type')r=(((a.kind||'')+' '+(a.type||'')).trim()).localeCompare(((b.kind||'')+' '+(b.type||'')).trim());else if(_histSort==='method')r=(((a.auto_pay?'0 Auto':'1 Manual')+' '+_cardDisp(a.card||''))).localeCompare(((b.auto_pay?'0 Auto':'1 Manual')+' '+_cardDisp(b.card||'')));else r=(a.paid_date||'').localeCompare(b.paid_date||'');return _histAsc?r:-r;};
 hist.sort(_hcmp);
 // Section stays open whenever it was open before OR a filter is active (persists across re-renders).
 var _histOpen=_histSectionOpen||(_histFYear!==''||_histFMonth!=='');
@@ -1265,7 +1439,7 @@ h+='<select id="hist-f-type" class="sel" style="font-size:10px;padding:2px 6px" 
 h+='<select id="hist-f-cat" class="sel" style="font-size:10px;padding:2px 6px" onchange="setHistTCM()"><option value="">All categories</option>'+_cList.map(function(t){return '<option value="'+esc(t)+'"'+(_histFCat===t?' selected':'')+'>'+esc(t)+'</option>';}).join('')+'</select>';
 h+='<select id="hist-f-method" class="sel" style="font-size:10px;padding:2px 6px" onchange="setHistTCM()"><option value="">All methods</option><option value="auto"'+(_histFMethod==='auto'?' selected':'')+'>\u26a1 Auto</option><option value="manual"'+(_histFMethod==='manual'?' selected':'')+'>\u270b Manual</option></select>';
 // Payment-method (card) filter — distinct cards across all paid records + Cash/Direct.
-var _cardSet={};Object.keys(D.bill_payments||{}).forEach(function(k){var rr=D.bill_payments[k]||{};var cn=(rr.card&&rr.card!=='')?rr.card:'Cash/Direct';_cardSet[cn]=1;});
+var _cardSet={};Object.keys(D.bill_payments||{}).forEach(function(k){var rr=D.bill_payments[k]||{};var cn=(rr.card&&rr.card!=='')?_cardDisp(rr.card):'Cash/Direct';_cardSet[cn]=1;});
 var _cardList=Object.keys(_cardSet).sort(function(a,b){if(a==='Cash/Direct')return 1;if(b==='Cash/Direct')return -1;return a.localeCompare(b);});
 h+='<select id="hist-f-card" class="sel" style="font-size:10px;padding:2px 6px" onchange="setHistTCM()"><option value="">All cards</option>'+_cardList.map(function(cn){return '<option value="'+esc(cn)+'"'+(_histFCard===cn?' selected':'')+'>'+esc(cn)+'</option>';}).join('')+'</select>';
 if(_histFiltered)h+='<button class="btn btn-ghost" style="font-size:9px;padding:2px 8px" onclick="clearHistFilter()"><i class="fa-solid fa-xmark"></i> Clear</button>';
@@ -1323,7 +1497,7 @@ if(r._hiddenRow)return;
 var _tCell=(r.kind||'')+(r.kind&&r.type?' \u00b7 ':'')+(r.type?'<span style="font-size:9px;color:var(--text3)">'+esc(r.type)+'</span>':'');
 if(!_tCell)_tCell='<span style="color:var(--text3)">\u2014</span>';
 var _mBadge=(r.auto_pay===true)?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':(r.auto_pay===false?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>':'<span style="color:var(--text3)">\u2014</span>');
-var _mCell=_mBadge+((r.card&&r.card!=='Cash/Direct')?' <span style="font-size:9px;color:var(--text3)">'+esc(r.card)+'</span>':'');
+var _mCell=_mBadge+((r.card&&r.card!=='Cash/Direct')?' <span style="font-size:9px;color:var(--text3)">'+esc(_cardDisp(r.card))+'</span>':'');
 // Reconstruct statement children (credit-card statements only) for an expandable breakdown.
 // Prefer the actually-paid child records; enrich each with orig_due (real bill due) by
 // matching against the reconstructed statement children by name — paid records only store
@@ -1349,8 +1523,12 @@ return pk2;
 var _hasK=_kids&&_kids.length;
 var _hgid=_hasK?('hbrk_'+(r.key||'').replace(/[^a-zA-Z0-9]/g,'_')):'';
 var _caret=_hasK?'<span style="cursor:pointer;user-select:none;color:var(--text3);margin-right:4px" onclick="var rr=document.querySelectorAll(\'.'+_hgid+'\');var op=rr.length&&rr[0].style.display!==\'none\';for(var _i=0;_i<rr.length;_i++)rr[_i].style.display=op?\'none\':\'\';this.textContent=op?\'\u25b6\':\'\u25bc\'">\u25b6</span>':'';
-var _inStmtNote=r._surfacedInHist?' <span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px" title="already included in the '+esc(r._inStmtCard||'')+' statement total — shown here so you can see it was paid individually">\u21b3 in '+esc(r._inStmtCard||'')+' statement</span>':'';
-h+='<tr'+(r._surfacedInHist?' style="background:rgba(128,128,128,.03)"':'')+'><td class="r"><input type="checkbox" class="hist-chk" data-hkey="'+esc(r.key)+'" onchange="histUpdateSelCount()"></td><td>'+_caret+_billIcon(r)+' '+esc(r.name)+((r.kind==='Installment'&&r.info)?' <span style="color:var(--text3);font-size:9px">'+esc(r.info)+'</span>':'')+_perBadge(r.period)+_inStmtNote+(_hasK?' <span style="font-size:8px;color:var(--text3)">('+_kids.length+' charge'+(_kids.length!==1?'s':'')+')</span>':'')+'</td>'+
+var _inStmtNote=r._surfacedInHist?' <span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px" title="already included in the '+esc(_cardDisp(r._inStmtCard||''))+' statement total — shown here so you can see it was paid individually">\u21b3 in '+esc(_cardDisp(r._inStmtCard||''))+' statement</span>':'';
+// v338: a PAID card charge whose target statement isn't settled yet (e.g. AIS paid via ttb, but the
+// ttb statement for the paid-date period isn't in history yet) shows a badge pointing at the period
+// it WILL fold into once that statement is paid. Grouped by its own paid_date month meanwhile.
+var _soloNote=(r._soloCardCharge&&r._targetPeriod)?' <span style="font-size:8px;color:var(--text3);background:rgba(128,128,128,.08);padding:1px 5px;border-radius:4px" title="paid individually; will fold under the '+esc(_cardDisp(r._targetCard||''))+' '+esc(r._targetPeriod)+' statement once that statement is marked paid">\u21b3 '+esc(_cardDisp(r._targetCard||''))+' '+esc(r._targetPeriod)+'</span>':'';
+h+='<tr'+(r._surfacedInHist?' style="background:rgba(128,128,128,.03)"':'')+'><td class="r"><input type="checkbox" class="hist-chk" data-hkey="'+esc(r.key)+'" onchange="histUpdateSelCount()"></td><td>'+_caret+_billIcon(r)+' '+esc(r.name)+((r.kind==='Installment'&&r.info)?' <span style="color:var(--text3);font-size:9px">'+esc(r.info)+'</span>':'')+_perBadge(r.period)+_inStmtNote+_soloNote+(_hasK?' <span style="font-size:8px;color:var(--text3)">('+_kids.length+' charge'+(_kids.length!==1?'s':'')+')</span>':'')+'</td>'+
 '<td style="font-size:10px">'+_tCell+'</td><td>'+_mCell+'</td>'+
 '<td class="r" style="font-family:var(--mono)'+(r._surfacedInHist?';color:var(--text3)':'')+'">\u0e3f'+fmt(r.amount)+'</td>'+
 '<td>'+((r._origDueDisp||r.due)?fmtDate(r._origDueDisp||r.due):'\u2014')+'</td><td>'+(r.paid_date?fmtDate(r.paid_date):'\u2014')+'</td>'+
@@ -1362,7 +1540,7 @@ _kids.forEach(function(ch){_kidSum+=(ch.amount||0);
 h+='<tr class="'+_hgid+'" style="display:none;background:var(--bg2)"><td></td>'+
 '<td style="padding-left:22px;color:var(--text2);font-size:10px">'+_billIcon(ch)+' '+esc(ch.name)+((ch.kind==='Installment'&&ch.info)?(' <span style="color:var(--text3);font-size:9px">'+esc(ch.info)+'</span>'):'')+_perBadge(_svcPer(ch))+'</td>'+
 '<td style="font-size:9px;color:var(--text3)">'+esc(ch.kind||'')+(ch.type?' \u00b7 '+esc(ch.type):'')+'</td>'+
-'<td>'+((ch.auto_pay)?'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>')+((ch.card&&ch.card!=='Cash/Direct')?' <span style="font-size:8px;color:var(--text3)">'+esc(ch.card)+'</span>':'')+'</td>'+
+'<td>'+((ch.auto_pay)?'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>')+((ch.card&&ch.card!=='Cash/Direct')?' <span style="font-size:8px;color:var(--text3)">'+esc(_cardDisp(ch.card))+'</span>':'')+'</td>'+
 '<td class="r" style="font-family:var(--mono);font-size:10px;color:var(--text2)">\u0e3f'+fmt(ch.amount)+'</td>'+
 '<td style="font-size:9px;color:var(--text3)">'+((ch.orig_due||ch.due)?fmtDate((typeof (ch.orig_due||ch.due)==='string')?(ch.orig_due||ch.due):_billISO(ch.orig_due||ch.due)):'\u2014')+'</td>'+'<td style="font-size:9px;color:var(--success)">'+(ch.paid_date?'\u2713 '+fmtDate(ch.paid_date):'')+'</td><td></td>'+'<td style="white-space:nowrap">'+(ch.key?('<button class="del-btn" title="Edit this record" style="color:var(--text3)" data-hkey="'+esc(ch.key)+'" onclick="histEditRecord(this.getAttribute(\'data-hkey\'))"><i class="fa-solid fa-pen"></i></button>'+'<button class="del-btn" title="Unmark paid / cancel this payment" data-hkey="'+esc(ch.key)+'" onclick="toggleBillPaid(this.getAttribute(\'data-hkey\'),0,false)"><i class="fa-solid fa-xmark"></i></button>'):'')+'</td></tr>';
 });

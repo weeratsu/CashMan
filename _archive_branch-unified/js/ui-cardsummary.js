@@ -50,7 +50,16 @@
     var nxt=_ym_next(period);
     var rows=_csTxns().filter(function(t){ return t.card===card && t.period===nxt; });
     var sum=0;
-    rows.forEach(function(t){ var a=_n(t.amount); if(a<0 && /payment/i.test(String(t.desc||''))) sum+=(-a); });
+    rows.forEach(function(t){
+      var a=_n(t.amount); if(a>=0) return;
+      var d=String(t.desc||'');
+      // v15 (user Oct 16 2026): count what SETTLES the statement — a real bill payment AND a credit
+      // the bank applies to the balance (CASH REBATE / point redemption). Both reduce what is owed.
+      // Still EXCLUDE reversal-to-installment (offset by its own installment charge) and merchant
+      // refunds (reduce spend, not the prior statement's balance).
+      if(/reversal/i.test(d)) return;
+      if(/payment|cash\s*rebate|rebate|redem|redeem/i.test(d)) sum+=(-a);
+    });
     return sum;
   }
 
@@ -70,8 +79,16 @@
     // 2) email-matched paid_total from card_bills.js (BAY/AIA/JCB via card_payments.json)
     var filePt=_n(b&&b.paid_total);
     if(filePt>0.005) return { paid_total: filePt, paid_full: !!(b&&b.paid_full), paid_date: (b&&b.paid_date)||'' };
-    // 3) compute from the period's real "Payment ..." transactions (ttb/UOB with no email)
+    // 3) compute from the period's real "Payment ..." transactions (ttb/UOB with no email).
+    // v16 (user Oct 16 2026): the credits that settle THIS statement appear in the NEXT statement's
+    // transactions, but that next statement may ALSO contain credits that pay down ITS OWN new spend
+    // (e.g. a point-redemption applied to new charges). Priority rule (user-locked): a credit pays the
+    // CARRIED-OVER balance (this period's amount_due) FIRST; only the EXCESS belongs to the next
+    // period. So cap the amount counted toward THIS period at its own amount_due — the overflow is not
+    // this period's payment (it reduces the next period's spend instead), preventing a 1,000-due
+    // statement from showing 1,200 "paid" when the next cycle redeemed 200 against new purchases.
     var tp=_csRealPaidFromTxns(card, period);
+    if(due>0 && tp>due) tp=due;   // cap: carried-over balance first, excess belongs to the next period
     if(tp>0.005) return { paid_total: tp, paid_full: due>0?(tp+0.01)>=due:false, paid_date:'' };
     return { paid_total: 0, paid_full: false, paid_date:'' };
   }

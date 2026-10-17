@@ -71,7 +71,25 @@ function _stmtDueDeadline(cardObj, periodY, periodM0, pdfChild){
   // Verified: KBank period 2026-07 -> 06/08 ; UOB 2026-08 -> 13/09 ; BAY/JCB 2026-09 -> 10/10.
   // A real PDF statement overrides with its own printed due/deadline (immutable fact).
   if(pdfChild && pdfChild.due instanceof Date){
-    return {due:pdfChild.due, deadline:(pdfChild.deadline instanceof Date)?pdfChild.deadline:pdfChild.due};
+    var _dl=(pdfChild.deadline instanceof Date)?pdfChild.deadline:null;
+    // v322c (user Oct 16 2026): unified occurrences don't carry the PDF deadline (printed "pay within"
+    // date), so pdfChild.deadline is usually null -> deadline wrongly fell back to the DUE date. Read
+    // the real printed due_date from CARD_BILLS (card_bills.js) for this card+period and use it as the
+    // deadline. (KBank statement 05 -> deadline 20; the due/plan-pay day stays 06.)
+    if(!_dl){
+      try{
+        var _per=periodY+'-'+((periodM0+1)<10?'0':'')+(periodM0+1);
+        var _cb=(glob.CARD_BILLS&&glob.CARD_BILLS.bills)||[];
+        var _cname=(cardObj&&cardObj.name)||'';
+        for(var _i=0;_i<_cb.length;_i++){
+          var _b=_cb[_i];
+          if(_b && _b.card===_cname && _b.period===_per && /^\d{4}-\d{2}-\d{2}$/.test(_b.due_date||'')){
+            var _p=_b.due_date.split('-'); _dl=new Date(+_p[0],(+_p[1])-1,+_p[2]); break;
+          }
+        }
+      }catch(_e){}
+    }
+    return {due:pdfChild.due, deadline:_dl||pdfChild.due};
   }
   // v319 (user-locked Oct 13 2026): due day = statement_day + due_offset, in the STATEMENT MONTH.
   // The statement month relative to the period is a per-card SETTING (period_rule), not computed:
@@ -170,9 +188,16 @@ glob.billOccurrencesUnified=function(fromD,toD){
         // 2026-08 -> re-point card=JCB, card_period=2026-08).
         var _prS=_paidRecByNameServicePeriod(base.key, o.service_period);
         if(_prS && _prS.card && _prS.card!=='Cash/Direct'){
-          if(_prS.card!==base.card) base.card=_prS.card;
-          var _rp=_prS.period||'';
-          if(/^\d{4}-\d{2}$/.test(_rp) && _rp!==base.card_period){ base.card_period=_rp; o.card_period=_rp; }
+          // v322d (user Oct 16 2026): ONLY re-point when the bill's CARD actually changed after payment
+          // (the AIS-moved-to-another-card case this block was written for). When the card is unchanged
+          // (e.g. KBank paid on its own card), the occurrence's own card_period from the PDF statement is
+          // authoritative — do NOT overwrite it with a paid record's period (that wrongly shifted KBank
+          // 2026-09 -> 2026-10 because a CB record keyed ::2026-10 matched by service period).
+          if(_prS.card!==base.card){
+            base.card=_prS.card;
+            var _rp=_prS.period||'';
+            if(/^\d{4}-\d{2}$/.test(_rp) && _rp!==base.card_period){ base.card_period=_rp; o.card_period=_rp; }
+          }
         }
       }
     }

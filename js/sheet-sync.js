@@ -18,6 +18,26 @@
   } }catch(e){}
   if(!cfg||!cfg.endpoint||String(cfg.endpoint).indexOf('http')!==0){ window.CM_SHEET_ON=false; return; }
   window.CM_SHEET_ON=true;
+  // v2 (user Oct 17 2026): manual SYNC PAUSE. While paused, the app saves to localStorage ONLY — no
+  // pull-on-load (so a stale Sheet can't overwrite local fixes mid-debugging), no background push, no
+  // unload warning. Toggle from the Console: cmSyncOff() to pause, cmSyncOn() to resume (resuming pushes
+  // any pending local edits up to the Sheet). State persists in localStorage so a refresh stays paused.
+  function _syncPaused(){ try{ return localStorage.getItem('cm_sync_disabled')==='1'; }catch(e){ return false; } }
+  window.cmSyncOff=function(){ try{ localStorage.setItem('cm_sync_disabled','1'); }catch(e){} badge('⏸ sync paused (local only)','var(--text2)'); if(window._cmUpdSyncCtl)window._cmUpdSyncCtl(); console.log('CashMan sync PAUSED — saving to localStorage only. Run cmSyncOn() to resume + push.'); };
+  // v10: resuming sync pushes pending local edits (auto-sync is the normal mode). Pass false to skip push.
+  window.cmSyncOn=function(doPush){ try{ localStorage.removeItem('cm_sync_disabled'); }catch(e){} console.log('CashMan sync RESUMED (auto).'); if(window._cmUpdSyncCtl)window._cmUpdSyncCtl(); if(doPush!==false){ window.cmSyncPush(); } else { badge('▶ sync resumed','var(--success,#2a7)'); } };
+  window.cmSyncStatus=function(){ return _syncPaused()?'paused':'on'; };
+  // v7: explicit, user-triggered upload of the whole local D to the Sheet (bypasses the dirty gate).
+  // Works whether sync is paused or on. Shows a result badge.
+  window.cmSyncPush=function(){
+    if(typeof D==='undefined'||!D||!D.profile){ badge('⚠ no data to push','var(--error,#c33)'); return; }
+    if(!isReal(D)){ badge('⚠ local data empty - not pushed','var(--error,#c33)'); console.warn('CashMan: data looks empty - not pushed'); return; }
+    badge('↑ pushing to Sheet…');
+    post(JSON.parse(JSON.stringify(D))).then(function(res){
+      if(!res||!res.ok) throw new Error((res&&res.error)||'push failed');
+      dirty(false); badge('✓ pushed to Sheet','var(--success,#2a7)'); console.log('CashMan: pushed to Sheet OK');
+    }).catch(function(e){ if(/bad token/.test(String((e&&e.message)||e))) __badToken('cm_sheet_cfg'); badge('⚠ push failed: '+String((e&&e.message)||e).slice(0,70),'var(--error,#c33)'); console.warn('CashMan push failed:',e); });
+  };
   var DIRTY='cashflow_sheet_dirty', timer=null, pushing=false, gen=0;
   // NEW-BROWSER GUARD: if this browser had NO CashMan data before the app started, the local D is
   // just defaults (+ auto-synced utility bills). Never let that overwrite the real Sheet:
@@ -70,6 +90,7 @@
       body:JSON.stringify({token:cfg.writeToken,action:'replaceAll',data:data})},3,function(){ badge('\u21bb กำลังปลุก Google\u2026'); });
   }
   function push(){
+    if(_syncPaused()){ return; }           // sync paused -> local-only, never push
     if(!pulledOnce){ return; }            // wait for the first Sheet read (pull will push afterwards if needed)
     if(pushing){ schedule(1500); return; }
     if(typeof D==='undefined'||!D||!D.profile) return;
@@ -92,6 +113,7 @@
     window.saveD=function(){ var r=_saveD.apply(this,arguments); gen++; dirty(true); schedule(1500); return r; };
   }
   function pull(){
+    if(_syncPaused()){ badge('⏸ sync paused (local only)','var(--text2)'); return; }   // paused -> don't pull Sheet over local
     if(pulledOnce && dirty()){ schedule(0); return; }   // unsent local edits win: push them first
     var g=gen; badge('\u21bb syncing\u2026');
     __call(cfg.endpoint+'?action=all&token='+encodeURIComponent(cfg.readToken||cfg.writeToken)+'&t='+Date.now(),undefined,3,function(){ badge('\u21bb กำลังปลุก Google\u2026'); })
@@ -123,7 +145,22 @@
   }
   window.cmSheetSyncNow=function(){ (pulledOnce&&dirty())?schedule(0):pull(); };
   window.__cmSheetState=function(){ return {pulledOnce:pulledOnce,hadLocal:hadLocal,dirty:dirty(),gen:gen}; };
-  window.addEventListener('beforeunload',function(e){ if(dirty()){ e.preventDefault(); e.returnValue=''; } });
+  window.addEventListener('beforeunload',function(e){ if(!_syncPaused()&&dirty()){ e.preventDefault(); e.returnValue=''; } });
+  // v10: NO floating buttons. Sync is AUTO by default. The pause switch + manual Push live in
+  // Setup page > "Google Sheet Sync" card (checkbox #set-sync-pause, button calls cmSyncPush).
+  // This updater keeps that card's checkbox + status label in sync with the current state.
+  window._cmUpdSyncCtl=function(){
+    try{
+      var cb=document.getElementById('set-sync-pause');
+      if(cb) cb.checked=_syncPaused();
+      var st=document.getElementById('set-sync-status');
+      if(st) st.textContent=_syncPaused()?'⏸ หยุด sync อยู่ (เซฟแค่ในเครื่อง)':'✓ sync อัตโนมัติเปิดอยู่';
+    }catch(e){}
+  };
+  // Checkbox handler (called from the Setup card). Checked = pause; unchecked = resume + push.
+  window.cmSyncTogglePause=function(paused){ if(paused){ window.cmSyncOff(); } else { window.cmSyncOn(true); } };
+  if(document.body) window._cmUpdSyncCtl(); else window.addEventListener('DOMContentLoaded',function(){ window._cmUpdSyncCtl(); });
+
   // run after app.js finished its init (load + first render)
   if(document.readyState==='complete') setTimeout(pull,300); else window.addEventListener('load',function(){ setTimeout(pull,300); });
 })();

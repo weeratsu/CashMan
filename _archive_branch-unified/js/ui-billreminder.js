@@ -85,8 +85,8 @@ if(!D||!D.bill_payments||!D.bill_payments[key]){alert('Record not found.');retur
 var r=D.bill_payments[key];
 // Build a card datalist from known cards + Cash/Direct.
 var nm=key.split('::')[0].split('|')[1]||key;
-var dueD=r.due?fmtDate(r.due):'';           // dd/mm/yyyy
-var paidD=r.paid_date?fmtDate(r.paid_date):''; // dd/mm/yyyy
+var dueD=(r.due&&/^\d{4}-\d{2}-\d{2}$/.test(r.due))?r.due:'';           // ISO for <input type=date>
+var paidD=(r.paid_date&&/^\d{4}-\d{2}-\d{2}$/.test(r.paid_date))?r.paid_date:''; // ISO for <input type=date>
 var amt=(r.paid_amount!=null?r.paid_amount:0);
 var typ=r.type||'';var card=r.card||'';var ap=!!r.auto_pay;
 var isStmt=(typeof key==='string'&&key.indexOf('CB|')===0);
@@ -105,9 +105,9 @@ var rowsHtml=''+
 '<div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Method</label>'+
 '<select id="he-auto" style="font-size:12px;padding:5px 8px"><option value="manual"'+(!ap?' selected':'')+'>\u270b Manual</option><option value="auto"'+(ap?' selected':'')+'>\u26a1 Auto</option></select></div></div>'+
 '<div style="display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Due date</label>'+
-'<input id="he-due" value="'+dueD+'" placeholder="dd/mm/yyyy" style="font-size:12px;padding:5px 8px;font-family:var(--mono)"></div>'+
+'<input id="he-due" type="date" value="'+dueD+'" style="font-size:12px;padding:5px 8px"></div>'+
 '<div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Marked paid</label>'+
-'<input id="he-paid" value="'+paidD+'" placeholder="dd/mm/yyyy" style="font-size:12px;padding:5px 8px;font-family:var(--mono)"></div></div>';
+'<input id="he-paid" type="date" value="'+paidD+'" style="font-size:12px;padding:5px 8px"></div></div>';
 ov.innerHTML='<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.3)">'+
 '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-pen" style="color:var(--primary)"></i><span style="font-weight:700;font-size:13px">Edit payment record</span><span style="flex:1"></span><button class="del-btn" onclick="histCancelEdit()"><i class="fa-solid fa-xmark"></i></button></div>'+
 '<div style="padding:16px;display:flex;flex-direction:column;gap:10px">'+rowsHtml+
@@ -675,7 +675,10 @@ function _mkPaidRec(o,pd,extra){
 function markRowPaid(fullKey,amount,dueISO,typ,card,autoPay,utilUtility,utilPeriod,period){
 if(!D.bill_payments)D.bill_payments={};
 var di=document.getElementById('brpd_'+fullKey.replace(/[^a-zA-Z0-9]/g,'_'));
-var pd=(di&&di.value)?di.value:_billISO(_billToday());
+// v327 (user Oct 16 2026): REQUIRE a chosen payment date — never silently default to today
+// (that was overwriting real paid dates with 16/10 when the user clicked Pay without picking a day).
+var pd=(di&&di.value)?di.value:'';
+if(!/^\d{4}-\d{2}-\d{2}$/.test(pd)){ alert('\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48\u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19 (Pick the payment date first)'); if(di)try{di.focus();}catch(e){} return; }
 D.bill_payments[fullKey]={paid:true,paid_date:pd,paid_amount:amount,due:dueISO||'',type:typ||'',card:card||'',auto_pay:!!autoPay};
 // v323: lock period (statement cycle) + orig_due (bill's own date) so History can fold + badge it.
 if(/^\d{4}-\d{2}$/.test(period||''))D.bill_payments[fullKey].period=period;
@@ -1073,7 +1076,7 @@ h+='<tr style="'+rowStyle+'">'+
 '<td>'+stBadge+
 (o.paid?'<div style="margin-top:3px"><span style="font-size:8px;color:var(--text3)">'+(o._income?'received ':'paid ')+(D.bill_payments&&D.bill_payments[o.fullKey]&&D.bill_payments[o.fullKey].paid_date?fmtDate(D.bill_payments[o.fullKey].paid_date):'')+'</span> <button class="btn btn-ghost" style="font-size:8px;padding:1px 6px" onclick="toggleBillPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\',0,false,\'\',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\')"><i class="fa-solid fa-rotate-left"></i> Unmark</button></div>'
 :((o.auto_pay||st==='auto_paid')&&!(D&&D.autopay_cancelled&&D.autopay_cancelled[o.fullKey]))?'<div style="margin-top:3px"><span style="font-size:8px;color:var(--text3)">'+(st==='auto_paid'?'charged automatically \u00b7 no action needed':'will be auto-charged \u00b7 no action needed')+'</span></div>'
-:'<div style="margin-top:3px;display:flex;gap:3px;align-items:center"><input type="date" id="brpd_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')+'" value="'+_billISO(today)+'" style="font-size:8px;padding:1px 3px;width:104px" title="'+(o._income?'Received date':'Payment date')+'"><button class="btn '+(o._income?'btn-ghost" style="font-size:8px;padding:2px 7px;background:#10b981;color:#fff"':'btn-primary" style="font-size:8px;padding:2px 7px"')+' onclick="markRowPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\','+o.amount+',\''+_billISO(o.orig_due||o.due)+'\',\''+(o.type||'').replace(/'/g,"\\'")+'\',\''+(o.card||'').replace(/'/g,"\\'")+'\','+(o.auto_pay?'true':'false')+',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\',\''+(o.card_period||'')+'\')"><i class="fa-solid fa-'+(o._income?'hand-holding-dollar':'check')+'"></i> '+(o._income?'Received':'Pay')+'</button></div>')
+:'<div style="margin-top:3px;display:flex;gap:3px;align-items:center"><input type="date" id="brpd_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')+'" value="" style="font-size:8px;padding:1px 3px;width:104px" title="'+(o._income?'Received date':'Payment date')+'"><button class="btn '+(o._income?'btn-ghost" style="font-size:8px;padding:2px 7px;background:#10b981;color:#fff"':'btn-primary" style="font-size:8px;padding:2px 7px"')+' onclick="markRowPaid(\''+o.fullKey.replace(/'/g,"\\'")+'\','+o.amount+',\''+_billISO(o.orig_due||o.due)+'\',\''+(o.type||'').replace(/'/g,"\\'")+'\',\''+(o.card||'').replace(/'/g,"\\'")+'\','+(o.auto_pay?'true':'false')+',\''+((o._utilUtility||'')).replace(/'/g,"\\'")+'\',\''+(o._utilPeriod||'')+'\',\''+(o.card_period||'')+'\')"><i class="fa-solid fa-'+(o._income?'hand-holding-dollar':'check')+'"></i> '+(o._income?'Received':'Pay')+'</button></div>')
 '</td></tr>';
 // Statement detail: list the underlying charges as greyed, non-actionable rows
 if(o.children&&o.children.length){

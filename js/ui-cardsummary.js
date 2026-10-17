@@ -19,6 +19,8 @@
   function _f(v){ return _n(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function _esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function _dmy(iso){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); return m?((+m[3])+'/'+(+m[2])+'/'+m[1]):_esc(iso||'-'); }
+  function _csName(b){ try{ if(typeof window.cardDisplayName==='function') return window.cardDisplayName(b&&b.card, b&&b.last4); }catch(e){} return (b&&b.card)||''; }
+  function _csNameRaw(nm,l4){ try{ if(typeof window.cardDisplayName==='function') return window.cardDisplayName(nm,l4); }catch(e){} return nm||''; }
 
   var _KIND={purchase:'ซื้อ',payment:'จ่าย',adjustment:'ปรับปรุง',installment:'ผ่อน'};
 
@@ -41,16 +43,25 @@
   // txn_total + installment_total double-counts that purchase; subtracting the reversal cancels it,
   // leaving the true net new spend (= the bank's SUB TOTAL BALANCE line).
   function _csReversalForPeriod(card, period){
-    var rows=_csTxns().filter(function(t){ return t.card===card && t.period===period; });
+    var rows=_csTxns().filter(function(t){ return _csNameRaw(t.card,t.last4)===card && t.period===period; });
     var sum=0;
     rows.forEach(function(t){ var a=_n(t.amount); if(a<0 && /reversal/i.test(String(t.desc||''))) sum+=(-a); });
     return sum;  // positive magnitude of reversals
   }
   function _csRealPaidFromTxns(card, period){
     var nxt=_ym_next(period);
-    var rows=_csTxns().filter(function(t){ return t.card===card && t.period===nxt; });
+    var rows=_csTxns().filter(function(t){ return _csNameRaw(t.card,t.last4)===card && t.period===nxt; });
     var sum=0;
-    rows.forEach(function(t){ var a=_n(t.amount); if(a<0 && /payment/i.test(String(t.desc||''))) sum+=(-a); });
+    rows.forEach(function(t){
+      var a=_n(t.amount); if(a>=0) return;
+      var d=String(t.desc||'');
+      // v15 (user Oct 16 2026): count what SETTLES the statement — a real bill payment AND a credit
+      // the bank applies to the balance (CASH REBATE / point redemption). Both reduce what is owed.
+      // Still EXCLUDE reversal-to-installment (offset by its own installment charge) and merchant
+      // refunds (reduce spend, not the prior statement's balance).
+      if(/reversal/i.test(d)) return;
+      if(/payment|cash\s*rebate|rebate|redem|redeem/i.test(d)) sum+=(-a);
+    });
     return sum;
   }
 
@@ -70,8 +81,16 @@
     // 2) email-matched paid_total from card_bills.js (BAY/AIA/JCB via card_payments.json)
     var filePt=_n(b&&b.paid_total);
     if(filePt>0.005) return { paid_total: filePt, paid_full: !!(b&&b.paid_full), paid_date: (b&&b.paid_date)||'' };
-    // 3) compute from the period's real "Payment ..." transactions (ttb/UOB with no email)
+    // 3) compute from the period's real "Payment ..." transactions (ttb/UOB with no email).
+    // v16 (user Oct 16 2026): the credits that settle THIS statement appear in the NEXT statement's
+    // transactions, but that next statement may ALSO contain credits that pay down ITS OWN new spend
+    // (e.g. a point-redemption applied to new charges). Priority rule (user-locked): a credit pays the
+    // CARRIED-OVER balance (this period's amount_due) FIRST; only the EXCESS belongs to the next
+    // period. So cap the amount counted toward THIS period at its own amount_due — the overflow is not
+    // this period's payment (it reduces the next period's spend instead), preventing a 1,000-due
+    // statement from showing 1,200 "paid" when the next cycle redeemed 200 against new purchases.
     var tp=_csRealPaidFromTxns(card, period);
+    if(due>0 && tp>due) tp=due;   // cap: carried-over balance first, excess belongs to the next period
     if(tp>0.005) return { paid_total: tp, paid_full: due>0?(tp+0.01)>=due:false, paid_date:'' };
     return { paid_total: 0, paid_full: false, paid_date:'' };
   }
@@ -80,7 +99,7 @@
   window.cardSummaryToggle=function(key){ _csOpen[key]=!_csOpen[key]; try{ renderCardSummary(); }catch(e){ console.error(e); } };
 
   function _csTxnRows(card, period){
-    var rows=_csTxns().filter(function(t){ return t.card===card && t.period===period; });
+    var rows=_csTxns().filter(function(t){ return _csNameRaw(t.card,t.last4)===card && t.period===period; });
     if(!rows.length) return '<div style="padding:6px 10px;color:var(--text3);font-size:10px">ไม่มีรายการ transaction ของงวดนี้</div>';
     rows.sort(function(a,b){ return String(a.txn_date||'').localeCompare(String(b.txn_date||'')); });
     var h='<table class="tbl" style="font-size:10px;width:100%;margin:4px 0">';
@@ -112,13 +131,13 @@
         return;
       }
       // distinct cards for the filter
-      var cardSet={}; bills.forEach(function(b){ if(b.card) cardSet[b.card]=1; });
+      var cardSet={}; bills.forEach(function(b){ var nm=_csName(b); if(nm) cardSet[nm]=1; });
       var cards=Object.keys(cardSet).sort();
 
-      var view=bills.filter(function(b){ return !_csCard || b.card===_csCard; });
+      var view=bills.filter(function(b){ return !_csCard || _csName(b)===_csCard; });
 
       // group by card
-      var byCard={}; view.forEach(function(b){ (byCard[b.card]=byCard[b.card]||[]).push(b); });
+      var byCard={}; view.forEach(function(b){ var nm=_csName(b); (byCard[nm]=byCard[nm]||[]).push(b); });
 
       var h='';
       // filter bar

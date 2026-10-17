@@ -58,7 +58,7 @@ toast(val===''||parseFloat(String(val).replace(/,/g,''))===0?'\u2705 Extra clear
 function applyCardOverride(card,y,m){return applyCardExtra(card,y,m);}
 function _cbToday(){var d=new Date();return {y:d.getFullYear(),m:d.getMonth()};}
 function _cbPeriod(){if(_cbYear===null||_cbMonth===null){var t=_cbToday();return {y:t.y,m:t.m};}return {y:_cbYear,m:_cbMonth};}
-function _cbKey(card,y,m){return card+'::'+y+'-'+(m+1<10?'0':'')+(m+1);}
+function _cbKey(card,y,m){var per=y+'-'+(m+1<10?'0':'')+(m+1);return (typeof window.cardExtraKey==='function')?window.cardExtraKey(card,per):card+'::'+per;}
 // Paid-status for a card statement in Card Bills, kept IN SYNC with Bills Reminder's ledger.
 // The statement occurrence key (see ui-billreminder billOccurrences) is:
 //   'CB|'+cardName+'|'+mk  then period-suffixed with '::'+mk   (mk = 'YYYY-MM').
@@ -67,7 +67,7 @@ function _cbKey(card,y,m){return card+'::'+y+'-'+(m+1<10?'0':'')+(m+1);}
 // For the paid key we delegate to the CENTRAL helper (window.cardStmtKey) so Card Bills reads/writes
 // the SAME canonical key 'CB|card|PERIOD::dueMonth' that Bill Reminder uses — no more view-month key.
 function _cbPeriodForView(card,y,m){
-  var c=(D.cards||[]).find(function(x){return x.name===card;});
+  var c=(D.cards||[]).find(function(x){return x.id===card||x.name===card;});
   var S=c&&c.statement_day?parseInt(c.statement_day)||1:1;
   var per=(S<=15)?(m-1):m, py=y;
   while(per<0){per+=12;py--;} while(per>11){per-=12;py++;}
@@ -142,7 +142,7 @@ function _occPer(o){ // statement period from the occurrence (key is authoritati
   if(o&&/^\d{4}-\d{2}$/.test(o.card_period||''))return o.card_period;
   return '';
 }
-occ.forEach(function(o){var c=o.card;if(!c||c==='Cash/Direct')return;
+occ.forEach(function(o){var c=o.card;if(!c||c==='Cash/Direct')return;if(typeof window.cardDisplayName==='function'&&/^c\d+$/.test(String(c))){var _nm=window.cardDisplayName(c);if(_nm)c=_nm;}
 if(o._surfaced)return;
 // 1 box = 1 period: keep ONLY occurrences whose statement period == this card's target period
 // for the current view month. Everything else belongs to another box (another month's view).
@@ -191,7 +191,7 @@ var cards=(D.cards||[]).slice();
 // Sort card blocks per _cbSort
 function _cbEff(cd){var dd=data[cd.name];var au=dd?dd.total:0;
 var _ep='';try{((dd&&dd.items)||[]).forEach(function(_o){if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){var _mk=(_o.key.split('|')[2]||'').split('::')[0];if(/^\d{4}-\d{2}$/.test(_mk))_ep=_mk;}});}catch(_e){}
-var ex=parseFloat((D.cardbill_extra||{})[(/^\d{4}-\d{2}$/.test(_ep||'')?(cd.name+'::'+_ep):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(cd.name,y,m)||''))?(cd.name+'::'+_cbPeriodForView(cd.name,y,m)):_cbKey(cd.name,y,m)))])||0;return au+ex;}
+var ex=parseFloat((D.cardbill_extra||{})[(/^\d{4}-\d{2}$/.test(_ep||'')?window.cardExtraKey(cd.name,_ep):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(cd.name,y,m)||''))?window.cardExtraKey(cd.name,_cbPeriodForView(cd.name,y,m)):_cbKey(cd.name,y,m)))])||0;return au+ex;}
 function _cbDue(cd){return cd.payment_day||cd.deadline||99;}
 if(_cbSort==='due')cards.sort(function(a,b){return _cbDue(a)-_cbDue(b)||a.name.localeCompare(b.name)});
 else if(_cbSort==='amount')cards.sort(function(a,b){return _cbEff(b)-_cbEff(a)||a.name.localeCompare(b.name)});
@@ -209,7 +209,7 @@ h+='<button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick=
 h+='<span style="flex:1"></span>';
 var grand=0;cards.forEach(function(c){var d=data[c.name];var auto=d?d.total:0;
 var _gp='';try{((d&&d.items)||[]).forEach(function(_o){if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){var _mk=(_o.key.split('|')[2]||'').split('::')[0];if(/^\d{4}-\d{2}$/.test(_mk))_gp=_mk;}});}catch(_e){}
-var _gk=(/^\d{4}-\d{2}$/.test(_gp||''))?(c.name+'::'+_gp):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(c.name,y,m)||''))?(c.name+'::'+_cbPeriodForView(c.name,y,m)):_cbKey(c.name,y,m));
+var _gk=(/^\d{4}-\d{2}$/.test(_gp||''))?window.cardExtraKey(c.name,_gp):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(c.name,y,m)||''))?window.cardExtraKey(c.name,_cbPeriodForView(c.name,y,m)):_cbKey(c.name,y,m));
 var ex=parseFloat((D.cardbill_extra||{})[_gk])||0;grand+=(auto+ex);});
 h+='<span style="font-size:12px;font-weight:700">Total due: <span style="font-family:var(--mono);color:var(--error)">\u0e3f'+fmt(grand)+'</span></span>';
 h+='</div>';
@@ -217,7 +217,7 @@ h+='</div>';
 var _sumPaidN=0,_sumPaidAmt=0,_sumDueN=0,_sumDueAmt=0;
 cards.forEach(function(c){var dd=data[c.name];var au=dd?dd.total:0;
 var _fp='';try{((dd&&dd.items)||[]).forEach(function(_o){if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){var _mk=(_o.key.split('|')[2]||'').split('::')[0];if(/^\d{4}-\d{2}$/.test(_mk))_fp=_mk;}});}catch(_e){}
-var ex=parseFloat((D.cardbill_extra||{})[(/^\d{4}-\d{2}$/.test(_fp||'')?(c.name+'::'+_fp):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(c.name,y,m)||''))?(c.name+'::'+_cbPeriodForView(c.name,y,m)):_cbKey(c.name,y,m)))])||0;var eff=au+ex;if(eff<=0)return;var pr=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m,_fp):null;if(pr&&pr.paid){_sumPaidN++;_sumPaidAmt+=eff;}else{_sumDueN++;_sumDueAmt+=eff;}});
+var ex=parseFloat((D.cardbill_extra||{})[(/^\d{4}-\d{2}$/.test(_fp||'')?window.cardExtraKey(c.name,_fp):((typeof _cbPeriodForView==='function'&&/^\d{4}-\d{2}$/.test(_cbPeriodForView(c.name,y,m)||''))?window.cardExtraKey(c.name,_cbPeriodForView(c.name,y,m)):_cbKey(c.name,y,m)))])||0;var eff=au+ex;if(eff<=0)return;var pr=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m,_fp):null;if(pr&&pr.paid){_sumPaidN++;_sumPaidAmt+=eff;}else{_sumDueN++;_sumDueAmt+=eff;}});
 h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px">';
 h+='<div style="flex:1;min-width:150px;padding:6px 10px;border-radius:6px;background:var(--success-bg);border:1px solid var(--success)"><div style="font-size:9px;color:var(--success);font-weight:700"><i class="fa-solid fa-circle-check"></i> PAID</div><div style="font-size:13px;font-weight:700">'+_sumPaidN+' card'+(_sumPaidN!==1?'s':'')+' · <span style="font-family:var(--mono);color:var(--success)">\u0e3f'+fmt(_sumPaidAmt)+'</span></div></div>';
 h+='<div style="flex:1;min-width:150px;padding:6px 10px;border-radius:6px;background:var(--warning-bg);border:1px solid var(--warning)"><div style="font-size:9px;color:var(--warning);font-weight:700"><i class="fa-solid fa-hourglass-half"></i> STILL TO PAY</div><div style="font-size:13px;font-weight:700">'+_sumDueN+' card'+(_sumDueN!==1?'s':'')+' · <span style="font-family:var(--mono);color:var(--warning)">\u0e3f'+fmt(_sumDueAmt)+'</span></div></div>';
@@ -233,7 +233,7 @@ var d=data[c.name];var auto=d?d.total:0;var items=d?d.items:[];
 var _cbPer='';
 try{(items||[]).forEach(function(_o){ if(_o&&_o.kind==='Card Statement'&&typeof _o.key==='string'&&_o.key.indexOf('CB|')===0){ var _mk=(_o.key.split('|')[2]||'').split('::')[0]; if(/^\d{4}-\d{2}$/.test(_mk))_cbPer=_mk; } });}catch(_e){}
 var _cbPerEff=(_cbPer)?_cbPer:((typeof _cbPeriodForView==='function')?_cbPeriodForView(c.name,y,m):'');
-var k=(/^\d{4}-\d{2}$/.test(_cbPerEff||''))?(c.name+'::'+_cbPerEff):_cbKey(c.name,y,m);
+var k=(/^\d{4}-\d{2}$/.test(_cbPerEff||''))?window.cardExtraKey(c.name,_cbPerEff):_cbKey(c.name,y,m);
 var extra=parseFloat((D.cardbill_extra||{})[k])||0;
 var eff=auto+extra;
 var _cbPaidNow=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m,_cbPer):null;
@@ -498,7 +498,7 @@ function togInstMonth(el){el.nextElementSibling.classList.toggle('open');el.quer
 function renderInstMonthly(){
 var _mNow=new Date();var _mTodayMs=Date.UTC(_mNow.getFullYear(),_mNow.getMonth(),_mNow.getDate());
 var _mRecentMs=_mTodayMs-40*86400000;
-function _instLastDueMs(inst){var cc=D.cards.find(function(x){return x.name===inst.card});var dl=cc?(cc.payment_day||15):15;var sh=(cc&&inst.billing_day&&inst.billing_day>cc.statement_day)?1:0;var per=inst.periods||0;if(per<=0)return null;var lm=(inst.start_month-1)+(per-1)+sh,ly=inst.start_year;while(lm>11){lm-=12;ly++;}return Date.UTC(ly,lm,Math.min(dl,dim(ly,lm)));}
+function _instLastDueMs(inst){var cc=D.cards.find(function(x){return x.id===inst.card||x.name===inst.card});var dl=cc?(cc.payment_day||15):15;var sh=(cc&&inst.billing_day&&inst.billing_day>cc.statement_day)?1:0;var per=inst.periods||0;if(per<=0)return null;var lm=(inst.start_month-1)+(per-1)+sh,ly=inst.start_year;while(lm>11){lm-=12;ly++;}return Date.UTC(ly,lm,Math.min(dl,dim(ly,lm)));}
 var all=allInstallments().filter(function(x){
 if(x.status==='Cancelled'||x.status==='Hold')return false;
 if(x.status==='Active'||x.status==='Planned')return true;
@@ -567,7 +567,7 @@ var changed=false;
 D.installments.forEach(function(inst){
 if((inst.status||'Active')!=='Active')return;
 var per=inst.periods||0;if(per<=0)return;
-var cardObj=(D.cards||[]).find(function(x){return x.name===inst.card;});
+var cardObj=(D.cards||[]).find(function(x){return x.id===inst.card||x.name===inst.card;});
 var dl=cardObj?(cardObj.payment_day||15):15;
 var shift=(cardObj&&inst.billing_day&&inst.billing_day>cardObj.statement_day)?1:0;
 var lastM=(inst.start_month-1)+(per-1)+shift,lastY=inst.start_year;while(lastM>11){lastM-=12;lastY++;}
@@ -727,7 +727,7 @@ var el=document.getElementById('inst-matrix');if(!el)return;
 // (same principle as the Installment Timeline gantt). Exclude Cancelled/Hold.
 var _mNow=new Date();var _mTodayMs=Date.UTC(_mNow.getFullYear(),_mNow.getMonth(),_mNow.getDate());
 var _mRecentMs=_mTodayMs-40*86400000;
-function _instLastDueMs(inst){var cc=D.cards.find(function(x){return x.name===inst.card});var dl=cc?(cc.payment_day||15):15;var sh=(cc&&inst.billing_day&&inst.billing_day>cc.statement_day)?1:0;var per=inst.periods||0;if(per<=0)return null;var lm=(inst.start_month-1)+(per-1)+sh,ly=inst.start_year;while(lm>11){lm-=12;ly++;}return Date.UTC(ly,lm,Math.min(dl,dim(ly,lm)));}
+function _instLastDueMs(inst){var cc=D.cards.find(function(x){return x.id===inst.card||x.name===inst.card});var dl=cc?(cc.payment_day||15):15;var sh=(cc&&inst.billing_day&&inst.billing_day>cc.statement_day)?1:0;var per=inst.periods||0;if(per<=0)return null;var lm=(inst.start_month-1)+(per-1)+sh,ly=inst.start_year;while(lm>11){lm-=12;ly++;}return Date.UTC(ly,lm,Math.min(dl,dim(ly,lm)));}
 var all=allInstallments().filter(function(x){
 if(x.status==='Cancelled'||x.status==='Hold')return false;
 if(x.status==='Active'||x.status==='Planned')return true;
@@ -740,7 +740,7 @@ if(!all.length){el.innerHTML='<div class="text-muted" style="font-size:10px;padd
 var sd=new Date(D.profile.start_date+'T00:00:00'),ed=new Date(D.profile.end_date+'T00:00:00');
 var _rangeStart=new Date(sd.getFullYear(),sd.getMonth(),1);
 all.forEach(function(inst){
-var cc=D.cards.find(function(x){return x.name===inst.card});var _sh=(cc&&inst.billing_day&&inst.billing_day>cc.statement_day)?1:0;
+var cc=D.cards.find(function(x){return x.id===inst.card||x.name===inst.card});var _sh=(cc&&inst.billing_day&&inst.billing_day>cc.statement_day)?1:0;
 var _m0=(inst.start_month-1)+_sh,_y0=inst.start_year;while(_m0>11){_m0-=12;_y0++;}while(_m0<0){_m0+=12;_y0--;}
 var _d0=new Date(_y0,_m0,1);
 // v317 (user Oct 13 2026): extend the matrix START backward to the FIRST payment month of EVERY shown
@@ -794,7 +794,7 @@ instNames.push({name:inst.name,card:inst.card||'',total:inst.total||0,perPeriod:
 matrix[idx]={};
 var sy=inst.start_year||parseInt(D.profile.start_date.slice(0,4)),sm=inst.start_month||1;
 // Apply card month shift
-var c=D.cards.find(function(x){return x.name===inst.card});
+var c=D.cards.find(function(x){return x.id===inst.card||x.name===inst.card});
 var monthShift=(c&&inst.billing_day&&inst.billing_day>c.statement_day)?1:0;
 for(var p=0;p<inst.periods;p++){
 var m=sm-1+p+monthShift,y=sy;
@@ -1210,8 +1210,8 @@ var pp=(y.inst_periods&&y.inst_periods>0)?Math.round(y.amount/y.inst_periods*100
 instItems.push({name:y.name||'',card:y.card||'',per_period:pp,source:'Yearly'})}});
 var h='<h3 style="font-size:12px;font-weight:600;margin:8px 0 6px;color:var(--text2)">Card Load Breakdown</h3>';
 D.cards.forEach(function(c){
-var mItems=D.monthly.filter(function(m){return m.card===c.name});
-var iItems=instItems.filter(function(x){return x.card===c.name});
+var mItems=D.monthly.filter(function(m){return m.card===c.id||m.card===c.name});
+var iItems=instItems.filter(function(x){return x.card===c.id||x.card===c.name});
 var mLoad=mItems.reduce(function(s,x){return s+(x.amount||0)},0);
 var iLoad=iItems.reduce(function(s,x){return s+(x.per_period||0)},0);
 var total=mLoad+iLoad;

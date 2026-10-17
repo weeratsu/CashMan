@@ -21,6 +21,10 @@
   'use strict';
   function _norm(s){ return String(s==null?'':s).trim(); }
   function _cardByName(name){ return (D.cards||[]).find(function(c){return c.name===name;}); }
+  // card -> immutable id (accepts id already, a name, or 'Cash/Direct'/''); falls back to input.
+  function _cardIdOf(x){ if(x==null||x==='Cash/Direct'||x==='')return x; if(/^c\d+$/.test(String(x)))return x; try{ if(typeof window.cardResolve==='function'){ var c=window.cardResolve(x); if(c&&c.id)return c.id; } }catch(e){} var m=_cardByName(x); return (m&&m.id)?m.id:x; }
+  // canonical cardbill_extra key: '<id>::period'
+  window.cardExtraKey=function(card, period){ return _cardIdOf(card)+'::'+_norm(period); }
   function dim(y,m){ return new Date(y,m+1,0).getDate(); }
 
   // due = statement due_date (ISO) if present, else the card's payment_day in the period's month.
@@ -100,7 +104,7 @@
   window.cardDueFor=cardDueFor;
   window.cardStmtKey=function(card, period, dueISO){
     var dm=_ym(dueISO||cardDueFor(card,period,''))||period;
-    return 'CB|'+_norm(card)+'|'+_norm(period)+'::'+dm;
+    return 'CB|'+_cardIdOf(card)+'|'+_norm(period)+'::'+dm;
   };
   // Read paid state for a statement (card+period). Returns the ledger record or null.
   window.cardPaidRec=function(card, period, dueISO){
@@ -129,9 +133,10 @@
   // the statement; the suffix is cosmetic — user-locked 12 Oct). Returns the paid record or null.
   window.cardPaidRecFor=function(card, period){
     if(!D.bill_payments||!/^\d{4}-\d{2}$/.test(_norm(period))) return null;
-    var pfx='CB|'+_norm(card)+'|'+_norm(period)+'::';
-    var bp=D.bill_payments;
-    for(var kk in bp){ if(kk.indexOf(pfx)===0){ var r=bp[kk]; if(r&&r.paid) return r; } }
+    var bp=D.bill_payments, per=_norm(period);
+    var pfxId='CB|'+_cardIdOf(card)+'|'+per+'::';           // new id-keyed
+    var pfxNm='CB|'+_norm(card)+'|'+per+'::';               // legacy name-keyed (transition)
+    for(var kk in bp){ if(kk.indexOf(pfxId)===0||kk.indexOf(pfxNm)===0){ var r=bp[kk]; if(r&&r.paid) return r; } }
     return null;
   };
   // Mark a statement paid — THE single writer. Every "Pay"/"Mark paid" button calls this.
@@ -143,7 +148,7 @@
     D.bill_payments[k]={paid:true,
       paid_date:_pd,
       paid_amount:(typeof amount==='number'?amount:parseFloat(amount)||0),
-      due:due, type:'Credit Card', card:_norm(card)};
+      due:due, type:'Credit Card', card:_cardIdOf(card)};
     // LAYER B (v=309): also mark this statement's installment/monthly children paid for card+period,
     // so Payment History folds them and per-charge paid-state is correct. Guarded; never overwrites
     // hand-keyed records; children it creates carry _autoChild for clean reversal.
@@ -179,8 +184,9 @@
     src.forEach(function(b){
       var card=_norm(b.card), period=_norm(b.period);
       if(!card||!period) return;
-      var ckey=card+'|'+period;
-      var nm=card+' '+period;                       // e.g. "BAY JCB 2026-09"
+      var cid=_cardIdOf(card);                       // immutable id for keys
+      var ckey=cid+'|'+period;                       // id-keyed (was name|period)
+      var nm=card+' '+period;                       // e.g. "BAY JCB 2026-09" (display name)
       var amt=(typeof b.amount_due==='number')?b.amount_due:parseFloat(b.amount_due||0)||0;
       var due=_dueFor(b);
       var ddl=_deadlineFor(b);
@@ -197,14 +203,14 @@
         if(ex._cardName!==card){ex._cardName=card;changed=true;}
         if(ex._cardPeriod!==period){ex._cardPeriod=period;changed=true;}
         if(ex.type!=='Credit Card'){ex.type='Credit Card';changed=true;}
-        if(ex.card!==card){ex.card=card;changed=true;}
+        if(ex.card!==cid){ex.card=cid;changed=true;}
         if((ex._cardPaidTotal||0)!==paidTotal){ex._cardPaidTotal=paidTotal;changed=true;}
         if((ex._cardMinDue||0)!==(b.min_due||0)){ex._cardMinDue=b.min_due||0;changed=true;}
         have[ckey]=ex;
       }else{
-        var row={name:nm,amount:amt,date:due,type:'Credit Card',owner:'Me',card:card,
+        var row={name:nm,amount:amt,date:due,type:'Credit Card',owner:'Me',card:cid,
                  deadline_date:ddl,deadline_mode:(ddl?'custom':''),
-                 _fromCard:true,_cardKey:ckey,_cardName:card,_cardPeriod:period,
+                 _fromCard:true,_cardKey:ckey,_cardName:card,_cardId:cid,_cardPeriod:period,
                  _cardPaidTotal:paidTotal,_cardMinDue:(b.min_due||0)};
         D.planned.push(row); have[ckey]=row; added++; changed=true;
       }
@@ -221,11 +227,14 @@
         // So the first segment must be the PERIOD and the suffix the due month. (Earlier this used
         // dmk for BOTH, which broke once grouping moved to period: period 2026-08 vs due-month
         // 2026-09 made the paid key miss the occurrence -> statement showed Overdue despite paid.)
-        var payKey='CB|'+card+'|'+period+'::'+dmk;
+        var payKey='CB|'+cid+'|'+period+'::'+dmk;
         if(paidFull){
           var prev=D.bill_payments[payKey];
           var pd=paidDate||due;
-          if(!prev||prev.paid_amount!==paidTotal||prev.paid_date!==pd){
+          // Only CREATE the paid record if absent. NEVER overwrite an existing one — the user may have
+          // hand-corrected paid_date/amount (e.g. the real bank date differs from the card_bills/email
+          // date). Overwriting on every load was resetting user edits back to the PDF date each refresh.
+          if(!prev){
             D.bill_payments[payKey]={paid:true,paid_date:pd,paid_amount:paidTotal,due:due,type:'Credit Card',card:card,auto_pay:false,_fromCard:true};
             changed=true;
           }
@@ -252,29 +261,54 @@
       }catch(e){ console.warn('card points merge failed',e); }
     });
     // merge detailed txns (PC only; file loaded as window.CARD_TXNS_LOCAL if present)
+    // v2 (Oct 17 2026 — id refactor): CARD_TXNS_LOCAL (from parse_cardbills.py) is the GROUND TRUTH
+    // for card transactions and now carries card_id. To avoid stale duplicates after a card rename
+    // (old short-name rows + new long-name rows coexisting), REPLACE the PDF-sourced txns wholesale
+    // instead of merging: drop every existing txn that has a card_id OR matches a last4 present in
+    // the fresh set, then install the fresh set. Non-PDF/manually-added txns (no card_id, unknown
+    // last4) are preserved.
     try{
       var det=(window.CARD_TXNS_LOCAL&&window.CARD_TXNS_LOCAL.card_txns)||null;
       if(Array.isArray(det)){
         if(!Array.isArray(D.card_txns)) D.card_txns=[];
-        // key by card|period|ref|txn_date|amount|desc to dedup
-        var seen={};
-        D.card_txns.forEach(function(t){ seen[_txnKey(t)]=1; });
-        det.forEach(function(t){ var k=_txnKey(t); if(!seen[k]){ D.card_txns.push(t); seen[k]=1; changed=true; } });
+        var freshLast4={}, freshNames={}, freshIds={};
+        det.forEach(function(t){
+          var l=String(t.last4||'').replace(/\D/g,''); if(l) freshLast4[l]=1;
+          if(t.card_id) freshIds[t.card_id]=1;
+          // record the CURRENT display name for each fresh card so stale rows (same card, no last4)
+          // can be matched by name too
+          var nm=(typeof window.cardDisplayName==='function')?window.cardDisplayName(t.card_id||t.card,t.last4):t.card;
+          if(nm) freshNames[nm]=1;
+          if(t.card) freshNames[t.card]=1;
+        });
+        var kept=D.card_txns.filter(function(t){
+          if(t.card_id) return false;                       // old PDF-sourced row -> drop (replaced)
+          var l=String(t.last4||'').replace(/\D/g,'');
+          if(l && freshLast4[l]) return false;              // same card by last4 -> drop (replaced)
+          // stale row with no last4 (e.g. old KBank) — match by resolved current name
+          var rn=(typeof window.cardDisplayName==='function')?window.cardDisplayName(t.card_id||t.card,t.last4):t.card;
+          if(rn && freshNames[rn]) return false;            // same card by name -> drop (replaced)
+          if(t.card && freshNames[t.card]) return false;    // raw stale name matches a fresh card -> drop
+          return true;                                       // manual/foreign row -> keep
+        });
+        var before=D.card_txns.length;
+        D.card_txns = kept.concat(det);
+        if(D.card_txns.length!==before || det.length) changed=true;
       }
-    }catch(e){ console.warn('card_txns merge failed',e); }
+    }catch(e){ console.warn('card_txns replace failed',e); }
     // ORPHAN CLEANUP: remove _fromCard planned rows whose _cardKey is no longer in CARD_BILLS.
     // This happens when a statement's period changes (e.g. a parsing-rule fix moved BAY from
     // 2026-09 to 2026-08): the old row must be dropped so it doesn't duplicate the new one across
     // Bills Reminder / Payment History / Calendar. Also drop the stale paid-ledger entry it created.
     var _valid={};
-    src.forEach(function(b){ var c=_norm(b.card), pr=_norm(b.period); if(c&&pr) _valid[c+'|'+pr]=1; });
+    src.forEach(function(b){ var c=_cardIdOf(b.card), pr=_norm(b.period); if(c&&pr) _valid[c+'|'+pr]=1; });
     // Build the set of CURRENTLY-VALID Card Statement paid keys from CARD_BILLS. A card statement's
     // paid key is 'CB|<card>|<dueMonth>::<dueMonth>' where dueMonth is the month of the statement's
     // printed due_date (what ui-billreminder now uses for _fromCard statements). Also track which
     // cards are managed by card_bills so we only ever touch THOSE cards' CB records.
     var _validCB={}, _cardManaged={};
     src.forEach(function(b){
-      var c=_norm(b.card); if(!c) return; _cardManaged[c]=1;
+      var c=_cardIdOf(b.card); if(!c) return; _cardManaged[c]=1;
       // Valid CB key must match the occurrence's periodKey = 'CB|'+card+'|'+PERIOD+'::'+dueMonth.
       // (period = b.period from the parser; dueMonth = month of the statement's printed due_date,
       // which is the due date ui-cardsync writes. These can differ by a month — that is expected.)
@@ -287,11 +321,11 @@
     // amount is authoritative), so purge it. Only touches PDF-managed cards' own periods — manual
     // extras on forecast periods (no PDF yet) and all non-managed cards are left untouched.
     var _pdfPeriod={};
-    src.forEach(function(b){ var c=_norm(b.card), pr=_norm(b.period); if(c&&pr) _pdfPeriod[c+'::'+pr]=1; });
+    src.forEach(function(b){ var c=_cardIdOf(b.card), pr=_norm(b.period); if(c&&pr) _pdfPeriod[c+'::'+pr]=1; });
     try{
       Object.keys(D.cardbill_extra||{}).forEach(function(k){
         var pp=k.split('::'); if(pp.length!==2) return;
-        var c=_norm(pp[0]);
+        var c=_cardIdOf(pp[0]);
         if(!_cardManaged[c]) return;
         // ONLY purge extra for a period that already has a REAL PDF statement (bill arrived ->
         // the PDF total is authoritative, the manual estimate is obsolete). A period with NO PDF
@@ -336,7 +370,7 @@
     if(changed){ saveD(); if(typeof simulate==='function') simulate(); }
     return added;
   };
-  function _txnKey(t){ t=t||{}; return [t.card,t.period,t.ref||'',t.txn_date||'',t.amount,t.desc||''].join('|'); }
+  function _txnKey(t){ t=t||{}; return [t.card_id||t.last4||t.card,t.period,t.ref||'',t.txn_date||'',t.amount,t.desc||''].join('|'); }
 
   // run after app init + after sheet-sync pull (like utilAutoSyncPlanned hooks)
   window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window.cardAutoSyncPlanned) cardAutoSyncPlanned(); }catch(e){ console.error('cardAutoSyncPlanned:',e); } }, 400); });

@@ -16,7 +16,7 @@
 function _dim(y,m0){ return new Date(y,m0+1,0).getDate(); }
 function _clamp(y,m0,d){ return Math.min(d,_dim(y,m0)); }
 function _ym(d){ return d.getFullYear()+'-'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1); }
-function _card(name){ return (D.cards||[]).find(function(c){return c.name===name;})||null; }
+function _card(ref){ return (D.cards||[]).find(function(c){return c.id===ref||c.name===ref;})||null; }
 function _pdfSet(){ var s={}; try{((glob.CARD_BILLS&&glob.CARD_BILLS.bills)||[]).forEach(function(b){if(b&&b.card)s[b.card]=1;});}catch(e){} return s; }
 // Resolve a non-card child's paid record by (keyBase, period) using the authoritative stored
 // `period` FIELD (not the key suffix). A charge keyed I|name|seq or M|name is paid for `period`
@@ -55,6 +55,24 @@ function _childPaidFor(keyBase, period){
   return null;
 }
 
+// v335 (user concept Oct 17 2026): which statement period a card is in ON a given date.
+// Uses the SAME per-card setting (statement_day/period_rule) as _stmtDueDeadline, inverse direction:
+// given a real paid_date, find the period whose cutoff range contains it. A charge paid with a card
+// folds into THIS period's statement. period_rule 'prev' -> period = month BEFORE the statement month.
+function _periodForDateOnCardU(cardObj, iso){
+  if(!cardObj||!cardObj.statement_day) return null;
+  var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); if(!m) return null;
+  var S=parseInt(cardObj.statement_day,10)||1, cy=+m[1], cm=(+m[2])-1, pd=+m[3];
+  var _pr=cardObj.period_rule;
+  // statement month = the month whose statement_day closes the cycle this date falls in.
+  var stmtM=cm+(pd>S?1:0), stmtY=cy;
+  // period month relative to statement month (same setting used forward in _stmtDueDeadline).
+  var shift=(_pr==='prev')?1:(_pr==='same')?0:((S<=15)?1:0);
+  var per=stmtM-shift, py=stmtY;
+  while(per<0){per+=12;py--;} while(per>11){per-=12;py++;}
+  return py+'-'+((per+1)<10?'0':'')+(per+1);
+}
+
 // Build D.bills[] on the fly (read-only clone) if the app hasn't migrated yet.
 function _unifiedBills(){
   if(D.bills && D.bills.length) return D.bills;
@@ -71,7 +89,25 @@ function _stmtDueDeadline(cardObj, periodY, periodM0, pdfChild){
   // Verified: KBank period 2026-07 -> 06/08 ; UOB 2026-08 -> 13/09 ; BAY/JCB 2026-09 -> 10/10.
   // A real PDF statement overrides with its own printed due/deadline (immutable fact).
   if(pdfChild && pdfChild.due instanceof Date){
-    return {due:pdfChild.due, deadline:(pdfChild.deadline instanceof Date)?pdfChild.deadline:pdfChild.due};
+    var _dl=(pdfChild.deadline instanceof Date)?pdfChild.deadline:null;
+    // v322c (user Oct 16 2026): unified occurrences don't carry the PDF deadline (printed "pay within"
+    // date), so pdfChild.deadline is usually null -> deadline wrongly fell back to the DUE date. Read
+    // the real printed due_date from CARD_BILLS (card_bills.js) for this card+period and use it as the
+    // deadline. (KBank statement 05 -> deadline 20; the due/plan-pay day stays 06.)
+    if(!_dl){
+      try{
+        var _per=periodY+'-'+((periodM0+1)<10?'0':'')+(periodM0+1);
+        var _cb=(glob.CARD_BILLS&&glob.CARD_BILLS.bills)||[];
+        var _cname=(cardObj&&cardObj.name)||'';
+        for(var _i=0;_i<_cb.length;_i++){
+          var _b=_cb[_i];
+          if(_b && _b.card===_cname && _b.period===_per && /^\d{4}-\d{2}-\d{2}$/.test(_b.due_date||'')){
+            var _p=_b.due_date.split('-'); _dl=new Date(+_p[0],(+_p[1])-1,+_p[2]); break;
+          }
+        }
+      }catch(_e){}
+    }
+    return {due:pdfChild.due, deadline:_dl||pdfChild.due};
   }
   // v319 (user-locked Oct 13 2026): due day = statement_day + due_offset, in the STATEMENT MONTH.
   // The statement month relative to the period is a per-card SETTING (period_rule), not computed:
@@ -142,7 +178,7 @@ glob.billOccurrencesUnified=function(fromD,toD){
     var kk=_occKindKey(o);
     var base={
       kind:kk.kind, key:kk.key, name:o.name, type:o.type||'Other',
-      amount:o.amount||0, card:isCash?'Cash/Direct':o.card, auto_pay:(o.settle==='auto'),
+      amount:o.amount||0, card:isCash?'Cash/Direct':o.card, auto_pay:((kk.kind==='Installment')?true:(o.settle==='auto')),
       due:o.orig_due, orig_due:o.orig_due, deadline:null,
       info:(o.seq?('('+o.seq.replace('of','/')+')'):''),
       _income:(o.direction==='income'),
@@ -155,24 +191,55 @@ glob.billOccurrencesUnified=function(fromD,toD){
       _fromUtility:(o.source==='utility'&&String(o.source_ref||'').indexOf('|')>0)
     };
     if(o.source==='pdf'){ base._fromCard=true; base._cardPeriod=o.card_period; base._cardName=o.card; }
-    // IMMUTABILITY (§2.0): if this charge was already PAID, the card+period on the paid record are
-    // the facts of record (the card it was paid with at the time), which may differ from the card the
-    // bill definition points at NOW (e.g. AIS was on BAY JCB for period 2026-09, then moved to ttb).
-    // Re-point the occurrence to the paid record's card so it folds under the statement it was paid on.
+    // v341 (user Oct 17 2026): PER-OCCURRENCE OVERRIDE. A single occurrence (this bill, this period)
+    // can override card / amount / due / paid_date WITHOUT touching the recurring/installment template.
+    // Keyed by '<billKey>::<natural period>' in D.occ_overrides, where natural period is the occurrence's
+    // own card_period (card bills) else service_period else due month — the SAME key the edit UI writes.
+    // Applied BEFORE the fold block so an overridden card/due re-folds correctly downstream.
+    if(!base._fromCard && base.key && D.occ_overrides){
+      var _opKey=base.key+'::'+((/^\d{4}-\d{2}$/.test(o.card_period||''))?o.card_period:(/^\d{4}-\d{2}$/.test(o.service_period||''))?o.service_period:_ym(base.due));
+      var _ov=D.occ_overrides[_opKey];
+      if(_ov && typeof _ov==='object'){
+        base._occOverride=_opKey;
+        if(_ov.card){ base.card=_ov.card; var _ovIsCash=(_ov.card==='Cash/Direct'||_ov.card==='cash'); if(_ovIsCash){ base.card='Cash/Direct'; isCash=true; } }
+        if(_ov.amount!=null && !isNaN(parseFloat(_ov.amount))) base.amount=parseFloat(_ov.amount);
+        if(/^\d{4}-\d{2}-\d{2}$/.test(_ov.due||'')){ var _dp=_ov.due.split('-'); base.due=new Date(+_dp[0],(+_dp[1])-1,+_dp[2]); base.orig_due=base.due; }
+      }
+    }
+    // v335 FOLD RULE (user-locked Oct 17 2026): a card-linked charge (not a PDF statement row) folds
+    // ONLY by its ACTUAL PAID DATE. Look up the paid record for THIS charge's own service period
+    // (exact key+period, never a cross-period prefix match). Then:
+    //   PAID  -> fold under the card it was paid with, into the statement period whose date-range
+    //            CONTAINS paid_date (_periodForDateOnCardU). Set base.card + base.card_period to that.
+    //   UNPAID-> do NOT fold: flag base._noFold so it skips grouping and surfaces as a standalone
+    //            actionable row. (A charge's CURRENT card/card_period is a forecast, not a fold target.)
     if(!isCash && o.source!=='pdf' && base.key){
-      var _pr=_paidRecByNamePeriod(base.key, o.card_period);
-      if(_pr && _pr.card && _pr.card!=='Cash/Direct' && _pr.card!==base.card){ base.card=_pr.card; }
-      else if(!_pr){
-        // v321: no paid record at the current-card period -> try matching by the immutable service
-        // period (usage month via orig_due). If the bill's card changed after payment, adopt BOTH the
-        // paid record's card AND its period so the occurrence folds under the statement it was paid on
-        // (e.g. AIS service-Aug: ttb would give card_period 2026-09, but it was paid via JCB period
-        // 2026-08 -> re-point card=JCB, card_period=2026-08).
-        var _prS=_paidRecByNameServicePeriod(base.key, o.service_period);
-        if(_prS && _prS.card && _prS.card!=='Cash/Direct'){
-          if(_prS.card!==base.card) base.card=_prS.card;
-          var _rp=_prS.period||'';
-          if(/^\d{4}-\d{2}$/.test(_rp) && _rp!==base.card_period){ base.card_period=_rp; o.card_period=_rp; }
+      var _isInst=(kk.kind==='Installment') || (typeof base.key==='string' && base.key.indexOf('I|')===0);
+      if(_isInst){
+        // v340 (user-locked Oct 17 2026): an INSTALLMENT is swiped on a specific date and auto-posts to
+        // whichever statement period its CUT date (orig_due) falls into — ALWAYS, regardless of paid
+        // status or the unreliable auto_pay field. It never surfaces as a manual actionable row; it is
+        // part of the card bill. Fold by orig_due on the bill's own card.
+        var _icObj=_card(base.card) || (D.cards||[]).find(function(c){return c.id===base.card;}) || null;
+        var _icDate=(o.orig_due instanceof Date)?(o.orig_due.getFullYear()+'-'+((o.orig_due.getMonth()+1)<10?'0':'')+(o.orig_due.getMonth()+1)+'-'+(o.orig_due.getDate()<10?'0':'')+o.orig_due.getDate()):String(o.orig_due||'').slice(0,10);
+        var _icPer=_icObj?_periodForDateOnCardU(_icObj, _icDate):null;
+        if(_icPer){ base.card_period=_icPer; }
+        base._paidFold=true;   // treat as folded (never a standalone manual row)
+      } else {
+        // the charge's own service period (immutable usage month); fall back to card_period then due month.
+        var _sp=(/^\d{4}-\d{2}$/.test(o.service_period||''))?o.service_period
+               :(/^\d{4}-\d{2}$/.test(o.card_period||''))?o.card_period:_ym(base.due);
+        var _rec=_childPaidFor(base.key, _sp);
+        if(!_rec){ var _rk=(D.bill_payments||{})[base.key+'::'+_sp]; if(_rk&&_rk.paid) _rec=_rk; }
+        if(_rec && _rec.paid && _rec.paid_date){
+          var _payCard=_rec.card && _rec.card!=='Cash/Direct' ? _rec.card : base.card;
+          var _pcObj=_card(_payCard) || (D.cards||[]).find(function(c){return c.id===_payCard;}) || null;
+          var _foldPer=_periodForDateOnCardU(_pcObj, _rec.paid_date);
+          base.card=_payCard;
+          base.card_period=_foldPer || _rec.period || base.card_period;
+          base._paidFold=true;
+        } else {
+          base._noFold=true;   // unpaid linked charge: never fold into a statement
         }
       }
     }
@@ -182,6 +249,7 @@ glob.billOccurrencesUnified=function(fromD,toD){
   // ---- consolidate card charges into one statement per (card, card_period) ----
   var groups={};
   cardOcc.forEach(function(o){
+    if(o._noFold) return;   // v335: unpaid linked charge never folds into a statement group
     var mk=o.card_period || _ym(o.due);
     var gk=o.card+'::'+mk;
     if(!groups[gk]){
@@ -217,7 +285,7 @@ glob.billOccurrencesUnified=function(fromD,toD){
     var children=hasPdf?g.items.filter(function(it){return !it._fromCard;}):g.items;
     stmts.push({
       kind:'Card Statement', key:glob._billKeyId('CB',g.card,g.mk), _cardPeriod:g.mk,
-      name:g.card+' statement', type:'Credit Card', amount:eff, card:g.card, auto_pay:false,
+      name:((typeof glob.cardDisplayName==='function'&&glob.cardDisplayName(g.card))||g.card)+' statement', type:'Credit Card', amount:eff, card:g.card, auto_pay:false,
       children:children, _pdfDriven:hasPdf, due:dd.due, deadline:dd.deadline,
       info:(hasPdf?('\ud83d\udcc4 from statement'+(g.items.length>1?(' \u00b7 '+(g.items.length-1)+' charge'+((g.items.length-1)!==1?'s':'')):''))
                   :((pdfSet[g.card]?'\ud83d\udd2e forecast \u00b7 ':'')+g.items.length+' charge'+(g.items.length!==1?'s':'')+(extraRec>0?' \u00b7 +extra':''))),
@@ -229,11 +297,12 @@ glob.billOccurrencesUnified=function(fromD,toD){
   var surfaced=[];
   cardOcc.forEach(function(o){
     if(o._fromCard) return;
-    var per=o.card_period;
-    if(per && _childPaidFor(o.key, per)) return;   // PAID child folds (does not surface) — match on period FIELD
-    if(!groups[o.card+'::'+(o.card_period||_ym(o.due))]) return;
-    var s=Object.assign({},o); s._surfaced=true; s._inStmtCard=o.card;
-    surfaced.push(s);
+    // v335: UNPAID linked charges (flagged _noFold above) do not fold -> surface them as standalone
+    // actionable rows. PAID charges folded into a statement; they must NOT also surface.
+    if(o._noFold){
+      var su=Object.assign({},o); su._surfaced=true; su._inStmtCard=o.card; su._unpaidStandalone=true;
+      surfaced.push(su); return;
+    }
   });
 
   var occ=cashOcc.concat(stmts).concat(surfaced);
