@@ -134,7 +134,7 @@ var dueRaw=gv('he-due').trim();var paidRaw=gv('he-paid').trim();
 function toISO(s,fallback){if(!s)return fallback||'';var iso=parseDMY(s);if(!iso||!/^\d{4}-\d{2}-\d{2}$/.test(iso))return fallback||'';return iso;}
 var dueISO=toISO(dueRaw,r.due||'');
 var paidISO=toISO(paidRaw,r.paid_date||'');
-r.paid_amount=amt;r.card=card;r.type=typ;r.auto_pay=ap;r.due=dueISO;r.paid_date=paidISO;
+r.paid_amount=amt;r.card=card;r.type=typ;r.auto_pay=ap;r.due=dueISO;r.paid_date=paidISO;r._userEdited=true;
 D.bill_payments[key]=r;
 saveD();
 histCancelEdit();
@@ -214,6 +214,7 @@ function occSaveOverride(){
     if(o.card) _rec.card=o.card; else if(!_rec.card && card) _rec.card=card;
     if(o.due) _rec.due=o.due; if(o.due) _rec.orig_due=o.due;
     if(/^\d{4}-\d{2}$/.test(_per)) _rec.period=_per;
+    _rec._userEdited=true;   // v346: a hand-edited record is never overwritten by a synced document
     D.bill_payments[_lk]=_rec;
   }
   // NOTE: leaving paid_date blank does NOT auto-delete an existing paid record (it may have been paid

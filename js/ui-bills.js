@@ -120,7 +120,7 @@ if(!D.cardbill_extra)D.cardbill_extra={};
 // key (2026-08), colliding with another view where that period is the real one (Sep JCB = 2026-08),
 // so an extra typed in one month leaked into the other.
 var _perEff=(/^\d{4}-\d{2}$/.test(per||''))?per:((typeof _cbPeriodForView==='function')?_cbPeriodForView(card,y,m):'');
-var k=(/^\d{4}-\d{2}$/.test(_perEff||''))?(card+'::'+_perEff):_cbKey(card,y,m);
+var k=(/^\d{4}-\d{2}$/.test(_perEff||''))?((typeof window.cardExtraKey==='function')?window.cardExtraKey(card,_perEff):(card+'::'+_perEff)):_cbKey(card,y,m);
 var num=parseFloat(String(val).replace(/,/g,''));
 if(val===''||isNaN(num)||num===0){delete D.cardbill_extra[k];}else{D.cardbill_extra[k]=num;}
 saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof simulate==='function')try{simulate()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}

@@ -231,12 +231,19 @@
         if(paidFull){
           var prev=D.bill_payments[payKey];
           var pd=paidDate||due;
-          // Only CREATE the paid record if absent. NEVER overwrite an existing one — the user may have
-          // hand-corrected paid_date/amount (e.g. the real bank date differs from the card_bills/email
-          // date). Overwriting on every load was resetting user edits back to the PDF date each refresh.
+          // v317 (user rule Oct 17 2026): a REAL document (PDF/email statement that just synced) is the
+          // source of truth and OVERWRITES the auto-synced record — EXCEPT a record the user edited by
+          // hand (_userEdited:true), which always wins. So: create if absent; overwrite if the existing
+          // record is sync-made (_fromCard and NOT _userEdited); leave user-edited records untouched.
           if(!prev){
             D.bill_payments[payKey]={paid:true,paid_date:pd,paid_amount:paidTotal,due:due,type:'Credit Card',card:card,auto_pay:false,_fromCard:true};
             changed=true;
+          } else if(prev._fromCard && !prev._userEdited){
+            // refresh the sync-made record from the authoritative document (keep _fromCard, no _userEdited)
+            if(prev.paid_date!==pd || prev.paid_amount!==paidTotal || prev.due!==due || prev.card!==card){
+              D.bill_payments[payKey]={paid:true,paid_date:pd,paid_amount:paidTotal,due:due,type:'Credit Card',card:card,auto_pay:false,_fromCard:true};
+              changed=true;
+            }
           }
         }else if(D.bill_payments[payKey]&&D.bill_payments[payKey]._fromCard){
           // was auto-marked paid before, now not full anymore -> unmark
