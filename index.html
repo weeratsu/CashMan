@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-18 15:45";
+window.APP_VERSION="2026-10-18 18:15";
 window.addEventListener("error",function(e){
 try{
 // Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
@@ -198,7 +198,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <style id="cm-todo-fit">
 /* Oct 9 2026: To-Do = 2 lines per task, fits the card (like Bills Reminder). */
 .todo-fit{overflow:visible!important;max-height:none!important}
-.todo-tbl{width:100%;table-layout:fixed}
+.todo-tbl{table-layout:fixed}
 .todo-tbl th:nth-child(1),.todo-tbl td.r{width:28px}
 .todo-tbl td,.todo-tbl th{white-space:normal!important;word-break:break-word}
 .todo-tbl tr.todo-r1 td{border-bottom:0!important;padding-bottom:2px!important}
@@ -206,6 +206,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 .todo-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 .todo-meta .todo-dl{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
 .todo-tbl input.inp-inline{max-width:100%;min-width:0;box-sizing:border-box}
+.todo-tbl tr.todo-r1 td:first-child input.inp-inline{width:100%;max-width:100%}
 .todo-tbl td.todo-st{width:130px}
 @media(max-width:520px){.todo-tbl td.todo-st,.todo-tbl th.todo-st{width:92px}}
 .todo-sum{display:flex;flex-wrap:wrap;align-items:center;gap:5px;cursor:pointer;padding:2px 0}
@@ -231,16 +232,21 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
    horizontally if ever needed (never overflows the card). Mobile (<=640px): the table reflows to
    stacked cards (thead hidden; each row block-level; status + Done button drop below the title). */
 .todo-fit{overflow-x:auto;max-width:100%}
-.todo-tbl{table-layout:auto!important;width:100%}
+.todo-tbl{table-layout:fixed!important;width:100%!important;max-width:100%}
 /* v288 (user Oct 14 2026): REAL columns — Task flexes to fill; Category/Priority/Deadline/Status/Delete
    each size to content and sit as their own aligned columns (no more left-cluster + empty right). */
 .todo-tbl th,.todo-tbl td{vertical-align:top}
-.todo-tbl th:first-child,.todo-tbl td:first-child{width:auto;min-width:220px;text-align:left}
-.todo-tbl th:not(:first-child),.todo-tbl td:not(:first-child){white-space:nowrap;width:1%}
+.todo-tbl th:first-child,.todo-tbl td:first-child{width:42%;min-width:220px;text-align:left}
+.todo-tbl th:nth-child(2),.todo-tbl td:nth-child(2){width:14%}
+.todo-tbl th:nth-child(3),.todo-tbl td:nth-child(3){width:11%}
+.todo-tbl th:nth-child(4),.todo-tbl td:nth-child(4){width:16%}
+.todo-tbl th:nth-child(5),.todo-tbl td:nth-child(5){width:14%}
+.todo-tbl th:nth-child(6),.todo-tbl td:nth-child(6){width:3%}
+.todo-tbl th:not(:first-child),.todo-tbl td:not(:first-child){white-space:nowrap}
 .todo-tbl th{text-align:left;color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;padding:6px 10px}
 .todo-tbl td{padding:6px 10px}
 .todo-tbl td.todo-st,.todo-tbl th.todo-st{text-align:left}
-@media(max-width:640px){
+@media(max-width:480px){
   .todo-fit{overflow-x:visible}
   .todo-tbl{min-width:0;display:block}
   .todo-tbl thead{display:none}
@@ -670,7 +676,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-retirement.js?v=253"></script>
 
 <script src="js/ui-billreminder.js?v=347"></script>
-<script src="js/ui-todos.js?v=290"></script>
+<script src="js/ui-todos.js?v=293"></script>
 <script src="js/ui-wishlist.js?v=253"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below

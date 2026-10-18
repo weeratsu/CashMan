@@ -341,24 +341,12 @@ function _tdDue(t,MON,DOW){
  return out.length?out.join(' '):'<span style="color:var(--text3)">\u2014</span>';
 }
 function _todoSummary(t,MON,DOW){
+ // v292 (user Oct 18 2026): the second row shows ONLY the link (if any). Category/Priority/Deadline AND
+ // recurrence are already in their own columns (recurrence renders inside the Deadline column via _tdDue),
+ // so repeating them here was pure duplication. Keep the row minimal — just a link chip when present.
  var p=[];
- if(t.category) p.push('<span class="tchip">'+esc(t.category)+'</span>');
- if(t.priority===1) p.push('<span class="tchip t-hi">\ud83d\udd34 High</span>'); else if(t.priority===3) p.push('<span class="tchip">\u26aa Low</span>');
- var dl='';
- if(t.deadline_mode==='date'&&t.due_date){ var d=t.due_date.split('-'); dl='\ud83d\udcc5 '+(+d[2])+' '+MON[(+d[1])-1]+(+d[0]!==new Date().getFullYear()?' '+d[0]:''); }
- else if(t.deadline_mode==='asap') dl='\u26a1 ASAP';
- if(t.due_time) dl+=(dl?' ':'\u23f0 ')+esc(String(t.due_time).slice(0,5));
- if(dl) p.push('<span class="tchip">'+dl+'</span>');
- if(t.recur&&t.recur!=='none'){
-  var n=+(t.recur_every||1), u={daily:'วัน',weekly:'สัปดาห์',monthly:'เดือน',yearly:'ปี'}[t.recur]||'';
-  var r='\ud83d\udd01 '+(n>1?'ทุก '+n+' '+u:{daily:'ทุกวัน',weekly:'ทุกสัปดาห์',monthly:'ทุกเดือน',yearly:'ทุกปี'}[t.recur]);
-  if(t.recur==='weekly') r+=' ('+DOW[t.recur_dow||0]+')';
-  if(t.recur==='monthly') r+=' (วันที่ '+(t.recur_dom||1)+')';
-  if(t.recur_until) r+=' ถึง '+esc(t.recur_until);
-  p.push('<span class="tchip">'+r+'</span>');
- }
  if(t.link) p.push('<span class="tchip">\ud83d\udd17 '+esc(String(t.link).replace(/^\w+:/,''))+'</span>');
- return p.length?p.join(''):'<span class="tchip t-empty">+ ตั้ง category / deadline</span>';
+ return p.length?p.join(''):'';
 }
 window.todoEditToggle=todoEditToggle;
 function _todoLinkOptions(t){
@@ -547,7 +535,7 @@ var _rs=rowStyle+(_todoTouched[t.id]?';box-shadow:inset 3px 0 0 var(--primary);b
 h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
 
 '<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:600;font-size:12px;width:100%'+(t.done?';text-decoration:line-through':'')+'">'+
-'<input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:10px;color:var(--text3);width:100%"></td>'+'<td rowspan="2" style="vertical-align:top;padding-top:10px;white-space:nowrap">'+_tdCat(t)+'</td>'+'<td rowspan="2" style="vertical-align:top;padding-top:10px;white-space:nowrap">'+_tdPri(t)+'</td>'+'<td rowspan="2" style="vertical-align:top;padding-top:10px">'+_tdDue(t,MON,DOW)+'</td>'+'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+// v285 (user Oct 14 2026): Done/Reopen button lives at the END of the row in the STATUS column
+'<input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:10px;color:var(--text3);width:100%"></td>'+'<td rowspan="2" onclick="todoEditToggle(\''+t.id+'\')" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e41\u0e01\u0e49\u0e44\u0e02" style="vertical-align:top;padding-top:10px;white-space:nowrap;cursor:pointer">'+_tdCat(t)+'</td>'+'<td rowspan="2" onclick="todoEditToggle(\''+t.id+'\')" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e41\u0e01\u0e49\u0e44\u0e02" style="vertical-align:top;padding-top:10px;white-space:nowrap;cursor:pointer">'+_tdPri(t)+'</td>'+'<td rowspan="2" onclick="todoEditToggle(\''+t.id+'\')" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e41\u0e01\u0e49\u0e44\u0e02" style="vertical-align:top;padding-top:10px;cursor:pointer">'+_tdDue(t,MON,DOW)+'</td>'+'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+// v285 (user Oct 14 2026): Done/Reopen button lives at the END of the row in the STATUS column
 // (like the Pay button in Bill Reminder), not in front of the task where it overlapped the title.
 '<div style="margin-top:6px">'+(t.done
   ?'<button class="btn" style="font-size:9px;padding:3px 9px;background:var(--success,#16a34a);color:#fff;border:none;border-radius:5px;white-space:nowrap" title="Reopen this task" onclick="todoReopen(\''+t.id+'\')"><i class="fa-solid fa-rotate-left"></i> Reopen</button>'
@@ -556,7 +544,7 @@ h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
 '</tr>'+
 '<tr class="todo-r2" style="'+_rs+'"><td>'+
 // Calm summary line (Oct 9 2026): readable chips; tap ✎ to open the full editors (kept below, hidden).
-'<div class="todo-sum" onclick="todoEditToggle(\''+t.id+'\')" title="แตะเพื่อแก้ไข">'+_todoSummary(t,MON,DOW)+'<span class="todo-pen"><i class="fa-solid fa-pen"></i></span></div>'+
+'<div class="todo-sum" onclick="todoEditToggle(\''+t.id+'\')" title="แตะเพื่อแก้ไข" style="cursor:pointer">'+_todoSummary(t,MON,DOW)+'</div>'+
 '<div class="todo-meta" id="tedit_'+t.id+'" style="display:'+(_todoEditOpen[t.id]?'flex':'none')+'">'+
 '<select class="sel" data-tid="'+t.id+'" data-tf="category" onchange="todoSaveField(\''+t.id+'\',\'category\',this)" style="font-size:10px" title="Category">'+catOpts(t.category)+'</select>'+
 '<select class="sel" data-tid="'+t.id+'" data-tf="priority" onchange="todoSaveField(\''+t.id+'\',\'priority\',this)" style="font-size:10px" title="Priority"><option value="1"'+(t.priority===1?' selected':'')+'>\ud83d\udd34 High</option><option value="2"'+((t.priority||2)===2?' selected':'')+'>\ud83d\udfe1 Normal</option><option value="3"'+(t.priority===3?' selected':'')+'>\u26aa Low</option></select>'+
