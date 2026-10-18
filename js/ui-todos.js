@@ -576,13 +576,13 @@ h+='<div style="display:'+(_todoHistOpen?'':'none')+';margin-top:8px">';
 if(!log.length){h+='<p class="text-muted" style="font-size:11px">No completed tasks yet. Completing a task (including each recurring occurrence) records it here.</p>';}
 else{
 h+='<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn btn-ghost" style="font-size:9px;padding:2px 8px;color:var(--error)" onclick="clearTodoLog()"><i class="fa-solid fa-trash"></i> Clear history</button></div>';
-h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%;table-layout:auto"><thead><tr><th style="min-width:220px;text-align:left">Task</th><th style="min-width:90px">Category</th><th>Done on</th><th>Was due</th><th>Type</th><th></th></tr></thead><tbody>';
+h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%;table-layout:auto"><thead><tr><th style="min-width:220px;text-align:left">Task</th><th style="min-width:90px">Category</th><th style="white-space:nowrap">Done on</th><th style="white-space:nowrap">Was due</th><th style="white-space:nowrap;min-width:72px">Type</th><th style="white-space:nowrap;min-width:64px"></th></tr></thead><tbody>';
 log.forEach(function(L){
 h+='<tr><td style="min-width:220px;white-space:normal;word-break:normal;overflow-wrap:anywhere">'+esc(L.title||'')+'</td>'+
 '<td style="font-size:10px;color:var(--text3)">'+esc(L.category||'')+'</td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.done_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'done_date\',this)" style="width:130px" title="Completion date (editable)"></td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.due_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'due_date\',this)" style="width:130px" title="Original due date (editable)"></td>'+
-'<td>'+(L.recurring?'<span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px">\ud83d\udd01 recurring</span>':'<span style="font-size:8px;color:var(--text3)">one-time</span>')+'</td>'+
+'<td style="white-space:nowrap">'+(L.recurring?'<span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px">\ud83d\udd01 recurring</span>':'<span style="font-size:8px;color:var(--text3)">one-time</span>')+'</td>'+
 '<td style="white-space:nowrap"><button class="btn btn-ghost" style="font-size:8px;padding:2px 7px" title="Undo this completion" onclick="todoUndoLog(\''+L.id+'\')"><i class="fa-solid fa-rotate-left"></i> Undo</button></td></tr>';
 });
 h+='</tbody></table></div>';
