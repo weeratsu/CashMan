@@ -268,7 +268,7 @@ h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:11px;min-wi
 items.forEach(function(w){
 var fit=_wishFit(w);
 var dimd=(w.status&&w.status!=='wishing')?'opacity:.55;':'';
-h+='<tr data-row="'+w.id+'" style="'+dimd+(_wishTouched[w.id]?';outline:2px solid var(--primary);outline-offset:-2px':'')+'">'+
+h+='<tr data-row="'+w.id+'" style="'+dimd+(_wishTouched[w.id]?';box-shadow:inset 3px 0 0 var(--primary);background:var(--primary-bg,rgba(59,130,246,0.06))':'')+'">'+
 '<td><input class="inp-inline" value="'+esc(w.item||'')+'" data-wid="'+w.id+'" data-wf="item" onchange="wishSaveField(\''+w.id+'\',\'item\',this)" style="font-weight:500;min-width:120px">'+
 (w.url?' <a href="'+esc(w.url)+'" target="_blank" title="Open link" style="color:var(--primary)"><i class="fa-solid fa-link" style="font-size:9px"></i></a>':'')+
 '<br><input class="inp-inline" value="'+esc(w.note||'')+'" placeholder="note / URL below" data-wid="'+w.id+'" data-wf="note" onchange="wishSaveField(\''+w.id+'\',\'note\',this)" style="font-size:9px;color:var(--text3);min-width:160px">'+

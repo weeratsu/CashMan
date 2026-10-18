@@ -71,7 +71,7 @@ document.getElementById('payroll-summary-tbl').innerHTML=psTbl}
 function addPayItem(type){readAll();D.payroll.push({name:'New '+(type==='income'?'Income':'Deduction'),type:type,amount:0,freq:'every_month',month:null,notes:'',affects_epf:(type==='income'),affects_sso:(type==='income'),affects_tax:(type==='income'),calc_mode:'fixed'});renderPayroll();
 // Small sub-list: keep the add button under the list, but jump straight into the new row's name field.
 var _ni=D.payroll.length-1;
-setTimeout(function(){var e=document.querySelector('[data-pi="'+_ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.outline='2px solid var(--primary)';tr.style.outlineOffset='-2px';}if(e.scrollIntoView){try{e.scrollIntoView({behavior:'smooth',block:'center'});}catch(x){}}e.focus();if(e.select)e.select();}},30);
+setTimeout(function(){var e=document.querySelector('[data-pi="'+_ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.boxShadow='inset 3px 0 0 var(--primary)';tr.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}if(e.scrollIntoView){try{e.scrollIntoView({behavior:'smooth',block:'center'});}catch(x){}}e.focus();if(e.select)e.select();}},30);
 }
 
 

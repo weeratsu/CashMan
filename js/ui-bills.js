@@ -433,7 +433,7 @@ saveD();recAddClose();
 simulate();renderAllTabs();
 try{Y?filterYearly():filterMonthly();}catch(e){}
 var r=document.querySelector(sel);
-if(r){r.style.outline='2px solid var(--primary)';r.style.outlineOffset='-2px';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
+if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
 if(typeof toast==='function')toast('\u2705 '+(Y?'Yearly':'Monthly')+' item added');
 }
 function addMonthly(){_recAddOpen('monthly');}
@@ -481,6 +481,7 @@ var detail='<tr class="y-detail" data-yrow="'+i+'" style="'+(open?'':'display:no
 '<div><div style="color:var(--text3);margin-bottom:2px">Starts</div><div style="display:flex;align-items:center">'+startHtml+'</div></div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px" title="\u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49 (arrears) \u00b7 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49 (advance)">Billing</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="billing_mode" onchange="readAll();D.yearly['+i+'].billing_mode=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="advance"'+((y.billing_mode==='advance')?' selected':'')+'>\u2192 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49</option><option value="arrears"'+((y.billing_mode==='advance')?'':' selected')+'>\u2190 \u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49</option></select></div>'+
 '<div><div style="color:var(--text3);margin-bottom:2px">Period</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="period_rule" onchange="readAll();D.yearly['+i+'].period_rule=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="prev"'+((y.period_rule==='prev')?' selected':'')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same"'+((y.period_rule==='prev')?'':' selected')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option></select></div>'+
+'<div style="align-self:flex-end"><button class="btn btn-primary" style="font-size:10px;padding:4px 10px" onclick="yMaterialize('+i+')" title="สร้างรายการจริงจากรายการนี้ (installment ถ้าตั้งผ่อน / planned ถ้าจ่ายทีเดียว) — แก้/ลบได้">\u2795 สร้างรายการจริง</button></div>'+
 '</div></td></tr>';
 return mainRow+detail}).join('')}
 
@@ -929,7 +930,7 @@ function _planStatusBadge(p){
 }
 function renderPlanned(){
 if(!D||!D.planned)return;
-document.getElementById('planned-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllPlanned(this.checked)"></th><th style="width:20px"></th>'+pSH('name','Name')+'<th>I/E</th>'+pSH('type','Type')+pSH('amount','Amount')+'<th>Date</th><th>Card</th><th>Status</th><th title="Auto-pay / auto-deduct vs manual">Auto</th><th></th>';
+document.getElementById('planned-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllPlanned(this.checked)"></th><th style="width:20px"></th>'+pSH('name','Name')+'<th>I/E</th>'+pSH('type','Type')+pSH('amount','Amount')+pSH('date','Date')+pSH('card','Card')+'<th>Status</th><th title="Auto-pay / auto-deduct vs manual">Auto</th><th></th>';
 document.getElementById('planned-body').innerHTML=D.planned.map(function(p,i){
 var dirCls=p.direction==='income'?'color:var(--success);font-weight:600':'';
 var open=!!_plExpanded[i];
@@ -1018,7 +1019,7 @@ saveD();plAddClose();
 simulate();renderAllTabs();
 try{filterPlanned();}catch(e){}
 var r=document.querySelector('#planned-body tr.pl-main[data-plrow="'+_plNewIdx+'"]');
-if(r){r.style.outline='2px solid var(--primary)';r.style.outlineOffset='-2px';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
+if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
 if(typeof toast==='function')toast('\u2705 Planned item added');
 }
 
@@ -1031,6 +1032,8 @@ function sortPlanned(col){
 var st=plannedSortState;if(st.col===col)st.asc=!st.asc;else{st.col=col;st.asc=true}
 D.planned.sort(function(a,b){
 var va=a[col],vb=b[col];
+// card column: sort by DISPLAY name (resolve id->name) so cards group by their label, not raw id.
+if(col==='card'){ va=(typeof window.cardDisplayName==='function'?window.cardDisplayName(va):va)||va||''; vb=(typeof window.cardDisplayName==='function'?window.cardDisplayName(vb):vb)||vb||''; }
 if(typeof va==='number'&&typeof vb==='number')return st.asc?va-vb:vb-va;
 va=String(va||'').toLowerCase();vb=String(vb||'').toLowerCase();
 return st.asc?va.localeCompare(vb):vb.localeCompare(va)});
@@ -1102,6 +1105,41 @@ status:'Active'});
 instSortState.col=null;
 saveAll();
 toast('\u2705 Added '+y.name)}
+
+// v328 (user Oct 18 2026): materialize ONE yearly row into a real record on demand (button in the row).
+//  - installment mode  -> push to D.installments (per_period/periods/billing_day/card), soft-linked.
+//  - full (pay once)   -> push to D.planned on the yearly's month/day, soft-linked.
+// Soft link = _fromYearly:<name> so the generator's dedup guard (unified.js v323) suppresses the yearly
+// forecast while the real record exists. The new record is fully editable/deletable (month, amount, etc.).
+function yMaterialize(i){
+  readAll();
+  var y=D.yearly[i]; if(!y){toast('\u26a0\ufe0f Item not found');return;}
+  var nm=String(y.name||'').trim();
+  var yr=(y.start_from&&/^\d{4}/.test(y.start_from))?parseInt(y.start_from.slice(0,4)):(parseInt(y.year,10)|| (new Date()).getFullYear());
+  var mo=parseInt(y.month,10)||1;
+  if(y.pay_mode==='installment'){
+    if((D.installments||[]).some(function(it){return String(it.name||'').trim().toLowerCase()===nm.toLowerCase();})){ toast('\u26a0\ufe0f มี installment ชื่อนี้แล้ว'); return; }
+    var pn=parseInt(y.inst_periods,10)||1;
+    if(!D.installments)D.installments=[];
+    D.installments.push({ name:nm, type:y.type||'Other', card:y.card||'', own_by:y.own_by||'Me',
+      total:(parseFloat(y.amount)||0)*pn, per_period:parseFloat(y.amount)||0, periods:pn,
+      billing_day:parseInt(y.billing_day,10)||1, start_year:yr, start_month:mo,
+      status:'Active', _fromYearly:nm });
+    saveAll(); if(typeof renderInstallments==='function')try{renderInstallments()}catch(e){}
+    toast('\u2705 สร้าง installment จาก '+nm+' (แก้/ลบได้)');
+  } else {
+    // pay once -> planned
+    if(!D.planned)D.planned=[];
+    var day=parseInt(y.billing_day,10)||1;
+    var iso=yr+'-'+(mo<10?'0':'')+mo+'-'+(day<10?'0':'')+day;
+    if((D.planned||[]).some(function(p){return String(p.name||'').trim().toLowerCase()===nm.toLowerCase() && (p.date||'').slice(0,7)===iso.slice(0,7);})){ toast('\u26a0\ufe0f มี planned ชื่อนี้ในเดือนนั้นแล้ว'); return; }
+    D.planned.push({ name:nm, type:y.type||'Other', card:y.card||'', amount:parseFloat(y.amount)||0,
+      date:iso, direction:y.direction||'expense', _fromYearly:nm });
+    saveAll(); if(typeof renderPlanned==='function')try{renderPlanned()}catch(e){}
+    toast('\u2705 สร้าง planned จาก '+nm+' (แก้/ลบได้)');
+  }
+  renderYearly();
+}
 
 
 // Set hide_before on the yearly source of an auto (yearly-derived) installment.
@@ -1193,7 +1231,7 @@ saveD();instAddClose();
 simulate();renderAllTabs();
 try{filterInst();}catch(e){}
 var r=document.querySelector('#inst-body tr[data-idx="'+idx+'"]');
-if(r){r.style.outline='2px solid var(--primary)';r.style.outlineOffset='-2px';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
+if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
 if(typeof toast==='function')toast('\u2705 Installment added');
 }
 

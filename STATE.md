@@ -1,6 +1,6 @@
 # CashMan — STATE.md
 > สถานะกลางของระบบ อ่านไฟล์นี้ก่อนเริ่มทุกครั้ง และอัปเดตทุกครั้งที่แก้
-> อัปเดตล่าสุด: 2026-10-17 18:50 (Asia/Bangkok)
+> อัปเดตล่าสุด: 2026-10-18 12:35 (Asia/Bangkok)
 
 ---
 
@@ -291,3 +291,47 @@ exportData() → `cashflow_YYYY-MM-DD_HHMMSS.json` (เวลาท้องถ�
 - **แก้ layer ที่ symptom อ่านมาจริง** — CM_USE_UNIFIED=true → Bill Reminder ใช้ adapter ไม่ใช่ billOccurrences. เสียเวลาแก้ ui-billreminder.js หลายรอบ (v332-335) แล้วไม่มีผล
 - **อย่าสร้าง string JS-in-HTML ด้วยมือ** — JSON.stringify ใส่ double-quote ชน onclick="..." → ใช้ single-quote escape แทน (แบบเดียวกับ markRowPaid)
 - **เติม '+' เชื่อมเวลาแทรก string กลาง template** — ลืม → "is not a function" (string ถูกเรียกเป็น fn)
+
+
+---
+
+## ✅ Oct 18 2026 — yearly-materialize, overwrite rule, extra-key id, Timeline unify
+
+### 🔴 OVERWRITE RULE (user-locked Oct 17 PM)
+บิลจริง (เอกสาร/PDF sync) = ยึดเป็นหลัก ทับ record ที่ sync สร้างไว้ — ยกเว้น record ที่ user แก้มือ (flag `_userEdited`) ไม่ทับ
+- ui-cardsync.js **v316**: create ถ้าไม่มี; ถ้ามี record `_fromCard && !_userEdited` → ทับจากเอกสาร; `_userEdited` → ไม่แตะ
+- ui-billreminder.js: histSaveEdit + occSaveOverride ติด `_userEdited=true` ตอน user แก้
+
+### extra key = id (ui-bills.js v327)
+setCardBillExtra เขียน key ผ่าน `cardExtraKey` (resolve ชื่อ→id) — เดิมเขียน `card+'::'+period` ตรง ๆ ได้ `BAY JCB Platinum::...` (ชื่อ) → แตก statement ซ้ำ + ลบไม่ได้. ตอนนี้ key = `c3::period` ถูกต้อง
+
+### yearly ↔ installment/planned DEDUP + MATERIALIZE
+- **unified.js v7**: guard — ถ้าชื่อซ้ำระหว่าง yearly(installment mode) กับ manual installment → ข้าม yearly ไม่ emit ซ้ำ (manual = ของจริง). `_manualInstNames` set
+- **ui-bills.js v329**: ปุ่ม **➕ สร้างรายการจริง** ในแถว detail ของ **Yearly** (ไม่ใช่ Monthly!). `yMaterialize(i)`:
+  - installment mode → push `D.installments` (per_period/periods/billing_day/card) + `_fromYearly`
+  - จ่ายทีเดียว → push `D.planned` (เดือน/วันตาม yearly) + `_fromYearly`
+  - รายการที่สร้าง แก้/ลบได้อิสระ; soft link = `_fromYearly` ให้ guard ซ่อน yearly forecast
+- **คอนเซปต์:** yearly = ประมาณการ; รูดจริง → กดสร้าง → ปรับเดือนตาม trx จริง (ก.ค./ก.ย. แล้วแต่รูด)
+
+### ui-bills.js v330 — Planned sort
+หน้า Planned คลิก header sort ได้: เพิ่ม Date + Card (เดิมมี Name/Type/Amount). Card เรียงตามชื่อ display (resolve id→ชื่อ)
+
+### Timeline (simulation.js + ui-timeline.js) — resolve id + unify fold
+- **simulation.js v287**: `_simCard(ref)`/`_simCardName(ref)` resolve id OR ชื่อ (เดิม `.find(name===)` พังกับ id ที่ 4 จุด: line 87/111/248/286). statement label = `_simCardName`. **card charge ลงวันตัดจริง (billing_day)** ไม่ใช่วันจ่าย-เลื่อน → auto(Netflix/iCloud) + manual(AIS) fold ใต้ statement ก้อนเดียวเหมือนกัน. PDF total row tag `_pdfTotal=true`
+- **ui-timeline.js v255**: resolve ชื่อบัตร (`cardDisplayName`) ที่ badge + cardLabel (strip `__stmt_` prefix). ซ่อน `_pdfTotal` row ทั้ง timeline (`nL` filter) — เป็นยอดรวมที่เป็น statement header อยู่แล้ว ไม่โชว์ซ้ำ. statement แตกออกมาเหลือแค่ installment + extra
+
+### VERSION ล่าสุด (live, Oct 18)
+- unified.js **v7** (yearly/manual dedup guard)
+- ui-bills.js **v330** (yMaterialize button + Planned Date/Card sort + extra-key id)
+- ui-cardsync.js **v316** (overwrite-unless-_userEdited)
+- ui-billreminder.js **v347** (_userEdited flag on edits)
+- simulation.js **v287** (id resolve + card charge on cut date + _pdfTotal tag)
+- ui-timeline.js **v255** (card name resolve + hide _pdfTotal)
+- sheet-sync.js **v10** (auto default + pause switch in Setup card)
+- data.js **v310**
+- index.html APP_VERSION = **2026-10-18 12:35**
+
+### ⚠️ METHOD LESSON (Oct 18)
+- **ปุ่ม/anchor ที่ render ซ้ำโครงเดียวกัน (Monthly vs Yearly detail row)** — replace แบบ literal อาจไปโดนตัวแรก (Monthly) แทนที่จะเป็นที่ตั้งใจ (Yearly). ยืนยันด้วยการเช็คว่า match อยู่ใน render fn ไหน (offset เทียบ renderMonthly/renderYearly) ก่อน deploy
+- **card ref เป็น id (c<N>) ทั่วทั้ง data แล้ว** — ทุก `.find(x=>x.name===ref)` ต้องเป็น `x.id===ref||x.name===ref`. simulation.js ยังหลงเหลือ (S6 ของ refactor) — แก้ไปวันนี้
+- **SIM object ไม่ expose `events`** (อยู่ใน closure ของ simulate) — อ่านจาก Console ไม่ได้ ต้องวิเคราะห์จากโค้ด

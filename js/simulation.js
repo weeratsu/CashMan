@@ -13,6 +13,9 @@ var TAX_BRACKETS=[
 function simulate(){
 var p=D.profile,sd=new Date(p.start_date+'T00:00:00'),ed=new Date(p.end_date+'T00:00:00'),events={},typeExp={},cardExp={};
 function dk(d){return d.getFullYear()+'-'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate()}
+// v6 (user Oct 18 2026): card references in bills are now IDs (c<N>), not names. Resolve either form.
+function _simCard(ref){ return (D.cards||[]).find(function(x){return x.id===ref||x.name===ref;})||null; }
+function _simCardName(ref){ var c=_simCard(ref); return (c&&c.name)||ref||''; }
 function addE(d,ic,desc,amt,cardN,typ,grp,info){var k=dk(d);if(!events[k])events[k]=[];events[k].push({icon:ic,desc:desc,amount:amt,card:cardN||'',type:typ||'',group:grp||'',info:info||''})}
 var mR=[];var cy=sd.getFullYear(),cm=sd.getMonth();while(cy<ed.getFullYear()||(cy===ed.getFullYear()&&cm<=ed.getMonth())){mR.push([cy,cm]);cm++;if(cm>11){cm=0;cy++}}
 // Retirement: determine separation date for payroll cutoff
@@ -84,7 +87,7 @@ if(d>=sd&&d<=ed)addE(d,item.direction==='income'?'💰':'📆',item.name,(item.d
 // All installments (manual + yearly-derived)
 var allInst=allInstallments();
 allInst.forEach(function(inst){if(inst.status==='Cancelled'||inst.status==='Hold')return;
-var c=D.cards.find(function(x){return x.name===inst.card});
+var c=_simCard(inst.card);
 var dl=c?c.payment_day:15;
 var instMonthShift=(c&&inst.billing_day&&inst.billing_day>c.statement_day)?1:0;
 // Cashback
@@ -108,11 +111,13 @@ if(item._fromCard){
   if(_cd>=sd&&_cd<=ed){addE(_cd,'\ud83d\udcb3',item.name,-(item.amount||0),item.card||'',item.type||'Credit Card','card_pdf','from statement');}
   return;
 }
-var c=D.cards.find(function(x){return x.name===item.card});
-var payDay=pd,mShift=0;
-if(c&&item.card!=='Cash/Direct'){payDay=c.payment_day;if(pd>c.statement_day)mShift=1}
-var adjM=pm+mShift,adjY=py;if(adjM>11){adjM-=12;adjY++}
-var d=new Date(adjY,adjM,Math.min(payDay,dim(adjY,adjM)));
+var c=_simCard(item.card);
+// v6 (user Oct 18 2026): a CARD-linked charge lands on its OWN charge date (billing_day in this month),
+// NOT the shifted card pay-day. Consolidation (below) then turns it display-only ('card_charge') and
+// folds it under the one 'Pay [card] statement' cash-out — so auto (Netflix/iCloud) and manual (AIS)
+// behave identically: a faded 'will post' row on the cut date + a single folded statement payment.
+// Cash/Direct expenses keep landing on their own day too (no card). Income is unchanged.
+var d=new Date(py,pm,Math.min(pd,dim(py,pm)));
 if(d>=sd&&d<=ed){addE(d,item.direction==='income'?'\ud83d\udcb0':'\ud83d\udcc5',item.name,(item.direction==='income'?1:-1)*item.amount,item.card!=='Cash/Direct'?item.card:'',item.type);}});
 // Tax refund or tax owed — computed for EVERY tax year in the simulation window.
 // Each tax year's refund/owed lands in the FOLLOWING year (month = tax_refund_month).
@@ -245,7 +250,7 @@ if(D.consolidate_card_bills!==false){
 // landing-month grouping (unchanged).
 var _simPdfSet=(typeof window!=='undefined'&&window.cardPdfSet)?window.cardPdfSet():(function(){var st={};((typeof window!=='undefined'&&window.CARD_BILLS&&window.CARD_BILLS.bills)||[]).forEach(function(b){if(b&&b.card)st[b.card]=1;});return st;})();
 function _simCardPeriod(card,ey,em0){
-  var c=(D.cards||[]).find(function(x){return x.name===card;});
+  var c=_simCard(card);
   var S=c&&c.statement_day?parseInt(c.statement_day)||1:1;
   var per=(S<=15)?(em0-1):em0, y=ey;
   while(per<0){per+=12;y--;} while(per>11){per-=12;y++;}
@@ -264,7 +269,7 @@ if(!_cardGroups[_gk])_cardGroups[_gk]={card:_cd,y:_gy,m:_gm,sum:0,count:0,pdfAmo
 if(_e.group==='card_pdf'){
   // PDF statement row (from card_bills) is the AUTHORITATIVE period total: record it as pdfAmount,
   // keep it display-only, and DO NOT add it to the summed charges (priority: PDF > summed/keyed).
-  _cardGroups[_gk].pdfAmount=Math.abs(_e.amount); _e.group='card_charge'; return;
+  _cardGroups[_gk].pdfAmount=Math.abs(_e.amount); _e.group='card_charge'; _e._pdfTotal=true; return;
 }
 _cardGroups[_gk].sum+=Math.abs(_e.amount);_cardGroups[_gk].count++;
 _e.group='card_charge'; // mark display-only (excluded from balance below)
@@ -283,7 +288,7 @@ _cardGroups[_oc+'::'+_om]={card:_oc,y:_oy,m:_omo,sum:0,count:0};
 });
 Object.keys(_cardGroups).forEach(function(_gk){
 var _g=_cardGroups[_gk];
-var _cardObj=D.cards.find(function(x){return x.name===_g.card});
+var _cardObj=_simCard(_g.card);
 var _mk=_g.y+'-'+(_g.m+1<10?'0':'')+(_g.m+1);
 // Card 'Statements from' cutoff: skip statement months before the card's start month.
 if(_cardObj&&_cardObj.statement_start&&_mk<_cardObj.statement_start)return;
@@ -305,7 +310,7 @@ if(_simPdfSet[_g.card] && typeof window!=='undefined' && window.cardDueFor){
 }
 if(_dlDate>=sd&&_dlDate<=ed){
 if(_extra>0&&!_hasPdf){addE(_dlDate,'\u2795','Extra spend (keyed in)',-_extra,_g.card,'Card Payment','card_charge','added to statement');}
-addE(_dlDate,'\ud83d\udcb3',_g.card+' statement',-_eff,_g.card,'Card Payment','card_statement',(_hasPdf?('\ud83d\udcc4 from statement'+(_g.count>0?(' \u00b7 '+_g.count+' charge'+(_g.count!==1?'s':'')):'')):(_g.count+' charge'+(_g.count!==1?'s':'')+(_extra>0?' \u00b7 +extra':''))))}
+addE(_dlDate,'\ud83d\udcb3',_simCardName(_g.card)+' statement',-_eff,_g.card,'Card Payment','card_statement',(_hasPdf?('\ud83d\udcc4 from statement'+(_g.count>0?(' \u00b7 '+_g.count+' charge'+(_g.count!==1?'s':'')):'')):(_g.count+' charge'+(_g.count!==1?'s':'')+(_extra>0?' \u00b7 +extra':''))))}
 })}
 // Run
 var bal=p.starting_cash,minB=bal,minDt=new Date(sd),cData=[],mAgg={},dLog=[];var prevMK=null;var cur2=new Date(sd);

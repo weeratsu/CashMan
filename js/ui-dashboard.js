@@ -278,12 +278,13 @@ var _isPaid=(o.paid||(typeof billStatus==='function'&&(function(){var s=billStat
 // Income receivables render green (received or not); expenses red unless auto/paid (grey).
 var col=o._income?'#10b981':((o.auto_pay||_isPaid)?'var(--text3)':'var(--error)');
 var paidMark=_isPaid?' <span style="color:var(--text3)" title="paid">\u2713</span>':'';
+var _paidFade=_isPaid?';opacity:.45;text-decoration:line-through':'';  // v291: paid bills fade + strike so they drop focus
 var isStmt=(o.kind==='Card Statement'&&o.children&&o.children.length);
 var caret=isStmt?'<span style="color:var(--text3);font-size:8px">\u25b8</span> ':'';
 var bic=(typeof _billIcon==='function')?_billIcon(o):'';
 var perLbl=(o.kind==='Installment'&&o.info)?' <span style="color:var(--text3);font-size:8px">'+esc(o.info)+'</span>':'';
 var stmtNote=o._surfaced?' <span style="color:var(--text3);font-size:8px" title="also included in the '+esc(o._inStmtCard||o.card||'')+' statement">\u21b3'+esc(o._inStmtCard||o.card||'')+'</span>':'';
-return '<div onclick="event.stopPropagation();dashCalShow('+o._calIdx+')" title="'+esc(o.name)+(o.kind==='Installment'&&o.info?' '+esc(o.info):'')+' \u00b7 '+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+(o._income?' (receivable)':(o.auto_pay?' (auto)':''))+(isStmt?' \u00b7 click for breakdown':' \u00b7 click for details')+'" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(muted?';opacity:.7':'')+'">'+caret+bic+' '+esc(o.name)+perLbl+stmtNote+auto+paidMark+' <span style="color:'+(o._income?'#10b981':'var(--text3)')+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+'</span></div>';
+return '<div onclick="event.stopPropagation();dashCalShow('+o._calIdx+')" title="'+esc(o.name)+(o.kind==='Installment'&&o.info?' '+esc(o.info):'')+' \u00b7 '+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+(o._income?' (receivable)':(o.auto_pay?' (auto)':''))+(isStmt?' \u00b7 click for breakdown':' \u00b7 click for details')+'" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(muted?';opacity:.7':'')+_paidFade+'">'+caret+bic+' '+esc(o.name)+perLbl+stmtNote+auto+paidMark+' <span style="color:'+(o._income?'#10b981':'var(--text3)')+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+'</span></div>';
 }
 // Tasks for the month (by due_date) — plus adjacent months for the faded edge cells.
 var taskByDay={},prevTaskByDay={},nextTaskByDay={};
@@ -318,10 +319,11 @@ var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
 // must STAND OUT (red + bold + \u26a0), never fade — even in a faded adjacent-month cell.
 var _ovd=false;
 if(!t.done&&t.deadline_mode==='date'&&t.due_date){var _dd=new Date(t.due_date+'T00:00:00');if(!isNaN(_dd.getTime())&&_dd<_calToday)_ovd=true;}
-var _col=_ovd?'var(--error)':'var(--accent)';
+var _col=_ovd?'var(--error)':(t.done?'var(--text3)':'var(--accent)');
 var _fade=(muted&&!_ovd)?';opacity:.7':'';// overdue ignores the mute so it stays prominent
+if(t.done)_fade=';opacity:.45;text-decoration:line-through';  // v291: completed tasks fade + strike so they drop focus
 var _wt=_ovd?';font-weight:700':'';
-var _mark=_ovd?'\u26a0\ufe0f ':'<i class="fa-solid fa-list-check" style="width:14px;text-align:center"></i> ';
+var _mark=_ovd?'\u26a0\ufe0f ':(t.done?'<i class="fa-solid fa-check" style="width:14px;text-align:center;color:var(--text3)"></i> ':'<i class="fa-solid fa-list-check" style="width:14px;text-align:center"></i> ');
 return '<div onclick="event.stopPropagation();dashCalShow('+tidx+')" title="'+esc(t.title||'')+(t.category?' \u00b7 '+esc(t.category):'')+(_ovd?' \u00b7 OVERDUE':'')+' \u00b7 click for details" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+_col+_fade+_wt+'">'+_mark+(t.due_time?'<b>['+esc(String(t.due_time).slice(0,5))+']</b> ':'')+esc(t.title||'')+'</div>';
 }
 // Build calendar grid (weeks start Sunday)

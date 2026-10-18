@@ -775,6 +775,6 @@ function retAddSpecial(){
   D.retirement.company_special_pay.push({name:'',amount:0,note:''});
   var ni=D.retirement.company_special_pay.length-1;
   saveD(); renderRetSetup();
-  setTimeout(function(){var e=document.querySelector('[data-spi="'+ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.outline='2px solid var(--primary)';tr.style.outlineOffset='-2px';}e.focus();}},30);
+  setTimeout(function(){var e=document.querySelector('[data-spi="'+ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.boxShadow='inset 3px 0 0 var(--primary)';tr.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}e.focus();}},30);
 }
 window.retAddSpecial=retAddSpecial;

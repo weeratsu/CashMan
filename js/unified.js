@@ -104,8 +104,15 @@ function migrateToUnified(D, opts){
     emit(r, r._legacy);
   });
 
+  // v323 (user rule Oct 18 2026): DEDUP yearly-installment vs manual-installment of the SAME name.
+  // A yearly set to 'installment' mode is a FORECAST; once the purchase is really swiped the user adds
+  // a MANUAL installment (real amounts/dates). If both exist with the same name, the manual one is the
+  // source of truth — SKIP the yearly-installment forecast so it is not emitted twice (double rows,
+  // drifting seq). Full-mode yearly is never affected (only pay_mode==='installment' collides).
+  var _manualInstNames={}; (D.installments||[]).forEach(function(it){ if(it&&it.name) _manualInstNames[String(it.name).trim().toLowerCase()]=1; });
   // ---- yearly -> recurrence yearly; full or installment ----
   (D.yearly||[]).forEach(function(y,idx){
+    if(y&&y.pay_mode==='installment' && _manualInstNames[String(y.name||'').trim().toLowerCase()]) return; // manual version wins
     var r=baseRow(y);
     r.recurrence='yearly';
     r.month=parseInt(y.month,10)||1;

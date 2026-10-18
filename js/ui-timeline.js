@@ -78,7 +78,7 @@ h+='<div class="day-row day-today" style="border-top:1px dashed var(--primary);b
 _todayInserted=true}
 if(_isThisMonth&&d.getDate()===_tday)_todayInserted=true;
 _prevBal=entry.balance;
-var nL=entry.events.filter(function(e){return e.desc!=='Living'&&e.group!=='payroll_detail'});
+var nL=entry.events.filter(function(e){return e.desc!=='Living'&&e.group!=='payroll_detail'&&!e._pdfTotal;});
 var payDetails=entry.events.filter(function(e){return e.group==='payroll_detail'});
 
 // Group events by card
@@ -102,11 +102,11 @@ var _isToday=d.getFullYear()+'_'+(d.getMonth()+1)+'_'+d.getDate()===_today.getFu
 cardKeys.forEach(function(ck){
 var items=byCard[ck];
 var isPayroll=ck==='__payroll__';
-var cardLabel=isPayroll?'':ck;
+var cardLabel=isPayroll?'':(function(){var _cl=ck;if(_cl&&_cl.indexOf('__stmt_')===0)_cl=_cl.slice(7);return ((typeof window.cardDisplayName==='function'&&window.cardDisplayName(_cl))||_cl||'');})();
 // Does this group contain a consolidated card statement? If so, render the statement as the
 // header and its card charges (+ extra) as indented children — no intermediate "Card N items" level.
 var stmtItem=null,childItems=[];
-items.forEach(function(it){if(it.evt.group==='card_statement'&&!stmtItem){stmtItem=it;}else{childItems.push(it);}});
+items.forEach(function(it){if(it.evt.group==='card_statement'&&!stmtItem){stmtItem=it;}else if(it.evt._pdfTotal){/* v3: PDF total row = the statement amount itself; never list as a child */}else{childItems.push(it);}});
 
 if(stmtItem){
 // ----- Statement header + children -----
@@ -141,7 +141,7 @@ else if(items.length===1||isPayroll){
 items.forEach(function(item){
 var evt=item.evt;
 var ac=evt.amount>0?'var(--success)':'',sign=evt.amount>0?'+':'-',big=Math.abs(evt.amount)>=10000;
-var ct=evt.card?'<span class="day-card">'+esc(evt.card)+'</span>':'';
+var ct=evt.card?'<span class="day-card">'+esc((typeof window.cardDisplayName==='function'&&window.cardDisplayName(evt.card))||evt.card)+'</span>':'';
 var isPay=evt.group==='payroll_net';
 var isCardCharge=evt.group==='card_charge';
 var evtBal=(evt._bal!=null)?evt._bal:entry.balance;

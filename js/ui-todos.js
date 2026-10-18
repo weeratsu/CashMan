@@ -542,7 +542,7 @@ else if(t.recur==='yearly'){recCell+=' <select class="sel" data-tid="'+t.id+'" d
 // task is marked done instead of rolling forever (stop a recurring task without deleting it).
 if(t.recur&&t.recur!=='none'){recCell+=' <span style="font-size:8px;color:var(--text3)">until</span> <input type="date" class="inp-inline" value="'+esc(t.recur_until||'')+'" data-tid="'+t.id+'" data-tf="recur_until" onchange="todoSaveField(\''+t.id+'\',\'recur_until\',this)" style="width:120px" title="Stop recurring after this date (task is marked done, not deleted)">';}
 
-var _rs=rowStyle+(_todoTouched[t.id]?';outline:2px solid var(--primary);outline-offset:-2px':'');
+var _rs=rowStyle+(_todoTouched[t.id]?';box-shadow:inset 3px 0 0 var(--primary);background:var(--primary-bg,rgba(59,130,246,0.06))':'');  // v291: soft left-bar + faint tint instead of a hard outline box
 // Two-row layout (Oct 9 2026): row 1 = done ☐ | task + note | status | ✕ ; row 2 = category · priority · deadline · repeat · link
 h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
 
