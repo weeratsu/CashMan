@@ -61,7 +61,7 @@ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(owData),'Owners');sheet
 
 // Cards sheet
 if(D.cards&&D.cards.length){
-var cData=D.cards.map(function(c){return{Name:c.name||'',Statement_Day:c.statement_day||1,Payment_Day:c.payment_day||1,Deadline:c.deadline||c.payment_day||1,Statement_Start:c.statement_start||'',Bank:c.bank||'',Last4:c.last4||'',Expiry:c.expiry||'',Credit_Limit:c.credit_limit||0,Current_Balance:c.current_balance||0,Benefits:c.benefits||'',Fee_Waiver:c.fee_waiver||'',Fee_Waiver_Target:c.fee_waiver_target||0,Fee_Waiver_Mode:c.fee_waiver_mode||'amount',Fee_Waiver_Manual:c.fee_waiver_manual||0,Fee_Waiver_Target_Count:c.fee_waiver_target_count||0,Fee_Waiver_Manual_Count:c.fee_waiver_manual_count||0,Remarks:c.remarks||'',Limit_Group:c.limit_group||'',URL:c.url||'',Points_Log:JSON.stringify(c.points_log||[])}});
+var cData=D.cards.map(function(c){return{Name:c.name||'',Statement_Day:c.statement_day||1,Payment_Day:c.payment_day||1,Deadline:c.deadline||c.payment_day||1,Statement_Start:c.statement_start||'',Bank:(typeof bankName==='function'?bankName(c.bank):(c.bank||'')),Bank_Id:c.bank||'',Last4:c.last4||'',Expiry:c.expiry||'',Credit_Limit:c.credit_limit||0,Current_Balance:c.current_balance||0,Benefits:c.benefits||'',Fee_Waiver:c.fee_waiver||'',Fee_Waiver_Target:c.fee_waiver_target||0,Fee_Waiver_Mode:c.fee_waiver_mode||'amount',Fee_Waiver_Manual:c.fee_waiver_manual||0,Fee_Waiver_Target_Count:c.fee_waiver_target_count||0,Fee_Waiver_Manual_Count:c.fee_waiver_manual_count||0,Remarks:c.remarks||'',Limit_Group:c.limit_group||'',URL:c.url||'',Points_Log:JSON.stringify(c.points_log||[])}});
 XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cData),'Cards');sheetCount++}
 
 // Payroll sheet
@@ -139,7 +139,7 @@ var atData=D.asset_types.map(function(t){return{Asset_Type:t}});
 XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(atData),'Asset_Types');sheetCount++}
 // Banks
 if(D.banks&&D.banks.length){
-var bkData=D.banks.map(function(t){return{Bank:t}});
+var bkData=D.banks.map(function(t){return{Id:(t&&t.id)||'',Bank:(t&&t.name)||t||''}});
 XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(bkData),'Banks');sheetCount++}
 
 // Bill Payments (paid ledger — payment history)
@@ -247,12 +247,12 @@ if(atRows.length){D.asset_types=atRows.map(function(r){return r.Asset_Type||'Oth
 // Banks
 if(wb.SheetNames.indexOf('Banks')>=0){
 var bkRows=XLSX.utils.sheet_to_json(wb.Sheets['Banks']);
-if(bkRows.length){D.banks=bkRows.map(function(r){return r.Bank||'';}).filter(function(b){return b;});counts.banks=bkRows.length}}
+if(bkRows.length){var _bs=0;D.banks=bkRows.map(function(r){var nm=r.Bank||'';var id=r.Id||('bk'+(++_bs));return nm?{id:id,name:nm}:null;}).filter(function(b){return b;});D._bank_seq=D.banks.reduce(function(mx,b){var m=/^bk(\d+)$/.exec(b.id||'');return m?Math.max(mx,parseInt(m[1],10)):mx;},0);D._bank_id_migrated=true;counts.banks=bkRows.length}}
 
 // Cards
 if(wb.SheetNames.indexOf('Cards')>=0){
 var cRows=XLSX.utils.sheet_to_json(wb.Sheets['Cards']);
-D.cards=cRows.map(function(r){var pl=[];try{pl=r.Points_Log?JSON.parse(r.Points_Log):[]}catch(e){pl=[]}return{name:r.Name||'',statement_day:parseInt(r.Statement_Day)||1,payment_day:parseInt(r.Payment_Day)||1,deadline:parseInt(r.Deadline)||parseInt(r.Payment_Day)||1,statement_start:r.Statement_Start||'',bank:r.Bank||'',last4:r.Last4!==undefined?String(r.Last4):'',expiry:r.Expiry||'',credit_limit:parseFloat(r.Credit_Limit)||0,current_balance:parseFloat(r.Current_Balance)||0,benefits:r.Benefits||'',fee_waiver:r.Fee_Waiver||'',fee_waiver_target:parseFloat(r.Fee_Waiver_Target)||0,fee_waiver_mode:r.Fee_Waiver_Mode||'amount',fee_waiver_manual:parseFloat(r.Fee_Waiver_Manual)||0,fee_waiver_target_count:parseFloat(r.Fee_Waiver_Target_Count)||0,fee_waiver_manual_count:parseFloat(r.Fee_Waiver_Manual_Count)||0,remarks:r.Remarks||'',limit_group:r.Limit_Group||'',url:r.URL||'',points_log:pl}});
+D.cards=cRows.map(function(r){var pl=[];try{pl=r.Points_Log?JSON.parse(r.Points_Log):[]}catch(e){pl=[]}return{name:r.Name||'',statement_day:parseInt(r.Statement_Day)||1,payment_day:parseInt(r.Payment_Day)||1,deadline:parseInt(r.Deadline)||parseInt(r.Payment_Day)||1,statement_start:r.Statement_Start||'',bank:(function(){var bid=r.Bank_Id||'';if(bid)return bid;var nm=(r.Bank||'').trim();if(!nm)return '';if(!Array.isArray(D.banks))D.banks=[];var ex=D.banks.find(function(b){return b.name===nm;});if(ex)return ex.id;if(typeof D._bank_seq!=='number')D._bank_seq=0;var id='bk'+(++D._bank_seq);D.banks.push({id:id,name:nm});return id;})(),last4:r.Last4!==undefined?String(r.Last4):'',expiry:r.Expiry||'',credit_limit:parseFloat(r.Credit_Limit)||0,current_balance:parseFloat(r.Current_Balance)||0,benefits:r.Benefits||'',fee_waiver:r.Fee_Waiver||'',fee_waiver_target:parseFloat(r.Fee_Waiver_Target)||0,fee_waiver_mode:r.Fee_Waiver_Mode||'amount',fee_waiver_manual:parseFloat(r.Fee_Waiver_Manual)||0,fee_waiver_target_count:parseFloat(r.Fee_Waiver_Target_Count)||0,fee_waiver_manual_count:parseFloat(r.Fee_Waiver_Manual_Count)||0,remarks:r.Remarks||'',limit_group:r.Limit_Group||'',url:r.URL||'',points_log:pl}});
 counts.cards=cRows.length}
 
 // Payroll

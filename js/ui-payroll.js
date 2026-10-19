@@ -79,7 +79,7 @@ setTimeout(function(){var e=document.querySelector('[data-pi="'+_ni+'"][data-f="
 
 
 function swPayTax(el,tab){document.querySelectorAll('#tab-paytax .sub-panel').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('#tab-paytax .sub-tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');document.getElementById('pt-'+tab).classList.add('active');
-if(tab==='tax-calc')try{renderTax()}catch(e){};if(tab==='tax-exempt')try{renderExemptions()}catch(e){};if(tab==='monthly-earn')try{renderMonthlyEarnings()}catch(e){}}
+if(tab==='tax-calc')try{renderTax()}catch(e){};if(tab==='tax-exempt')try{renderExemptions()}catch(e){};if(tab==='monthly-earn')try{renderMonthlyEarnings()}catch(e){};if(tab==='monthly-plan')try{renderMonthlyPlan()}catch(e){}}
 
 
 function swTax(el,tab){

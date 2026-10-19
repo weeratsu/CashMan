@@ -484,11 +484,36 @@ D.yearly.forEach(function(y){if(y.inst_hide_before===undefined)y.inst_hide_befor
 D.monthly.forEach(function(m){if(m.deadline_mode===undefined)m.deadline_mode=(m.card&&m.card!=='Cash/Direct')?'card':'custom';if(m.deadline_day===undefined)m.deadline_day='';});
 D.yearly.forEach(function(y){if(y.deadline_mode===undefined)y.deadline_mode=(y.card&&y.card!=='Cash/Direct')?'card':'custom';if(y.deadline_day===undefined)y.deadline_day='';});
 if(!D.asset_types)D.asset_types=['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'];
-if(!Array.isArray(D.banks))D.banks=[]; // user-managed bank list for the Card Details bank dropdown
-// Auto-seed the bank list (one-time) from bank names already entered on cards, when the list is empty.
-if(!D.banks.length){var _bk={};(D.cards||[]).forEach(function(c){if(c.bank&&c.bank.trim())_bk[c.bank.trim()]=1;});D.banks=Object.keys(_bk).sort();}
+if(!Array.isArray(D.banks))D.banks=[]; // user-managed bank master, id-keyed [{id,name}]
+if(typeof D._bank_seq!=='number')D._bank_seq=0;
+(function(){
+  if(!D.banks.length){var _bk={};(D.cards||[]).forEach(function(c){if(c.bank&&String(c.bank).trim())_bk[String(c.bank).trim()]=1;});Object.keys(_bk).sort().forEach(function(nm){D.banks.push({id:'bk'+(++D._bank_seq),name:nm});});}
+  else{D.banks=D.banks.map(function(b){if(b&&typeof b==='object'&&b.id)return b;var nm=(typeof b==='string')?b:(b&&b.name)||'';return {id:'bk'+(++D._bank_seq),name:nm};});}
+  D.banks.forEach(function(b){var m=/^bk(\d+)$/.exec(b.id||'');if(m){var n=parseInt(m[1],10);if(n>D._bank_seq)D._bank_seq=n;}});
+  if(!D._bank_id_migrated){try{var _byNm={};D.banks.forEach(function(b){_byNm[b.name]=b.id;});
+    (D.cards||[]).forEach(function(c){if(c.bank&&!/^bk\d+$/.test(c.bank)){c.bank=_byNm[String(c.bank).trim()]||'';}});
+    (D.accounts||[]).forEach(function(a){if(a.bank&&!/^bk\d+$/.test(a.bank)){a.bank=_byNm[String(a.bank).trim()]||'';}});
+    D._bank_id_migrated=true;}catch(e){}}
+})();
 if(!Array.isArray(D.limit_groups))D.limit_groups=[]; // user-managed shared credit-limit group list (Setup chip UI)
 if(!D.limit_groups.length){var _lg={};(D.cards||[]).forEach(function(c){if(c.limit_group&&c.limit_group.trim())_lg[c.limit_group.trim()]=1;});D.limit_groups=Object.keys(_lg).sort();}
+// Monthly Planning (Payroll & Tax sub-page): accounts (1 bank -> many) + versioned master plans.
+if(!Array.isArray(D.accounts))D.accounts=[];
+if(!Array.isArray(D.plan_versions))D.plan_versions=[];
+if(typeof D.plan_active==='undefined')D.plan_active='';
+if(!Array.isArray(D.plan_categories))D.plan_categories=[];
+if(typeof D._plan_cat_seq!=='number')D._plan_cat_seq=0;
+// Migrate legacy string-array categories -> [{id,name}] (id = pc<N> running number, name mutable).
+(function(){var seedNames=['เงินเก็บ','ลงทุน','ค่าใช้จ่าย','หนี้สิน','สำรองฉุกเฉิน'];
+if(!D.plan_categories.length){seedNames.forEach(function(nm){D.plan_categories.push({id:'pc'+(++D._plan_cat_seq),name:nm});});}
+else{D.plan_categories=D.plan_categories.map(function(c){if(c&&typeof c==='object'&&c.id)return c;var nm=(typeof c==='string')?c:(c&&c.name)||'';return {id:'pc'+(++D._plan_cat_seq),name:nm};});}
+// keep seq ahead of any existing pcN id
+D.plan_categories.forEach(function(c){var m=/^pc(\d+)$/.exec(c.id||'');if(m){var n=parseInt(m[1],10);if(n>D._plan_cat_seq)D._plan_cat_seq=n;}});})();
+// One-time: migrate plan-row category stored as NAME -> id (match by current name).
+if(!D._plan_cat_id_migrated){try{var _byName={};(D.plan_categories||[]).forEach(function(c){_byName[c.name]=c.id;});
+(D.plan_versions||[]).forEach(function(v){(v.rows||[]).forEach(function(r){
+  if(r.category&&!/^pc\d+$/.test(r.category)){ r.category=_byName[r.category]||''; }
+});});D._plan_cat_id_migrated=true;}catch(e){}}
 if(!D.profile.name)D.profile.name='';
 if(!D.types)D.types=defaultData().types;if(!D.profile.start_date)D.profile.start_date='2026-09-15';if(!D.profile.dob)D.profile.dob='';if(!D.profile.end_date)D.profile.end_date='2027-05-31';
 if(!D.planned)D.planned=[];if(D.tax_actual_override===undefined)D.tax_actual_override=null;if(!D.tax_refund_month)D.tax_refund_month=3;if(D.tax_refund_day==null)D.tax_refund_day=15;if(!D.tax_year)D.tax_year=parseInt(D.profile.start_date.slice(0,4))||new Date().getFullYear();
@@ -625,7 +650,7 @@ var _fe=document.getElementById('f-end');if(_fe)_fe.value=p.end_date;
 if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),p.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),p.cat_expense);
 if(document.getElementById('f-catname'))document.getElementById('f-catname').value=p.cat_names||'';
-renderTypes();renderOwners();renderAssetTypes();renderBanks();renderLimitGroups();renderTodoCats();renderWishCats();if(typeof renderDashLayout==='function')renderDashLayout()}
+renderTypes();renderOwners();renderAssetTypes();renderBanks();renderLimitGroups();renderTodoCats();renderWishCats();if(typeof renderPlanCats==='function')renderPlanCats();if(typeof renderDashLayout==='function')renderDashLayout()}
 
 function renderTypes(){var c=document.getElementById('types-list');
 c.innerHTML=sTypes().map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmType('+i+')">&times;</span></span>'}).join('')+
@@ -661,11 +686,15 @@ function addAssetType(){var n=prompt('New asset type:');if(!n||!n.trim())return;
 function rmAssetType(i){if(!confirm('Remove asset type "'+D.asset_types[i]+'"?'))return;D.asset_types.splice(i,1);saveD();renderAssetTypes()}
 
 // Banks — user-managed list for the Card Details bank dropdown (Setup page chip UI)
+function _bankName(id){var b=(D.banks||[]).find(function(x){return x.id===id;});return b?b.name:(id||'');}
+function bankName(x){var b=(D.banks||[]).find(function(z){return z.id===x||z.name===x;});return b?b.name:(x||'');}
+function bankId(x){var b=(D.banks||[]).find(function(z){return z.id===x||z.name===x;});return b?b.id:'';}
 function renderBanks(){var el=document.getElementById('banks-list');if(!el)return;
-el.innerHTML=(D.banks||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmBank('+i+')">&times;</span></span>'}).join('')+
+el.innerHTML=(D.banks||[]).map(function(b){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameBank(\''+b.id+'\')">'+esc(b.name)+' <span class="x" title="\u0e25\u0e1a" onclick="event.stopPropagation();rmBank(\''+b.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addBank()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
-function addBank(){var n=prompt('New bank:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.banks))D.banks=[];if(D.banks.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.banks.push(n);D.banks.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
-function rmBank(i){if(!confirm('Remove bank "'+D.banks[i]+'"?'))return;D.banks.splice(i,1);saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function addBank(){var n=prompt('New bank:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.banks))D.banks=[];if(D.banks.some(function(b){return b.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._bank_seq!=='number')D._bank_seq=0;D.banks.push({id:'bk'+(++D._bank_seq),name:n});D.banks.sort(function(a,b){return a.name.localeCompare(b.name,undefined,{sensitivity:'base'})});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function renameBank(id){var b=(D.banks||[]).find(function(x){return x.id===id;});if(!b)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23:',b.name);if(n===null||!n.trim())return;b.name=n.trim();saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){};if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
+function rmBank(id){var b=(D.banks||[]).find(function(x){return x.id===id;});if(!b)return;if(!confirm('Remove bank "'+b.name+'"? (\u0e01\u0e32\u0e23\u0e4c\u0e14/\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23\u0e19\u0e35\u0e49\u0e08\u0e30\u0e44\u0e21\u0e48\u0e21\u0e35\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23)'))return;D.banks=(D.banks||[]).filter(function(x){return x.id!==id;});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){};if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
 // Shared credit-limit groups — user-managed list for the limit_group dropdown (Setup chip UI). v313.
 function renderLimitGroups(){var el=document.getElementById('limitgroups-list');if(!el)return;
 el.innerHTML=(D.limit_groups||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmLimitGroup('+i+')">&times;</span></span>'}).join('')+
@@ -702,7 +731,7 @@ el.innerHTML=(D.wish_cats||[]).map(function(t,i){return '<span class="type-chip"
 function addWishCat(){var n=prompt('New wishlist category:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.wish_cats))D.wish_cats=[];if(D.wish_cats.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.wish_cats.push(n);saveD();renderWishCats();if(typeof renderWishlist==='function')try{renderWishlist()}catch(e){}}
 function rmWishCat(i){if(!confirm('Remove wishlist category "'+D.wish_cats[i]+'"? Existing items keep their current value.'))return;D.wish_cats.splice(i,1);saveD();renderWishCats();if(typeof renderWishlist==='function')try{renderWishlist()}catch(e){}}
 // <option> list for a bank <select>; includes the current value even if not in the list, plus a blank.
-function bankOpts(sel){var h='<option value="">— select —</option>';var list=(D.banks||[]).slice();if(sel&&list.indexOf(sel)<0)list.push(sel);list.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});list.forEach(function(b){h+='<option'+(sel===b?' selected':'')+'>'+esc(b)+'</option>'});return h}
+function bankOpts(sel){var sid=bankId(sel)||sel||'';var h='<option value="">\u2014 select \u2014</option>';var list=(D.banks||[]).slice().sort(function(a,b){return a.name.localeCompare(b.name,undefined,{sensitivity:'base'})});list.forEach(function(b){h+='<option value="'+b.id+'"'+(b.id===sid?' selected':'')+'>'+esc(b.name)+'</option>'});return h}
 
 function sHdr(grp,col,label){return '<th class="r" style="cursor:pointer" onclick="sort'+grp.charAt(0).toUpperCase()+grp.slice(1)+'(\''+col+'\')">'+label+' <span style="font-size:7px;color:var(--text3)">'+((sortState[grp]||{}).col===col?((sortState[grp]||{}).asc?'\u25b2':'\u25bc'):'\u25b4\u25be')+'</span></th>'}
 
@@ -716,3 +745,19 @@ var va=a[col],vb=b[col];if(typeof va==='number')return st.asc?va-vb:vb-va;return
 renderYearly();filterYearly()}
 
 // CARDS
+
+// Monthly Planning categories — user-managed, id-keyed. plan_categories = [{id,name}].
+// id (pc<N>) is immutable; name is a mutable description. Plan rows reference category by id.
+function _planCatName(id){var c=(D.plan_categories||[]).find(function(x){return x.id===id;});return c?c.name:(id||'');}
+function renderPlanCats(){var el=document.getElementById('plancats-list');if(!el)return;
+el.innerHTML=(D.plan_categories||[]).map(function(c){return '<span class="type-chip" title="คลิกเพื่อเปลี่ยนชื่อ" style="cursor:pointer" onclick="renamePlanCat(\''+c.id+'\')">'+esc(c.name)+' <span class="x" title="ลบ" onclick="event.stopPropagation();rmPlanCat(\''+c.id+'\')">&times;</span></span>'}).join('')+
+'<span class="type-add" onclick="addPlanCat()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
+function addPlanCat(){var n=prompt('หมวดหมู่แพลนใหม่:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.plan_categories))D.plan_categories=[];
+if(D.plan_categories.some(function(c){return c.name===n;})){toast('\u26a0\ufe0f มีอยู่แล้ว');return}
+if(typeof D._plan_cat_seq!=='number')D._plan_cat_seq=0;
+D.plan_categories.push({id:'pc'+(++D._plan_cat_seq),name:n});saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}}
+function renamePlanCat(id){var c=(D.plan_categories||[]).find(function(x){return x.id===id;});if(!c)return;var n=prompt('เปลี่ยนชื่อหมวด:',c.name);if(n===null||!n.trim())return;c.name=n.trim();saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}}
+function rmPlanCat(id){var c=(D.plan_categories||[]).find(function(x){return x.id===id;});if(!c)return;if(!confirm('ลบหมวด "'+c.name+'"? (รายการที่ใช้หมวดนี้จะไม่มีหมวด)'))return;D.plan_categories=(D.plan_categories||[]).filter(function(x){return x.id!==id;});saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}}
+function planCatOpts(sel){var o='<option value="">\u2014 หมวด \u2014</option>';(D.plan_categories||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});}).forEach(function(c){o+='<option value="'+c.id+'"'+(c.id===sel?' selected':'')+'>'+esc(c.name)+'</option>';});return o;}
+window.renderPlanCats=renderPlanCats;window.addPlanCat=addPlanCat;window.rmPlanCat=rmPlanCat;window.renamePlanCat=renamePlanCat;window.planCatOpts=planCatOpts;window._planCatName=_planCatName;
+window.bankName=bankName;window.bankId=bankId;window._bankName=_bankName;window.renameBank=renameBank;

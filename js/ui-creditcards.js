@@ -191,6 +191,7 @@ return hit||'var(--primary)';
 }
 // Small colored bank badge (icon + optional label). label=false => icon only.
 function bankBadge(name,withLabel){
+if(name&&typeof bankName==='function')name=bankName(name);
 if(!name)return withLabel?'<span style="color:var(--text3)">\u2014</span>':'';
 var col=bankColor(name);
 var ic='<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;background:'+col+';color:#fff;font-size:8px;flex-shrink:0"><i class="fa-solid fa-building-columns"></i></span>';
@@ -205,7 +206,7 @@ renderCreditCards();
 function _ccSortVal(c,col){
 switch(col){
 case 'name':return (c.name||'').toLowerCase();
-case 'bank':return (c.bank||'').toLowerCase();
+case 'bank':return (typeof bankName==='function'?bankName(c.bank):(c.bank||'')).toLowerCase();
 case 'limit':return c.credit_limit||0;
 case 'balance':return c.current_balance||0;
 case 'avail':return ccAvail(c);
@@ -324,7 +325,7 @@ h+='<div style="background:var(--bg3);padding:7px 10px;cursor:pointer;user-selec
 h+='<span class="ccx" id="ccx_'+i+'" style="color:var(--text3);width:12px">'+(_ccOpen[i]?'\u25bc':'\u25b6')+'</span>';
 h+='<i class="fa-solid fa-credit-card" style="color:var(--primary)"></i><b style="font-size:12px">'+esc(c.name)+'</b>';
 if(c.last4)h+='<span style="font-size:9px;color:var(--text3)">••••'+esc(c.last4)+'</span>';
-if(c.bank)h+='<span style="font-size:9px;color:var(--text3);display:inline-flex;align-items:center;gap:4px">'+bankBadge(c.bank,false)+esc(c.bank)+'</span>';
+if(c.bank)h+='<span style="font-size:9px;color:var(--text3);display:inline-flex;align-items:center;gap:4px">'+bankBadge(c.bank,false)+esc(typeof bankName==='function'?bankName(c.bank):c.bank)+'</span>';
 h+='<span style="flex:1"></span>'+expBadge;
 if(lp)h+='<span style="font-size:9px;color:#7c3aed;font-weight:600;display:inline-flex;align-items:center;gap:3px" title="Latest reward points'+(lp.date?(' as of '+fmtDate(lp.date)):'')+'"><i class="fa-solid fa-star" style="font-size:8px"></i>'+fmt(lp.points||0)+' pts</span>';
 h+='<span style="font-size:10px;color:var(--primary);font-weight:600">'+ccCreditTermDays(c)+'d term</span></div>';
@@ -452,7 +453,7 @@ if(_ccPerksView==='table'){
 h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:10px;min-width:520px"><thead><tr><th style="min-width:110px">Card</th><th style="min-width:180px">Benefits / perks</th><th style="min-width:150px">Fee-waiver</th><th style="min-width:140px">Remarks</th></tr></thead><tbody>';
 withInfo.forEach(function(c){
 h+='<tr>'+
-'<td style="font-weight:600;vertical-align:top">'+esc(c.name)+(c.bank?'<div style="font-size:8px;color:var(--text3);font-weight:400">'+esc(c.bank)+'</div>':'')+'</td>'+
+'<td style="font-weight:600;vertical-align:top">'+esc(c.name)+(c.bank?'<div style="font-size:8px;color:var(--text3);font-weight:400">'+esc(typeof bankName==='function'?bankName(c.bank):c.bank)+'</div>':'')+'</td>'+
 '<td style="vertical-align:top;white-space:pre-wrap;font-size:9px">'+(c.benefits?esc(c.benefits):'<span style="color:var(--text3)">—</span>')+'</td>'+
 '<td style="vertical-align:top;white-space:pre-wrap;font-size:9px">'+(c.fee_waiver?esc(c.fee_waiver):'<span style="color:var(--text3)">—</span>')+'</td>'+
 '<td style="vertical-align:top;white-space:pre-wrap;font-size:9px">'+(c.remarks?esc(c.remarks):'<span style="color:var(--text3)">—</span>')+'</td></tr>';
@@ -464,7 +465,7 @@ withInfo.forEach(function(c){
 var es=ccExpiryStatus(c);
 h+='<div style="border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg2)">';
 h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><i class="fa-solid fa-credit-card" style="color:var(--primary)"></i><b style="font-size:11px">'+esc(c.name)+'</b>';
-if(c.bank)h+='<span style="font-size:8px;color:var(--text3)">'+esc(c.bank)+'</span>';
+if(c.bank)h+='<span style="font-size:8px;color:var(--text3)">'+esc(typeof bankName==='function'?bankName(c.bank):c.bank)+'</span>';
 h+='<span style="flex:1"></span><span style="font-size:8px;color:var(--primary);font-weight:600">'+ccCreditTermDays(c)+'d</span></div>';
 if(c.benefits&&c.benefits.trim()){h+='<div style="margin-bottom:5px"><div style="font-size:8px;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:.3px"><i class="fa-solid fa-star"></i> Benefits</div><div style="font-size:10px;white-space:pre-wrap;color:var(--text1)">'+esc(c.benefits)+'</div></div>';}
 if(c.fee_waiver&&c.fee_waiver.trim()){h+='<div style="margin-bottom:5px"><div style="font-size:8px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:.3px"><i class="fa-solid fa-percent"></i> Fee-waiver</div><div style="font-size:10px;white-space:pre-wrap;color:var(--text1)">'+esc(c.fee_waiver)+'</div></div>';}
@@ -668,7 +669,7 @@ if(!cards.length){toast('No cards to export');return;}
 var lines=['# Credit Cards — for AI analysis','','Ask: "Given these cards, which should I use for <purchase>, and how do I maximise interest-free float and benefits?"',''];
 cards.forEach(function(c){
 lines.push('## '+c.name+(c.last4?' (••••'+c.last4+')':''));
-if(c.bank)lines.push('- Bank: '+c.bank);
+if(c.bank)lines.push('- Bank: '+(typeof bankName==='function'?bankName(c.bank):c.bank));
 lines.push('- Statement day: '+(c.statement_day||'-')+' | Planned pay: '+(c.payment_day||'-')+' | Deadline: '+(c.deadline||'-')+' | Interest-free: '+ccCreditTermDays(c)+' days');
 if(c.credit_limit)lines.push('- Limit: '+fmt(c.credit_limit)+' | Balance: '+fmt(c.current_balance||0)+' | Available: '+fmt(ccAvail(c)));
 if(c.expiry)lines.push('- Expiry: '+_ccMon(c.expiry));
@@ -712,9 +713,7 @@ function ccAddCardPopup(){
   function fld(label,inner){ return '<div style="display:flex;flex-direction:column;gap:2px;flex:1"><label style="font-size:10px;color:var(--text2)">'+label+'</label>'+inner+'</div>'; }
   var prOpts='<option value="prev">\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same">\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option>';
   // Bank dropdown: distinct banks already used in D.cards + an "Other" sentinel that reveals a text box.
-  var _banks={}; (D.cards||[]).forEach(function(c){ var b=(c.bank||'').trim(); if(b)_banks[b]=1; });
-  var bankList=Object.keys(_banks).sort();
-  var bankOpts='<option value="">\u2014</option>'+bankList.map(function(b){return '<option value="'+b.replace(/"/g,'&quot;')+'">'+b+'</option>';}).join('')+'<option value="__other__">\u0e2d\u0e37\u0e48\u0e19 \u0e46 / Other\u2026</option>';
+  var bankOpts=(typeof window.bankOpts==='function'?window.bankOpts(''):'<option value="">\u2014</option>')+'<option value="__other__">\u0e2d\u0e37\u0e48\u0e19 \u0e46 / Other\u2026</option>';
   var body=''+
     fld('\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e31\u0e15\u0e23 / Card name','<input id="ca-name" placeholder="e.g. KBank PLATINUM" style="font-size:12px;padding:5px 8px">')+
     '<div style="display:flex;gap:8px">'+fld('\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23 / Bank','<select id="ca-bank" style="font-size:12px;padding:5px 8px" onchange="ccAddBankChanged()">'+bankOpts+'</select><input id="ca-bank-other" placeholder="\u0e0a\u0e37\u0e48\u0e2d\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23\u0e43\u0e2b\u0e21\u0e48" style="font-size:12px;padding:5px 8px;margin-top:4px;display:none">')+fld('\u0e40\u0e25\u0e02 4 \u0e15\u0e31\u0e27\u0e17\u0e49\u0e32\u0e22 / Last 4','<input id="ca-last4" maxlength="4" placeholder="1234" style="font-size:12px;padding:5px 8px">')+'</div>'+
@@ -745,7 +744,9 @@ function ccAddCardSave(){
   if(typeof readAll==='function')readAll();
   if(!D.cards)D.cards=[];
   var sd=parseInt(gv('ca-sd'))||1, off=parseInt(gv('ca-off')); if(isNaN(off))off=1;
-  var bank=gv('ca-bank'); if(bank==='__other__') bank=gv('ca-bank-other').trim(); else bank=(bank||'').trim();
+  var _bsel=gv('ca-bank'); var bank='';
+  if(_bsel==='__other__'){var _bn=gv('ca-bank-other').trim(); if(_bn){ var _ex=(D.banks||[]).find(function(x){return x.name===_bn;}); if(_ex){bank=_ex.id;} else { if(typeof D._bank_seq!=='number')D._bank_seq=0; bank='bk'+(++D._bank_seq); if(!Array.isArray(D.banks))D.banks=[]; D.banks.push({id:bank,name:_bn}); } }}
+  else { bank=(typeof bankId==='function'?bankId(_bsel):'')||_bsel||''; }
   var card={name:name, bank:bank, last4:gv('ca-last4').trim(),
     statement_day:sd, payment_day:Math.min(sd+off,31), deadline:parseInt(gv('ca-dl'))||15,
     due_offset:off, period_rule:(gv('ca-pr')==='same'?'same':'prev'),

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-19 15:30";
+window.APP_VERSION="2026-10-19 22:40";
 window.addEventListener("error",function(e){
 try{
 // Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
@@ -272,7 +272,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <button class="nav-tab active" data-tab="dashboard" title="Dashboard"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></button>
 <div class="nav-group">Money In &amp; Out</div>
 <button class="nav-tab" data-tab="paytax" title="Payroll & Tax"><i class="fa-solid fa-money-check-dollar"></i><span>Payroll &amp; Tax</span></button>
-<div class="nav-subwrap" data-parent="paytax"><button class="nav-sub" data-tab="paytax" data-sub="payroll-setup"><span>Payroll Setup</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-earn"><span>Monthly Earnings</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-calc"><span>Tax Calculator</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-exempt"><span>Tax Exemptions</span></button></div>
+<div class="nav-subwrap" data-parent="paytax"><button class="nav-sub" data-tab="paytax" data-sub="payroll-setup"><span>Payroll Setup</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-earn"><span>Monthly Earnings</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-plan"><span>Monthly Planning</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-calc"><span>Tax Calculator</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-exempt"><span>Tax Exemptions</span></button></div>
 <button class="nav-tab" data-tab="bills" title="Bills & Plans"><i class="fa-solid fa-receipt"></i><span>Bills &amp; Plans</span></button>
 <div class="nav-subwrap" data-parent="bills"><button class="nav-sub" data-tab="bills" data-sub="recurring"><span>Recurring</span></button><button class="nav-sub" data-tab="bills" data-sub="installments"><span>Installments</span></button><button class="nav-sub" data-tab="bills" data-sub="planned"><span>Planned</span></button><button class="nav-sub" data-tab="bills" data-sub="cardbills"><span>Card Bills</span></button><button class="nav-sub" data-tab="bills" data-sub="utilities"><span>Utilities</span></button></div>
 <button class="nav-tab" data-tab="billreminder" title="Bills Reminder"><i class="fa-solid fa-bell"></i><span>Bills Reminder</span></button>
@@ -291,6 +291,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div class="nav-subwrap" data-parent="analysis"><button class="nav-sub" data-tab="analysis" data-sub="type"><span>By Type</span></button><button class="nav-sub" data-tab="analysis" data-sub="card"><span>By Card</span></button></div>
 <div class="nav-group">Configuration</div>
 <button class="nav-tab" data-tab="setup" title="Setup"><i class="fa-solid fa-gear"></i><span>Setup</span></button>
+<div class="nav-subwrap" data-parent="setup"><button class="nav-sub" data-tab="setup" data-sub="profile"><span>Profile &amp; Settings</span></button><button class="nav-sub" data-tab="setup" data-sub="bank"><span>Bank &amp; Account</span></button></div>
 <button class="nav-tab" data-tab="help" title="Help"><i class="fa-solid fa-circle-question"></i><span>Help</span></button>
 </div>
 <div class="nav-right"><button class="theme-btn" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon"></i><span>Dark</span></button></div>
@@ -343,7 +344,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 
 <!-- ===== SETUP ===== -->
 <div id="tab-setup" class="tab-content">
-
+<div class="sub-tabs"><span class="sub-tab active" onclick="swSetup(this,'profile')">Profile &amp; Settings</span><span class="sub-tab" onclick="swSetup(this,'bank')">Bank &amp; Account</span></div>
 <div id="setup-profile" class="sub-panel active">
 <div class="card" style="border-color:var(--primary)"><h2><i class="fa-solid fa-cloud-arrow-up"></i> Backup &amp; Restore</h2><p class="text-muted" style="font-size:10px;margin-bottom:8px">Save all your data to a file, or load it on another device (e.g. move from computer to phone). Data lives in this browser only — export to move it.</p><div class="filterbar" style="margin-bottom:0"><button class="btn btn-primary" onclick="exportData()"><i class="fa-solid fa-download"></i> Export (JSON)</button><button class="btn btn-ghost" onclick="document.getElementById('imp').click()"><i class="fa-solid fa-upload"></i> Import (JSON)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="exportTrxExcel('all')"><i class="fa-solid fa-file-excel"></i> Export (Excel)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="document.getElementById('imp-all-xlsx').click()"><i class="fa-solid fa-file-excel"></i> Import (Excel)</button></div><p class="text-muted" style="font-size:9px;margin-top:6px;margin-bottom:0"><i class="fa-solid fa-circle-info"></i> Import replaces ALL current data with the file's contents.</p></div>
 <div class="card"><h2><i class="fa-solid fa-user"></i> Profile &amp; Income</h2><div class="form-grid">
@@ -355,7 +356,6 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div class="card"><h2><i class="fa-solid fa-tags"></i> Transaction Types</h2><div class="types-list" id="types-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-users"></i> Owners</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">People who own or are responsible for items. Used in Installments and Planned expenses.</p><div class="types-list" id="owners-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-box-open"></i> Asset Types</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for retirement assets. Used in the Retirement &rarr; Assets page.</p><div class="types-list" id="asset-types-list"></div></div>
-<div class="card"><h2><i class="fa-solid fa-building-columns"></i> Banks</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Bank issuers for the Bank dropdown in Credit Cards &rarr; Card Details.</p><div class="types-list" id="banks-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-link"></i> Shared Limit Groups</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">กลุ่มวงเงินร่วม — สำหรับ dropdown "Shared limit group" ใน Credit Cards &rarr; Card Details.</p><div class="types-list" id="limitgroups-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-list-check"></i> To-Do Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for the To-Do module (Planning &rarr; To-Do).</p><div class="types-list" id="todocats-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-star"></i> Wishlist Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Categories for the Wishlist module (Planning &rarr; Wishlist).</p><div class="types-list" id="wishcats-list"></div></div>
@@ -372,11 +372,16 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <input type="file" id="imp-all-xlsx" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel('all',event)">
 </div>
 </div>
+<div id="setup-bank" class="sub-panel">
+<div class="card" style="margin-bottom:10px"><h2><i class="fa-solid fa-building-columns"></i> Banks</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Bank issuers — ใช้ใน Credit Cards &rarr; Card Details และเป็นตัวเลือกธนาคารของบัญชีด้านล่าง</p><div class="types-list" id="banks-list"></div></div>
+<div id="setup-accounts-host"></div>
+<div class="card"><h2><i class="fa-solid fa-tags"></i> Plan Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">หมวดหมู่สำหรับรายการใน Monthly Planning (Payroll &amp; Tax &rarr; Monthly Planning)</p><div class="types-list" id="plancats-list"></div></div>
+</div>
 </div>
 
 <!-- ===== PAYROLL & TAX ===== -->
 <div id="tab-paytax" class="tab-content">
-<div class="sub-tabs"><span class="sub-tab active" onclick="swPayTax(this,'payroll-setup')">Payroll Setup</span><span class="sub-tab" onclick="swPayTax(this,'monthly-earn')">Monthly Earnings</span><span class="sub-tab" onclick="swPayTax(this,'tax-calc')">Tax Calculator</span><span class="sub-tab" onclick="swPayTax(this,'tax-exempt')">Tax Exemptions</span></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swPayTax(this,'payroll-setup')">Payroll Setup</span><span class="sub-tab" onclick="swPayTax(this,'monthly-earn')">Monthly Earnings</span><span class="sub-tab" onclick="swPayTax(this,'monthly-plan')">Monthly Planning</span><span class="sub-tab" onclick="swPayTax(this,'tax-calc')">Tax Calculator</span><span class="sub-tab" onclick="swPayTax(this,'tax-exempt')">Tax Exemptions</span></div>
 <div id="pt-payroll-setup" class="sub-panel active">
 <div class="card" style="margin-bottom:10px"><h2><i class="fa-solid fa-calendar-day"></i> Payout Settings</h2>
 <div class="form-grid">
@@ -424,6 +429,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div id="tax-exempt-add-area"></div>
 <button class="btn btn-primary" onclick="saveAll()" style="margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
 </div></div>
+<div id="pt-monthly-plan" class="sub-panel"></div>
 </div>
 
 <!-- ===== BILLS & PLANS ===== -->
@@ -652,7 +658,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
-<script src="js/data.js?v=310"></script>
+<script src="js/data.js?v=315"></script>
 <script src="js/unified.js?v=7"></script>
 <script src="js/unified-adapter.js?v=16"></script>
 <script>window.CM_USE_UNIFIED=true;/* Step 2: Bill Reminder/Timeline/Calendar read the unified generator via billOccurrencesUnified. Set false to A/B against legacy. */</script>
@@ -662,16 +668,17 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 </script>
 <script src="js/simulation.js?v=287"></script>
 
-<script src="js/ui-setup.js?v=252"></script>
+<script src="js/ui-setup.js?v=256"></script>
 
-<script src="js/ui-payroll.js?v=253"></script>
+<script src="js/ui-payroll.js?v=254"></script>
+<script src="js/ui-monthlyplan.js?v=7"></script>
 <script src="js/ui-bills.js?v=331"></script>
-<script src="js/ui-creditcards.js?v=313"></script>
+<script src="js/ui-creditcards.js?v=314"></script>
 
 <script src="js/ui-timeline.js?v=255"></script>
 <script src="js/ui-dashboard.js?v=281"></script>
 <script src="js/help-data.js?v=252"></script>
-<script src="js/trx-io.js?v=264"></script>
+<script src="js/trx-io.js?v=265"></script>
 <script src="js/retirement-calc.js?v=252"></script>
 <script src="js/ui-retirement.js?v=253"></script>
 
@@ -693,7 +700,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-cardtxns.js?v=2"></script>
 <script src="js/ui-cardsummary.js?v=17"></script>
 <script src="js/drive-view.js?v=2"></script>
-<script src="js/app.js?v=290"></script>
+<script src="js/app.js?v=291"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
 <script src="../WRHub/shared/table-fit.js?v=3" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=3';document.body.appendChild(s);"></script>
 <script src="js/table-search.js?v=1"></script>
