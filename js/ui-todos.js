@@ -199,7 +199,11 @@ priority:t.priority||2,done_date:doneISO,due_date:occDue,recurring:wasRecurring,
 if(wasRecurring){
 // Roll forward from the COMPLETION date (or a later existing due date), so the next occurrence
 // follows when it was actually done — supports backlogging.
-var from=(occDue&&occDue>doneISO)?occDue:doneISO;
+// v294 (user Oct 19 2026): 'every N days' (daily) counts N days from the DONE date — a "do again N days
+// AFTER I did it" cadence (e.g. clean the fountain every 7 days). Doing it early (done 19 while due 20)
+// must make the next one 19+7=26, NOT 20+7=27. Weekly/monthly/yearly keep anchoring to their fixed
+// weekday/day-of-month, so for those we roll from the later of the due date or the done date.
+var from=(t.recur==='daily')?doneISO:((occDue&&occDue>doneISO)?occDue:doneISO);
 var next=_todoNextDate(t,from);
 // Stop recurring once the next occurrence would fall past the "until" end date — mark done
 // instead of rolling forever (keeps the task + its history, just no new occurrences).
@@ -564,14 +568,14 @@ h+='<div style="display:'+(_todoHistOpen?'':'none')+';margin-top:8px">';
 if(!log.length){h+='<p class="text-muted" style="font-size:11px">No completed tasks yet. Completing a task (including each recurring occurrence) records it here.</p>';}
 else{
 h+='<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn btn-ghost" style="font-size:9px;padding:2px 8px;color:var(--error)" onclick="clearTodoLog()"><i class="fa-solid fa-trash"></i> Clear history</button></div>';
-h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%;table-layout:auto"><thead><tr><th style="min-width:220px;text-align:left">Task</th><th style="min-width:90px">Category</th><th style="white-space:nowrap">Done on</th><th style="white-space:nowrap">Was due</th><th style="white-space:nowrap;min-width:72px">Type</th><th style="white-space:nowrap;min-width:64px"></th></tr></thead><tbody>';
+h+='<div class="todo-fit" style="overflow-x:auto"><table class="tbl todo-tbl" style="font-size:11px;width:100%;table-layout:auto"><thead><tr><th style="min-width:220px;text-align:left">Task</th><th style="min-width:90px">Category</th><th style="white-space:nowrap!important">Done on</th><th style="white-space:nowrap!important">Was due</th><th style="white-space:nowrap!important;min-width:72px">Type</th><th style="width:44px"></th></tr></thead><tbody>';
 log.forEach(function(L){
 h+='<tr><td style="min-width:220px;white-space:normal;word-break:normal;overflow-wrap:anywhere">'+esc(L.title||'')+'</td>'+
 '<td style="font-size:10px;color:var(--text3)">'+esc(L.category||'')+'</td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.done_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'done_date\',this)" style="width:130px" title="Completion date (editable)"></td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.due_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'due_date\',this)" style="width:130px" title="Original due date (editable)"></td>'+
 '<td style="white-space:nowrap">'+(L.recurring?'<span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px">\ud83d\udd01 recurring</span>':'<span style="font-size:8px;color:var(--text3)">one-time</span>')+'</td>'+
-'<td style="white-space:nowrap"><button class="btn btn-ghost" style="font-size:8px;padding:2px 7px" title="Undo this completion" onclick="todoUndoLog(\''+L.id+'\')"><i class="fa-solid fa-rotate-left"></i> Undo</button></td></tr>';
+'<td style="white-space:nowrap;text-align:center"><button class="btn btn-ghost" style="font-size:11px;padding:3px 7px;line-height:1;border-radius:5px" title="Undo this completion" onclick="todoUndoLog(\''+L.id+'\')"><i class="fa-solid fa-rotate-left"></i></button></td></tr>';
 });
 h+='</tbody></table></div>';
 }

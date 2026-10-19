@@ -444,7 +444,7 @@ d.tasks.forEach(function(t){
 var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
 var ovd=false;if(!t.done&&t.deadline_mode==='date'&&t.due_date){var dd=new Date(t.due_date+'T00:00:00');if(!isNaN(dd.getTime())&&dd<_calToday)ovd=true;}
 body+='<div onclick="dashCalShow('+tidx+')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--border);font-size:13px'+(ovd?';color:var(--error);font-weight:700':'')+'">'
- +'<span style="flex:none;width:44px;font-family:var(--mono);font-size:12px;color:'+(ovd?'var(--error)':'var(--text2)')+'">'+(t.due_time?esc(String(t.due_time).slice(0,5)):(t.deadline_mode==='asap'?'ASAP':'\u2014'))+'</span>'
+ +'<span style="flex:none;width:44px;font-family:var(--mono);font-size:12px;color:'+(ovd?'var(--error)':'var(--text2)')+'">'+(t.due_time?esc(String(t.due_time).slice(0,5)):(t.deadline_mode==='asap'?'ASAP':'\ud83d\udcc5'))+'</span>'
  +'<span style="flex:1;min-width:0;white-space:normal;word-break:break-word">'+(ovd?'\u26a0\ufe0f ':'')+esc(t.title||'')+(t.category?' <span style="font-size:10px;color:var(--text3)">'+esc(t.category)+'</span>':'')+'</span>'
  +'<span style="flex:none;color:var(--text3)">\u203a</span></div>';
 });
