@@ -297,13 +297,22 @@ if(!_dashCalShowTasks)return;// hide tasks when the user unchecks "Tasks"
 // ASAP tasks (no specific date) surface in today's cell when viewing the current month.
 if(t.deadline_mode==='asap'){if(_viewingThisMonth)(taskByDay[_todayDom]=taskByDay[_todayDom]||[]).push(t);return;}
 if(t.deadline_mode!=='date'||!t.due_date)return;
-var parts=t.due_date.split('-');if(parts.length!==3)return;
+// Expand recurring tasks across the visible window (current month + prev/next overflow),
+// Google-Calendar style; non-recurring tasks yield a single occurrence. Each occurrence is
+// placed on its own day; a clone carries _occDate so the row shows that occurrence's date.
+var _winFrom=_billISO(new Date(_prevY,_prevM,1));
+var _winTo=_billISO(new Date(_nextY,_nextM,dim(_nextY,_nextM)));
+var _occs=(typeof _todoOccInRange==='function')?_todoOccInRange(t,_winFrom,_winTo):[t.due_date];
+_occs.forEach(function(iso){
+var parts=iso.split('-');if(parts.length!==3)return;
 var ty=parseInt(parts[0],10),tm=parseInt(parts[1],10)-1,day=parseInt(parts[2],10);
-if(ty===y&&tm===m){(taskByDay[day]=taskByDay[day]||[]).push(t);
-// An overdue pending task flags its day cell as needs-attention (red), same as overdue bills.
-var _td=new Date(t.due_date+'T00:00:00');if(!isNaN(_td.getTime())&&_td<_calToday)dayStatus[day]=Math.max(dayStatus[day]||0,2);}
-else if(ty===_prevY&&tm===_prevM)(prevTaskByDay[day]=prevTaskByDay[day]||[]).push(t);
-else if(ty===_nextY&&tm===_nextM)(nextTaskByDay[day]=nextTaskByDay[day]||[]).push(t);
+// clone so each occurrence displays its own date (keeps original t.due_date intact)
+var _inst=(iso===t.due_date)?t:Object.assign({},t,{_occDate:iso});
+if(ty===y&&tm===m){(taskByDay[day]=taskByDay[day]||[]).push(_inst);
+var _td=new Date(iso+'T00:00:00');if(!isNaN(_td.getTime())&&_td<_calToday)dayStatus[day]=Math.max(dayStatus[day]||0,2);}
+else if(ty===_prevY&&tm===_prevM)(prevTaskByDay[day]=prevTaskByDay[day]||[]).push(_inst);
+else if(ty===_nextY&&tm===_nextM)(nextTaskByDay[day]=nextTaskByDay[day]||[]).push(_inst);
+});
 });
 // Task-line HTML (shared by current-month cells and faded adjacent cells). `muted` dims adjacent tasks.
 // Sort a day's tasks by time (Oct 8 2026): timed tasks first, earliest first; untimed tasks after, A-Z.
@@ -317,8 +326,9 @@ function _calTaskLine(t,muted){
 var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
 // Overdue = date-mode task whose due date is before today and not done. Carried-over pending tasks
 // must STAND OUT (red + bold + \u26a0), never fade — even in a faded adjacent-month cell.
+var _effDue=t._occDate||t.due_date;
 var _ovd=false;
-if(!t.done&&t.deadline_mode==='date'&&t.due_date){var _dd=new Date(t.due_date+'T00:00:00');if(!isNaN(_dd.getTime())&&_dd<_calToday)_ovd=true;}
+if(!t.done&&t.deadline_mode==='date'&&_effDue){var _dd=new Date(_effDue+'T00:00:00');if(!isNaN(_dd.getTime())&&_dd<_calToday)_ovd=true;}
 var _col=_ovd?'var(--error)':(t.done?'var(--text3)':'var(--accent)');
 var _fade=(muted&&!_ovd)?';opacity:.7':'';// overdue ignores the mute so it stays prominent
 if(t.done)_fade=';opacity:.45;text-decoration:line-through';  // v291: completed tasks fade + strike so they drop focus

@@ -148,6 +148,28 @@ if(t.recur==='monthly'){var dom=t.recur_dom||d;var nm=m+n,ny=y;while(nm>11){nm-=
 if(t.recur==='yearly'){var mo=(t.recur_month||1)-1,dom2=t.recur_dom||d;var nd4=new Date(y+n,mo,Math.min(dom2,dim(y+n,mo)));return _billISO(nd4);}
 return '';
 }
+// Expand a recurring task into all occurrence dates within [fromISO,toISO] (inclusive).
+// Google-Calendar-style: a recurring task with no recur_until repeats indefinitely; we only
+// materialise the dates that fall inside the visible window. Non-recurring tasks return their
+// single due_date if it lies in range. Respects recur_until (stop after that date).
+function _todoOccInRange(t,fromISO,toISO){
+  var out=[];
+  if(t.deadline_mode!=='date'||!t.due_date)return out;
+  var until=(t.recur&&t.recur!=='none'&&t.recur_until)?t.recur_until:null;
+  if(!t.recur||t.recur==='none'){ if(t.due_date>=fromISO&&t.due_date<=toISO)out.push(t.due_date); return out; }
+  // Walk from the task's current due_date forward. Cap iterations for safety.
+  var cur=t.due_date, guard=0;
+  // If the first due is already past the window end, nothing to show.
+  while(cur&&cur<=toISO&&guard<800){
+    guard++;
+    if(until&&cur>until)break;
+    if(cur>=fromISO&&cur<=toISO)out.push(cur);
+    var nx=_todoNextDate(t,cur);
+    if(!nx||nx<=cur)break; // safety: no progress
+    cur=nx;
+  }
+  return out;
+}
 // Inverse of _todoNextDate: the PREVIOUS occurrence (roll back N units). Used to undo a completion
 // that advanced the due date, when the log has no stored occurrence date to restore.
 function _todoPrevDate(t,fromISO){
@@ -629,3 +651,4 @@ h+='<div style="margin-top:8px"><button class="btn btn-ghost" style="font-size:1
 h+='</div>';
 el.innerHTML=h;
 }
+window._todoOccInRange=_todoOccInRange;

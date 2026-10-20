@@ -13,6 +13,7 @@
 
 var _mpMonth = (function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);})();
 var _mpSort={col:null,dir:1};
+var _mpGroupBy='account'; // summary grouping: account|category|bank
 var _mpTouched={}; // row id -> true (soft highlight)
 
 function _mpId(pfx){return (pfx||'p')+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
@@ -157,6 +158,8 @@ function renderMonthlyPlan(){
       '</div>'+
       kpis+planTable+
     '</div>'+
+    // --- group-by summary list ---
+    _mpSummaryHtml(V)+
     // --- infographic / analysis section ---
     '<div class="card" style="margin-top:10px"><h2><i class="fa-solid fa-chart-pie"></i> \u0e2a\u0e23\u0e38\u0e1b / \u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c</h2>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:6px">'+
@@ -277,6 +280,70 @@ function _mpCharts(V, inc){
   }));
 }
 
+
+// ---- group-by summary list -------------------------------------------------
+function setMpGroupBy(v){_mpGroupBy=v;renderMonthlyPlan();}
+function _mpSummaryHtml(V){
+  var rows=(V&&V.rows)||[];
+  var gb=_mpGroupBy||'account';
+  var groups={}, total=0;
+  rows.forEach(function(r){
+    var amt=+r.amount||0; total+=amt;
+    var label;
+    if(gb==='category'){var key=r.category||'';label=(key&&typeof _planCatName==='function')?_planCatName(key):(key||'\u2014 none \u2014');}
+    else if(gb==='bank'){var a=(D.accounts||[]).find(function(x){return x.id===r.account;});var bid=a?a.bank:'';label=(bid&&typeof bankName==='function')?bankName(bid):(bid||'\u2014 none \u2014');}
+    else{label=mpAcctLabel(r.account)||'\u2014 none \u2014';}
+    if(!groups[label])groups[label]={amt:0,n:0,items:[]};
+    groups[label].amt+=amt;groups[label].n++;groups[label].items.push(r);
+  });
+  var keys=Object.keys(groups).filter(function(k){return (groups[k].amt||0)!==0;}).sort(function(a,b){return groups[b].amt-groups[a].amt;});
+  var sel='<select class="sel" style="font-size:11px" onchange="setMpGroupBy(this.value)">'+
+    '<option value="account"'+(gb==='account'?' selected':'')+'>Account</option>'+
+    '<option value="category"'+(gb==='category'?' selected':'')+'>Category</option>'+
+    '<option value="bank"'+(gb==='bank'?' selected':'')+'>Bank</option>'+
+    '</select>';
+  var body=keys.map(function(k,gi){
+    var g=groups[k];var pct=total?Math.round(g.amt/total*100):0;
+    var gid='mpg_'+gi;
+    var head='<tr style="cursor:pointer" onclick="_mpToggleGrp(\''+gid+'\',this)">'+
+      '<td style="font-weight:600"><i class="fa-solid fa-chevron-right" style="font-size:9px;color:var(--text3);margin-right:6px;transition:transform .15s"></i>'+esc(k)+' <span style="color:var(--text3);font-weight:400;font-size:10px">('+g.n+')</span></td>'+
+      '<td style="text-align:right;white-space:nowrap;font-weight:600">\u0e3f'+fmt(g.amt)+'</td>'+
+      '<td style="text-align:right;white-space:nowrap;color:var(--text3);font-size:10px">'+pct+'%</td>'+
+    '</tr>';
+    // detail sub-rows (hidden by default)
+    var det=g.items.map(function(r){
+      var amt=+r.amount||0;
+      var sub=[];
+      if(gb!=='account'){var al=mpAcctLabel(r.account);if(al)sub.push(al);}
+      if(gb!=='category'){var cl=(r.category&&typeof _planCatName==='function')?_planCatName(r.category):'';if(cl)sub.push(cl);}
+      if(r.purpose)sub.push(r.purpose);
+      return '<tr class="'+gid+'" style="display:none;background:var(--bg3,rgba(0,0,0,0.02))">'+
+        '<td style="padding-left:24px;font-size:11px">'+esc(r.name||'(no name)')+(sub.length?' <span style="color:var(--text3);font-size:10px">\u00b7 '+esc(sub.join(' \u00b7 '))+'</span>':'')+'</td>'+
+        '<td style="text-align:right;white-space:nowrap;font-size:11px">\u0e3f'+fmt(amt)+'</td>'+
+        '<td></td>'+
+      '</tr>';
+    }).join('');
+    return head+det;
+  }).join('');
+  if(!keys.length)body='<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:12px">No plan items</td></tr>';
+  return '<div class="card" style="margin-top:10px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">'+
+      '<h2 style="margin:0"><i class="fa-solid fa-list-ul"></i> Summary</h2>'+
+      '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--text3)">Group by</span>'+sel+'</div>'+
+    '</div>'+
+    '<table class="tbl" style="font-size:11px;width:100%">'+
+      '<thead><tr><th style="text-align:left">Group</th><th style="text-align:right;white-space:nowrap;width:120px">Total</th><th style="text-align:right;width:60px">%</th></tr></thead>'+
+      '<tbody>'+body+'</tbody>'+
+      '<tfoot><tr style="border-top:2px solid var(--border)"><td style="font-weight:700">Grand total</td><td style="text-align:right;font-weight:700;white-space:nowrap">\u0e3f'+fmt(total)+'</td><td></td></tr></tfoot>'+
+    '</table></div>';
+}
+function _mpToggleGrp(gid,tr){
+  var open=false;
+  document.querySelectorAll('tr.'+gid).forEach(function(r){var show=r.style.display==='none';r.style.display=show?'':'none';open=show;});
+  var ic=tr&&tr.querySelector('i');if(ic)ic.style.transform=open?'rotate(90deg)':'';
+}
+
+window.setMpGroupBy=setMpGroupBy;window._mpToggleGrp=_mpToggleGrp;
 window.renderMonthlyPlan=renderMonthlyPlan;
 window.setMpSort=setMpSort;
 window.mpAddPopup=mpAddPopup;window.mpEditPopup=mpEditPopup;window.mpSavePopup=mpSavePopup;window.mpDelRow=mpDelRow;window._mpClosePopup=_mpClosePopup;

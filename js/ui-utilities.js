@@ -159,12 +159,14 @@ function renderUtilities(){
     if(open) row+=_utilDetailRow(b);
     return row;
   }).join('');
-  var table='<div class="card"><h2><i class="fa-solid fa-table-list"></i> All bills ('+bills.length+')</h2>'+
+  var _ufOpts=['all','electric','water'].map(function(uu){return '<option value="'+uu+'"'+(_utilFilter===uu?' selected':'')+'>'+(uu==='all'?'All':uu==='electric'?'\u26a1 Electric':'\ud83d\udca7 Water')+'</option>';}).join('');
+  var table='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-table-list"></i> All bills ('+bills.length+')</h2>'+
+    '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--text3)">Filter</span><select class="sel" style="font-size:11px" onchange="setUtilFilter(this.value)">'+_ufOpts+'</select></div></div>'+
     '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
     '<th>Period</th><th class="r">Amount</th><th class="r">Usage</th><th class="r">Ft</th><th>Due date</th><th>Deadline</th><th>Status</th><th>Paid date</th><th>Docs</th><th></th>'+
     '</tr></thead><tbody>'+table_rows_guard(rows)+'</tbody></table></div></div>';
 
-  host.innerHTML=refreshBar+kpi+fb+integ+charts+table;
+  host.innerHTML=refreshBar+kpi+fb+integ+table+charts;
 
   // draw charts after DOM is in place
   setTimeout(_utilDrawCharts, 30);

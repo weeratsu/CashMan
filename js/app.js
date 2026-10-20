@@ -74,6 +74,7 @@ try{loadForm()}catch(e){_initErr('loadForm',e)}
 try{if(typeof utilAutoSyncPlanned==='function'){utilAutoSyncPlanned();if(typeof _utilSynced!=='undefined')_utilSynced=true;}}catch(e){_initErr('utilAutoSync',e)}
 try{simulate()}catch(e){window.__SIMERR=(e&&e.message?e.message:String(e));_initErr('simulate',e)}
 try{renderAllTabs()}catch(e){_initErr('renderAllTabs',e)}
+try{_restoreBulkStart()}catch(e){}
 try{renderHelp()}catch(e){_initErr('renderHelp',e)}
 
 if(location.hash){var ht=location.hash.slice(1);
@@ -84,3 +85,16 @@ if(hb){document.querySelectorAll('.tab-content').forEach(function(t){t.classList
 document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
 hb.classList.add('active');document.getElementById('tab-'+actualTab).classList.add('active');
 if(ht==='tax'){document.querySelectorAll('#tab-paytax .sub-tab').forEach(function(t,i){t.classList.remove('active');if(i===2)t.classList.add('active')});document.querySelectorAll('#tab-paytax .sub-panel').forEach(function(p){p.classList.remove('active')});var tce=document.getElementById('pt-tax-calc');if(tce)tce.classList.add('active');try{renderTax()}catch(e){}}}}
+
+// Collapsible "Set start date for all bills" bar (top of Bills & Plans). Collapsed by default; state persisted.
+function _toggleBulkStart(){
+  var b=document.getElementById('bulk-start-body'),c=document.getElementById('bulk-start-chev');if(!b)return;
+  var open=b.style.display==='none';
+  b.style.display=open?'flex':'none';
+  if(c)c.style.transform=open?'rotate(90deg)':'';
+  try{localStorage.setItem('cm_bulkstart_open',open?'1':'0');}catch(e){}
+}
+function _restoreBulkStart(){
+  try{if(localStorage.getItem('cm_bulkstart_open')==='1'){var b=document.getElementById('bulk-start-body'),c=document.getElementById('bulk-start-chev');if(b){b.style.display='flex';if(c)c.style.transform='rotate(90deg)';}}}catch(e){}
+}
+window._toggleBulkStart=_toggleBulkStart;
