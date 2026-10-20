@@ -98,7 +98,7 @@ if(d0>=sd&&d0<=ed)addE(d0,'💳','Cashback: '+inst.name,cb,inst.card,'Income')}
 for(var i=0;i<inst.periods;i++){var m=inst.start_month-1+i+instMonthShift,y=inst.start_year;
 while(m>11){m-=12;y++}var d=new Date(y,m,Math.min(dl,dim(y,m)));
 if(inst.hide_before&&d<new Date(inst.hide_before+'T00:00:00'))continue;
-var tag=inst.own_by==='Mum'?' \ud83d\udc69':'';
+var tag=((typeof ownerName==='function'?ownerName(inst.own_by):inst.own_by)==='Mum')?' \ud83d\udc69':'';
 if(d>=sd&&d<=ed){var instInfo=inst.periods===1?'Full':(i===inst.periods-1?'\u2705 ('+(i+1)+'/'+inst.periods+')':'('+(i+1)+'/'+inst.periods+')');
 addE(d,'💳',inst.name+tag,-inst.per_period,inst.card,inst.type,'',instInfo)}}});
 // Planned one-time expenses

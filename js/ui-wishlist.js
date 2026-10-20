@@ -142,7 +142,7 @@ if(!confirm('Add "'+w.item+'" (\u0e3f'+fmt(w.target_price)+') as a Planned expen
 readAll();
 if(!D.planned)D.planned=[];
 D.planned.push({name:w.item,type:'Other',amount:w.target_price,date:w.target_date,
-card:'Cash/Direct',direction:'expense',own_by:'Me',notes:'From wishlist'});
+card:'Cash/Direct',direction:'expense',own_by:'me',notes:'From wishlist'});
 w.status='bought';
 saveD();
 if(typeof simulate==='function')simulate();

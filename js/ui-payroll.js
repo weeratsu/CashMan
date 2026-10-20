@@ -332,7 +332,7 @@ h+='<div style="padding:8px 12px 8px 24px;border-left:3px solid var(--primary)">
 h+='<div style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:6px"><i class="fa-solid fa-list-check" style="margin-right:4px"></i>Select policies for '+esc(displayName)+' (from Yearly Recurring \u2192 Insurance):</div>';
 allIns.forEach(function(y,yi){
 var selKey=exId+'::'+y.name;var checked=D.tax_ins_selections[selKey]===true;
-var ownBadge=y.own_by&&y.own_by!=='Me'?' <span style="font-size:8px;padding:0 4px;border-radius:6px;background:var(--purple-bg);color:var(--purple)">'+esc(y.own_by)+'</span>':'';
+var _ownNm=(typeof ownerName==='function'?ownerName(y.own_by):y.own_by);var ownBadge=(y.own_by&&y.own_by!=='me'&&_ownNm!=='Me')?' <span style="font-size:8px;padding:0 4px;border-radius:6px;background:var(--purple-bg);color:var(--purple)">'+esc(_ownNm)+'</span>':'';
 h+='<label style="display:flex;align-items:center;gap:8px;padding:3px 0;font-size:10px;cursor:pointer">'+
 '<input type="checkbox" '+(checked?'checked':'')+' onchange="toggleInsSelection(\''+esc(exId)+'\',\''+esc(y.name)+'\',this.checked)" style="margin:0;flex-shrink:0">'+
 '<span style="flex:1">'+esc(y.name)+ownBadge+'</span>'+

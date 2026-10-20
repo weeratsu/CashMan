@@ -177,7 +177,10 @@ function dirOpts(v){return '<option value="expense"'+(v==='expense'?' selected':
 
 function tOpts(sel){var h='';sTypes().forEach(function(t){h+='<option'+(sel===t?' selected':'')+'>'+esc(t)+'</option>'});return h}
 
-function oOpts(sel){var h='';(D.owners||['Me']).slice().sort().forEach(function(o){h+='<option'+(sel===o?' selected':'')+'>'+esc(o)+'</option>'});return h}
+function ownerName(id){var o=(D.owners||[]).find(function(x){return x.id===id;});return o?o.name:(id==='Me'?'Me':(id||''));}
+function ownerId(x){if(!x)return 'me';var o=(D.owners||[]).find(function(z){return z.id===x||z.name===x;});return o?o.id:'me';}
+function _ownersSorted(){var list=(D.owners||[]).slice();list.sort(function(a,b){if(a.id==='me')return -1;if(b.id==='me')return 1;return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});});return list;}
+function oOpts(sel){var sid=ownerId(sel);var h='';_ownersSorted().forEach(function(o){h+='<option value="'+o.id+'"'+(o.id===sid?' selected':'')+'>'+esc(o.name)+'</option>'});return h}
 
 // Build combined installment list (manual + yearly-derived)
 
@@ -560,12 +563,29 @@ if(!D.todo_cats)D.todo_cats=defaultData().todo_cats;if(!D.wish_cats)D.wish_cats=
 if(!Array.isArray(D.dash_layout))D.dash_layout=(defaultData().dash_layout||[]).slice(); // fresh browser: defaultData has no dash_layout -> []; missing cards are added below
 var seen={};D.dash_layout=D.dash_layout.filter(function(x){if(!x||known.indexOf(x.key)<0||seen[x.key])return false;seen[x.key]=1;return true;});
 known.forEach(function(k){if(!seen[k])D.dash_layout.push({key:k,visible:true});});})();
-// Migrate owners: collect from existing data if D.owners missing
-if(!D.owners||!D.owners.length){var _ow={Me:1};
-D.installments.forEach(function(i){if(i.own_by)_ow[i.own_by]=1});
-D.yearly.forEach(function(y){if(y.own_by)_ow[y.own_by]=1});
-if(D.planned)D.planned.forEach(function(p){if(p.own_by)_ow[p.own_by]=1});
-D.owners=Object.keys(_ow).sort()}
+// Owners master — id-keyed [{id,name}]. "Me" is pinned to the fixed id "me"; others get o<N>.
+if(typeof D._owner_seq!=='number')D._owner_seq=0;
+(function(){
+  if(!Array.isArray(D.owners))D.owners=[];
+  // seed from existing data when empty
+  if(!D.owners.length){var _ow={};
+    D.installments.forEach(function(i){if(i.own_by)_ow[i.own_by]=1});
+    D.yearly.forEach(function(y){if(y.own_by)_ow[y.own_by]=1});
+    if(D.planned)D.planned.forEach(function(p){if(p.own_by)_ow[p.own_by]=1});
+    delete _ow['Me']; // Me added first below
+    D.owners=[{id:'me',name:'Me'}].concat(Object.keys(_ow).sort().map(function(nm){return {id:'o'+(++D._owner_seq),name:nm};}));
+  } else {
+    // convert legacy string[] -> [{id,name}], pinning Me to id "me"
+    D.owners=D.owners.map(function(o){if(o&&typeof o==='object'&&o.id)return o;var nm=(typeof o==='string')?o:(o&&o.name)||'';return (nm==='Me')?{id:'me',name:'Me'}:{id:'o'+(++D._owner_seq),name:nm};});
+    if(!D.owners.some(function(o){return o.id==='me';}))D.owners.unshift({id:'me',name:'Me'});
+  }
+  D.owners.forEach(function(o){var m=/^o(\d+)$/.exec(o.id||'');if(m){var n=parseInt(m[1],10);if(n>D._owner_seq)D._owner_seq=n;}});
+  // one-time: migrate own_by stored as NAME -> owner id across all records
+  if(!D._owner_id_migrated){try{var _byNm={};D.owners.forEach(function(o){_byNm[o.name]=o.id;});
+    function _fix(rec){if(rec&&rec.own_by&&!/^(me|o\d+)$/.test(rec.own_by)){rec.own_by=_byNm[rec.own_by]||'me';}}
+    (D.installments||[]).forEach(_fix);(D.yearly||[]).forEach(_fix);(D.planned||[]).forEach(_fix);
+    D._owner_id_migrated=true;}catch(e){}}
+})();
 OWNERS=D.owners;
 D.installments.forEach(function(i){if(i.paid_by&&!i.own_by){i.own_by=i.paid_by;delete i.paid_by}if(!i.own_by)i.own_by='Me';if(!i.type)i.type='Other';if(!i.start_day)i.start_day=1;if(!i.billing_day)i.billing_day=i.start_day||1;if(!i.start_year)i.start_year=parseInt(D.profile.start_date.slice(0,4))||new Date().getFullYear();if(!i.start_month)i.start_month=1});
 D.monthly.forEach(function(m){if(m.category&&!m.type){m.type=m.category;delete m.category}if(!m.type)m.type='Other';if(m.card==='Direct Debit')m.card='Cash/Direct';if(!m.direction)m.direction='expense';if(!m.status)m.status='Active';if(!m.end_mode)m.end_mode='forever';if(m.end_mode==='forever')m.end_date=''});
@@ -667,15 +687,16 @@ if(document.getElementById('f-catname'))document.getElementById('f-catname').val
 renderTypes()}
 
 function renderOwners(){var c=document.getElementById('owners-list');if(!c)return;
-c.innerHTML=(D.owners||[]).slice().sort().map(function(o,i){return '<span class="type-chip">'+esc(o)+
-(o==='Me'?'':' <span class="x" onclick="rmOwner('+i+')">&times;</span>')+'</span>'}).join('')+
+c.innerHTML=_ownersSorted().map(function(o){var isMe=(o.id==='me');return '<span class="type-chip"'+(isMe?'':' title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameOwner(\''+o.id+'\')"')+'>'+esc(o.name)+
+(isMe?'':' <span class="x" onclick="event.stopPropagation();rmOwner(\''+o.id+'\')">&times;</span>')+'</span>'}).join('')+
 '<span class="type-add" onclick="addOwner()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 
-function addOwner(){var o=prompt('New owner name:');if(o&&o.trim()&&D.owners.indexOf(o.trim())===-1){D.owners.push(o.trim());D.owners.sort();OWNERS=D.owners;saveD();renderOwners()}}
+function addOwner(){var o=prompt('New owner name:');if(!o||!o.trim())return;o=o.trim();if((D.owners||[]).some(function(x){return x.name===o;})){alert('Already exists');return}if(typeof D._owner_seq!=='number')D._owner_seq=0;D.owners.push({id:'o'+(++D._owner_seq),name:o});OWNERS=D.owners;saveD();renderOwners()}
+function renameOwner(id){var o=(D.owners||[]).find(function(x){return x.id===id;});if(!o||o.id==='me')return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',o.name);if(n===null||!n.trim())return;o.name=n.trim();OWNERS=D.owners;saveD();renderOwners();try{renderInst&&renderInst()}catch(e){}}
 
-function rmOwner(i){var name=D.owners[i];if(name==='Me'){alert('Cannot remove "Me"');return}
-if(!confirm('Remove owner "'+name+'"? Items assigned to them will keep their current value.')){return}
-D.owners.splice(i,1);OWNERS=D.owners;saveD();renderOwners()}
+function rmOwner(id){var o=(D.owners||[]).find(function(x){return x.id===id;});if(!o)return;if(o.id==='me'){alert('Cannot remove "Me"');return}
+if(!confirm('Remove owner "'+o.name+'"? Items assigned to them will keep their current value.')){return}
+D.owners=(D.owners||[]).filter(function(x){return x.id!==id;});OWNERS=D.owners;saveD();renderOwners()}
 
 function renderAssetTypes(){var el=document.getElementById('asset-types-list');if(!el)return;
 el.innerHTML=(D.asset_types||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmAssetType('+i+')">&times;</span></span>'}).join('')+
@@ -761,3 +782,4 @@ function rmPlanCat(id){var c=(D.plan_categories||[]).find(function(x){return x.i
 function planCatOpts(sel){var o='<option value="">\u2014 หมวด \u2014</option>';(D.plan_categories||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});}).forEach(function(c){o+='<option value="'+c.id+'"'+(c.id===sel?' selected':'')+'>'+esc(c.name)+'</option>';});return o;}
 window.renderPlanCats=renderPlanCats;window.addPlanCat=addPlanCat;window.rmPlanCat=rmPlanCat;window.renamePlanCat=renamePlanCat;window.planCatOpts=planCatOpts;window._planCatName=_planCatName;
 window.bankName=bankName;window.bankId=bankId;window._bankName=_bankName;window.renameBank=renameBank;
+window.ownerName=ownerName;window.ownerId=ownerId;window.renameOwner=renameOwner;

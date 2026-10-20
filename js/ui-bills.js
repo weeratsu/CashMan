@@ -423,7 +423,7 @@ var base={name:name,type:g('ra-type')||D.types[0]||'Other',amount:amt,billing_da
 var list,idx,sel;
 if(Y){
  var pm=g('ra-pay')||'full', per=pm==='installment'?Math.max(1,Math.min(60,parseInt(g('ra-per'),10)||1)):1;
- base.month=parseInt(g('ra-month'),10)||1; base.pay_mode=pm; base.inst_periods=per; base.own_by='Me'; base.start_from='';
+ base.month=parseInt(g('ra-month'),10)||1; base.pay_mode=pm; base.inst_periods=per; base.own_by='me'; base.start_from='';
  D.yearly.push(base); idx=D.yearly.length-1; sel='#yearly-body tr.y-main[data-yrow="'+idx+'"]';
 }else{
  base.start_date=''; base.end_mode='forever'; base.end_date='';
@@ -630,7 +630,7 @@ var opac=st==='Finished'||st==='Cancelled'?'opacity:.4;':'';
 if(isAuto){
 var ai=inst._oi-manualCount;
 rows+='<tr data-idx="'+inst._oi+'" style="'+opac+'"><td style="width:24px"><input type="checkbox" class="inst-chk" data-auto="'+ai+'" value="'+inst._oi+'" onchange="updateInstBulkActions()"></td><td>'+esc(inst.name)+'</td><td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(inst.type)+esc(inst.type)+'</span></td><td><span class="tag tag-auto" style="font-size:9px">'+esc(inst.card)+'</span></td>'+
-'<td>'+esc(inst.own_by)+'</td><td class="r" style="font-family:var(--mono);font-size:10px">\u0e3f'+fmt(inst.total)+'</td>'+
+'<td>'+esc(typeof ownerName==='function'?ownerName(inst.own_by):inst.own_by)+'</td><td class="r" style="font-family:var(--mono);font-size:10px">\u0e3f'+fmt(inst.total)+'</td>'+
 '<td class="r" style="font-family:var(--mono);font-size:10px">\u0e3f'+fmt(inst.per_period)+'</td>'+
 '<td class="r" style="font-family:var(--mono)">'+inst.periods+'</td>'+
 '<td style="font-size:10px">'+((inst.start_day||1)<10?'0':'')+(inst.start_day||1)+'/'+(inst.start_month<10?'0':'')+inst.start_month+'/'+inst.start_year+'</td>'+
@@ -1013,7 +1013,7 @@ var amt=parseFloat(g('pa-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amo
 var date=g('pa-date'); if(!date){err('Pick a date (items without a date are skipped by the Timeline)','pa-date');return;}
 var ae=document.getElementById('pa-auto');
 D.planned.push({name:name,type:g('pa-type')||D.types[0]||'Other',amount:amt,date:date,card:g('pa-card')||'Cash/Direct',
- direction:g('pa-dir')||'expense',own_by:g('pa-own')||'Me',notes:g('pa-notes'),auto_pay:!!(ae&&ae.checked)});
+ direction:g('pa-dir')||'expense',own_by:g('pa-own')||'me',notes:g('pa-notes'),auto_pay:!!(ae&&ae.checked)});
 _plNewIdx=D.planned.length-1;
 saveD();plAddClose();
 simulate();renderAllTabs();
@@ -1095,7 +1095,7 @@ D.installments.push({
 name:y.name,
 type:y.type||'Other',
 card:y.card||'',
-own_by:y.own_by||'Me',
+own_by:y.own_by||'me',
 total:y.amount,
 per_period:y.inst_periods>0?Math.round(y.amount/y.inst_periods*100)/100:y.amount,
 periods:y.inst_periods||1,
@@ -1121,7 +1121,7 @@ function yMaterialize(i){
     if((D.installments||[]).some(function(it){return String(it.name||'').trim().toLowerCase()===nm.toLowerCase();})){ toast('\u26a0\ufe0f มี installment ชื่อนี้แล้ว'); return; }
     var pn=parseInt(y.inst_periods,10)||1;
     if(!D.installments)D.installments=[];
-    D.installments.push({ name:nm, type:y.type||'Other', card:y.card||'', own_by:y.own_by||'Me',
+    D.installments.push({ name:nm, type:y.type||'Other', card:y.card||'', own_by:y.own_by||'me',
       total:(parseFloat(y.amount)||0)*pn, per_period:parseFloat(y.amount)||0, periods:pn,
       billing_day:parseInt(y.billing_day,10)||1, start_year:yr, start_month:mo,
       status:'Active', _fromYearly:nm });
@@ -1160,7 +1160,7 @@ var item=autoItems[yearlyIdx];
 var y=item.y;
 var pp=y.inst_periods>0?Math.round(y.amount/y.inst_periods*100)/100:y.amount;
 D.installments.push({
-name:y.name,type:y.type||'Other',card:y.card||'',own_by:y.own_by||'Me',
+name:y.name,type:y.type||'Other',card:y.card||'',own_by:y.own_by||'me',
 total:y.amount,per_period:pp,periods:y.inst_periods||1,
 start_year:y.month>=new Date().getMonth()+1?parseInt(D.profile.start_date.slice(0,4)):parseInt(D.profile.start_date.slice(0,4))+1,
 start_month:y.month||1,status:'Planned'});
@@ -1222,7 +1222,7 @@ var total=parseFloat(g('ia-total').replace(/,/g,'')); if(!(total>0)){err('Enter 
 var per=parseInt(g('ia-per'),10); if(!(per>=1&&per<=60)){err('Periods must be 1-60','ia-per');return;}
 var sd=g('ia-start'); var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(sd); if(!m){err('Pick the first payment date','ia-start');return;}
 var day=parseInt(m[3],10);
-D.installments.push({name:name,type:g('ia-type')||D.types[0]||'Other',card:card,own_by:g('ia-own')||'Me',
+D.installments.push({name:name,type:g('ia-type')||D.types[0]||'Other',card:card,own_by:g('ia-own')||'me',
  total:total,per_period:Math.round(total/per*100)/100,periods:per,
  start_year:parseInt(m[1],10),start_month:parseInt(m[2],10),start_day:day,billing_day:day,hide_before:'',status:g('ia-st')||'Active'});
 var idx=D.installments.length-1;
@@ -1381,7 +1381,7 @@ var cOpts2=sCards().map(function(c){return '<option>'+esc(c.name)+'</option>'}).
 var sOpts=STATUSES.map(function(s){return '<option>'+s+'</option>'}).join('');
 var el=document.getElementById('flt-i-status');if(el){var v=el.value;el.innerHTML='<option value="">All Status</option>'+sOpts;el.value=v}
 var el2=document.getElementById('flt-i-source');if(el2){var v=el2.value;el2.innerHTML='<option value="">All Sources</option><option>Manual</option><option>Yearly</option>';el2.value=v}
-var el3=document.getElementById('flt-i-owner');if(el3){var v=el3.value;el3.innerHTML='<option value="">All Owners</option>'+(D.owners||[]).slice().sort().map(function(o){return '<option>'+o+'</option>'}).join('');el3.value=v}}
+var el3=document.getElementById('flt-i-owner');if(el3){var v=el3.value;el3.innerHTML='<option value="">All Owners</option>'+(D.owners||[]).slice().map(function(o){return '<option value="'+o.id+'">'+esc(o.name)+'</option>'}).join('');el3.value=v}}
 
 
 function filterMonthly(){var ft=document.getElementById('flt-m-type').value,fc=document.getElementById('flt-m-card').value;

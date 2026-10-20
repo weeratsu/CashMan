@@ -1,3 +1,4 @@
+function _impOwnerId(nm){nm=(nm||'').trim()||'Me';if(nm==='Me')return 'me';if(!Array.isArray(D.owners))D.owners=[];var ex=D.owners.find(function(o){return o.id===nm||o.name===nm;});if(ex)return ex.id;if(typeof D._owner_seq!=='number')D._owner_seq=0;var id='o'+(++D._owner_seq);D.owners.push({id:id,name:nm});return id;}
 // trx-io.js — Export/Import transaction lists to/from Excel
 
 // ===== EXPORT =====
@@ -11,14 +12,14 @@ name='Monthly_Recurring';
 D.monthly.forEach(function(m){data.push({Name:m.name,Direction:m.direction||'expense',Type:m.type||'',Amount:m.amount||0,Billing_Day:m.billing_day||1,Card:m.card||'Cash/Direct',Status:m.status||'Active',End_Mode:m.end_mode||'forever',End_Date:m.end_mode==='date'?fmtDate(m.end_date||''):'',Auto_Pay:m.auto_pay?'Y':'N',Deadline_Mode:m.deadline_mode||'',Deadline_Day:m.deadline_day||'',Start_Mode:m.start_mode||'forever',Start_Date:m.start_mode==='date'?fmtDate(m.start_date||''):''})});
 }else if(type==='yearly'){
 name='Yearly_Recurring';
-D.yearly.forEach(function(y){data.push({Name:y.name,Direction:y.direction||'expense',Type:y.type||'',Amount:y.amount||0,Billing_Day:y.billing_day||1,Month:y.month||1,Pay_Mode:y.pay_mode||'full',Card:y.card||'Cash/Direct',Installment_Periods:y.inst_periods||1,Own_By:y.own_by||'Me',Status:y.status||'Active',Auto_Pay:y.auto_pay?'Y':'N',Deadline_Mode:y.deadline_mode||'',Deadline_Day:y.deadline_day||'',Start_Mode:y.start_mode||'forever',Start_From:y.start_mode==='date'?fmtDate(y.start_from||''):'',Inst_Hide_Before:fmtDate(y.inst_hide_before||'')})});
+D.yearly.forEach(function(y){data.push({Name:y.name,Direction:y.direction||'expense',Type:y.type||'',Amount:y.amount||0,Billing_Day:y.billing_day||1,Month:y.month||1,Pay_Mode:y.pay_mode||'full',Card:y.card||'Cash/Direct',Installment_Periods:y.inst_periods||1,Own_By:(typeof ownerName==='function'?ownerName(y.own_by):(y.own_by||'Me')),Status:y.status||'Active',Auto_Pay:y.auto_pay?'Y':'N',Deadline_Mode:y.deadline_mode||'',Deadline_Day:y.deadline_day||'',Start_Mode:y.start_mode||'forever',Start_From:y.start_mode==='date'?fmtDate(y.start_from||''):'',Inst_Hide_Before:fmtDate(y.inst_hide_before||'')})});
 }else if(type==='installments'){
 name='Installments';
 var all=allInstallments();
-all.forEach(function(inst){data.push({Name:inst.name,Type:inst.type||'',Card:inst.card||'',Own_By:inst.own_by||'Me',Total:inst.total||0,Per_Period:inst.per_period||0,Periods:inst.periods||1,Start_Year:inst.start_year||'',Start_Month:inst.start_month||'',Start_Day:inst.start_day||1,Billing_Day:inst.billing_day||inst.start_day||1,Status:inst.status||'Active',Source:inst.source||'Manual',Auto_Pay:inst.auto_pay?'Y':'N',Hide_Before:fmtDate(inst.hide_before||'')})});
+all.forEach(function(inst){data.push({Name:inst.name,Type:inst.type||'',Card:inst.card||'',Own_By:(typeof ownerName==='function'?ownerName(inst.own_by):(inst.own_by||'Me')),Total:inst.total||0,Per_Period:inst.per_period||0,Periods:inst.periods||1,Start_Year:inst.start_year||'',Start_Month:inst.start_month||'',Start_Day:inst.start_day||1,Billing_Day:inst.billing_day||inst.start_day||1,Status:inst.status||'Active',Source:inst.source||'Manual',Auto_Pay:inst.auto_pay?'Y':'N',Hide_Before:fmtDate(inst.hide_before||'')})});
 }else if(type==='planned'){
 name='Planned_Expenses';
-D.planned.forEach(function(p){data.push({Name:p.name,Direction:p.direction||'expense',Type:p.type||'',Amount:p.amount||0,Date:fmtDate(p.date||''),Card:p.card||'Cash/Direct',Own_By:p.own_by||'Me',Notes:p.notes||'',Auto_Pay:p.auto_pay?'Y':'N'})});
+D.planned.forEach(function(p){data.push({Name:p.name,Direction:p.direction||'expense',Type:p.type||'',Amount:p.amount||0,Date:fmtDate(p.date||''),Card:p.card||'Cash/Direct',Own_By:(typeof ownerName==='function'?ownerName(p.own_by):(p.own_by||'Me')),Notes:p.notes||'',Auto_Pay:p.auto_pay?'Y':'N'})});
 }else if(type==='assets'){
 name='Assets';
 ((D.retirement&&D.retirement.assets)||[]).forEach(function(a){data.push({Name:a.name||'',Type:a.type||'',Currency:a.currency||'THB',Value:a.value||0,FX_Rate:a.fx_rate||0,Cashout_Date:fmtDate(a.cashout_date||''),Notes:a.notes||''})});
@@ -33,7 +34,7 @@ name='Recurring';
 var wb=XLSX.utils.book_new();var sc=0;
 var mD=[];D.monthly.forEach(function(m){mD.push({Name:m.name,Direction:m.direction||'expense',Type:m.type||'',Amount:m.amount||0,Billing_Day:m.billing_day||1,Card:m.card||'Cash/Direct',Status:m.status||'Active',End_Mode:m.end_mode||'forever',End_Date:m.end_mode==='date'?fmtDate(m.end_date||''):'',Auto_Pay:m.auto_pay?'Y':'N',Deadline_Mode:m.deadline_mode||'',Deadline_Day:m.deadline_day||'',Start_Mode:m.start_mode||'forever',Start_Date:m.start_mode==='date'?fmtDate(m.start_date||''):''})});
 if(mD.length){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mD),'Monthly');sc++}
-var yD=[];D.yearly.forEach(function(y){yD.push({Name:y.name,Direction:y.direction||'expense',Type:y.type||'',Amount:y.amount||0,Billing_Day:y.billing_day||1,Month:y.month||1,Pay_Mode:y.pay_mode||'full',Card:y.card||'Cash/Direct',Installment_Periods:y.inst_periods||1,Own_By:y.own_by||'Me',Status:y.status||'Active',Auto_Pay:y.auto_pay?'Y':'N',Deadline_Mode:y.deadline_mode||'',Deadline_Day:y.deadline_day||'',Start_Mode:y.start_mode||'forever',Start_From:y.start_mode==='date'?fmtDate(y.start_from||''):'',Inst_Hide_Before:fmtDate(y.inst_hide_before||'')})});
+var yD=[];D.yearly.forEach(function(y){yD.push({Name:y.name,Direction:y.direction||'expense',Type:y.type||'',Amount:y.amount||0,Billing_Day:y.billing_day||1,Month:y.month||1,Pay_Mode:y.pay_mode||'full',Card:y.card||'Cash/Direct',Installment_Periods:y.inst_periods||1,Own_By:(typeof ownerName==='function'?ownerName(y.own_by):(y.own_by||'Me')),Status:y.status||'Active',Auto_Pay:y.auto_pay?'Y':'N',Deadline_Mode:y.deadline_mode||'',Deadline_Day:y.deadline_day||'',Start_Mode:y.start_mode||'forever',Start_From:y.start_mode==='date'?fmtDate(y.start_from||''):'',Inst_Hide_Before:fmtDate(y.inst_hide_before||'')})});
 if(yD.length){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(yD),'Yearly');sc++}
 if(!sc){toast('\u26a0\ufe0f No data to export');return}
 XLSX.writeFile(wb,'cashflow_recurring_'+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -56,7 +57,7 @@ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(profData),'Profile');sh
 
 // Owners sheet
 if(D.owners&&D.owners.length){
-var owData=D.owners.map(function(o){return{Owner:o}});
+var owData=D.owners.map(function(o){return{Id:(o&&o.id)||'',Owner:(o&&o.name)||o||''}});
 XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(owData),'Owners');sheetCount++}
 
 // Cards sheet
@@ -74,15 +75,15 @@ var mData=[];D.monthly.forEach(function(m){mData.push({Name:m.name,Direction:m.d
 if(mData.length){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mData),'Monthly');sheetCount++}
 
 // Yearly
-var yData=[];D.yearly.forEach(function(y){yData.push({Name:y.name,Direction:y.direction||'expense',Type:y.type||'',Amount:y.amount||0,Billing_Day:y.billing_day||1,Month:y.month||1,Pay_Mode:y.pay_mode||'full',Card:y.card||'Cash/Direct',Installment_Periods:y.inst_periods||1,Own_By:y.own_by||'Me',Status:y.status||'Active',Auto_Pay:y.auto_pay?'Y':'N',Deadline_Mode:y.deadline_mode||'',Deadline_Day:y.deadline_day||'',Start_Mode:y.start_mode||'forever',Start_From:y.start_mode==='date'?fmtDate(y.start_from||''):'',Inst_Hide_Before:fmtDate(y.inst_hide_before||'')})});
+var yData=[];D.yearly.forEach(function(y){yData.push({Name:y.name,Direction:y.direction||'expense',Type:y.type||'',Amount:y.amount||0,Billing_Day:y.billing_day||1,Month:y.month||1,Pay_Mode:y.pay_mode||'full',Card:y.card||'Cash/Direct',Installment_Periods:y.inst_periods||1,Own_By:(typeof ownerName==='function'?ownerName(y.own_by):(y.own_by||'Me')),Status:y.status||'Active',Auto_Pay:y.auto_pay?'Y':'N',Deadline_Mode:y.deadline_mode||'',Deadline_Day:y.deadline_day||'',Start_Mode:y.start_mode||'forever',Start_From:y.start_mode==='date'?fmtDate(y.start_from||''):'',Inst_Hide_Before:fmtDate(y.inst_hide_before||'')})});
 if(yData.length){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(yData),'Yearly');sheetCount++}
 
 // Installments
-var iData=[];D.installments.forEach(function(inst){iData.push({Name:inst.name,Type:inst.type||'',Card:inst.card||'',Own_By:inst.own_by||'Me',Total:inst.total||0,Per_Period:inst.per_period||0,Periods:inst.periods||1,Start_Year:inst.start_year||'',Start_Month:inst.start_month||'',Start_Day:inst.start_day||1,Billing_Day:inst.billing_day||inst.start_day||1,Status:inst.status||'Active',Auto_Pay:inst.auto_pay?'Y':'N',Hide_Before:fmtDate(inst.hide_before||''),Source:inst.source||'Manual'})});
+var iData=[];D.installments.forEach(function(inst){iData.push({Name:inst.name,Type:inst.type||'',Card:inst.card||'',Own_By:(typeof ownerName==='function'?ownerName(inst.own_by):(inst.own_by||'Me')),Total:inst.total||0,Per_Period:inst.per_period||0,Periods:inst.periods||1,Start_Year:inst.start_year||'',Start_Month:inst.start_month||'',Start_Day:inst.start_day||1,Billing_Day:inst.billing_day||inst.start_day||1,Status:inst.status||'Active',Auto_Pay:inst.auto_pay?'Y':'N',Hide_Before:fmtDate(inst.hide_before||''),Source:inst.source||'Manual'})});
 if(iData.length){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(iData),'Installments');sheetCount++}
 
 // Planned
-var pData=[];D.planned.forEach(function(p){pData.push({Name:p.name,Direction:p.direction||'expense',Type:p.type||'',Amount:p.amount||0,Date:fmtDate(p.date||''),Card:p.card||'Cash/Direct',Own_By:p.own_by||'Me',Notes:p.notes||'',Auto_Pay:p.auto_pay?'Y':'N'})});
+var pData=[];D.planned.forEach(function(p){pData.push({Name:p.name,Direction:p.direction||'expense',Type:p.type||'',Amount:p.amount||0,Date:fmtDate(p.date||''),Card:p.card||'Cash/Direct',Own_By:(typeof ownerName==='function'?ownerName(p.own_by):(p.own_by||'Me')),Notes:p.notes||'',Auto_Pay:p.auto_pay?'Y':'N'})});
 if(pData.length){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(pData),'Planned');sheetCount++}
 
 // Tax Exemptions
@@ -204,7 +205,7 @@ mR.forEach(function(r){D.monthly.push({name:r.Name||'',direction:r.Direction||'e
 counts.m=mR.length}
 if(wb.SheetNames.indexOf('Yearly')>=0){
 var yR=XLSX.utils.sheet_to_json(wb.Sheets['Yearly']);
-yR.forEach(function(r){D.yearly.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,billing_day:parseInt(r.Billing_Day)||1,month:parseInt(r.Month)||1,pay_mode:r.Pay_Mode||'full',card:r.Card||'Cash/Direct',inst_periods:parseInt(r.Installment_Periods)||1,own_by:r.Own_By||'Me',status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),deadline_mode:r.Deadline_Mode||undefined,deadline_day:r.Deadline_Day||'',start_mode:r.Start_Mode||'forever',start_from:r.Start_Mode==='date'?parseDMY(r.Start_From||''):'',inst_hide_before:parseDMY(r.Inst_Hide_Before||'')||''})});
+yR.forEach(function(r){D.yearly.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,billing_day:parseInt(r.Billing_Day)||1,month:parseInt(r.Month)||1,pay_mode:r.Pay_Mode||'full',card:r.Card||'Cash/Direct',inst_periods:parseInt(r.Installment_Periods)||1,own_by:_impOwnerId(r.Own_By),status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),deadline_mode:r.Deadline_Mode||undefined,deadline_day:r.Deadline_Day||'',start_mode:r.Start_Mode||'forever',start_from:r.Start_Mode==='date'?parseDMY(r.Start_From||''):'',inst_hide_before:parseDMY(r.Inst_Hide_Before||'')||''})});
 counts.y=yR.length}
 saveD();simulate();renderAllTabs();loadForm();
 toast('\ud83d\udce4 Imported: '+counts.m+' monthly + '+counts.y+' yearly');
@@ -233,7 +234,7 @@ counts.profile=1}}
 // Owners
 if(wb.SheetNames.indexOf('Owners')>=0){
 var oRows=XLSX.utils.sheet_to_json(wb.Sheets['Owners']);
-if(oRows.length){D.owners=oRows.map(function(r){return r.Owner||'Me'});if(D.owners.indexOf('Me')<0)D.owners.unshift('Me');counts.owners=oRows.length}}
+if(oRows.length){var _os=0;D.owners=oRows.map(function(r){var nm=r.Owner||'';if(!nm)return null;var id=r.Id||(nm==='Me'?'me':('o'+(++_os)));return {id:id,name:nm};}).filter(function(o){return o;});if(!D.owners.some(function(o){return o.id==='me';}))D.owners.unshift({id:'me',name:'Me'});D._owner_seq=D.owners.reduce(function(mx,o){var m=/^o(\d+)$/.exec(o.id||'');return m?Math.max(mx,parseInt(m[1],10)):mx;},0);D._owner_id_migrated=true;counts.owners=oRows.length}}
 
 // Types
 if(wb.SheetNames.indexOf('Types')>=0){
@@ -270,19 +271,19 @@ counts.monthly=mRows.length}
 // Yearly
 if(wb.SheetNames.indexOf('Yearly')>=0){
 var yRows=XLSX.utils.sheet_to_json(wb.Sheets['Yearly']);
-yRows.forEach(function(r){D.yearly.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,billing_day:parseInt(r.Billing_Day)||1,month:parseInt(r.Month)||1,pay_mode:r.Pay_Mode||'full',card:r.Card||'Cash/Direct',inst_periods:parseInt(r.Installment_Periods)||1,own_by:r.Own_By||'Me',status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),deadline_mode:r.Deadline_Mode||undefined,deadline_day:r.Deadline_Day||'',start_mode:r.Start_Mode||'forever',start_from:r.Start_Mode==='date'?parseDMY(r.Start_From||''):'',inst_hide_before:parseDMY(r.Inst_Hide_Before||'')||''})});
+yRows.forEach(function(r){D.yearly.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,billing_day:parseInt(r.Billing_Day)||1,month:parseInt(r.Month)||1,pay_mode:r.Pay_Mode||'full',card:r.Card||'Cash/Direct',inst_periods:parseInt(r.Installment_Periods)||1,own_by:_impOwnerId(r.Own_By),status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),deadline_mode:r.Deadline_Mode||undefined,deadline_day:r.Deadline_Day||'',start_mode:r.Start_Mode||'forever',start_from:r.Start_Mode==='date'?parseDMY(r.Start_From||''):'',inst_hide_before:parseDMY(r.Inst_Hide_Before||'')||''})});
 counts.yearly=yRows.length}
 
 // Installments
 if(wb.SheetNames.indexOf('Installments')>=0){
 var iRows=XLSX.utils.sheet_to_json(wb.Sheets['Installments']);
-iRows.forEach(function(r){D.installments.push({name:r.Name||'',type:r.Type||'Other',card:r.Card||'',own_by:r.Own_By||'Me',total:parseFloat(r.Total)||0,per_period:parseFloat(r.Per_Period)||0,periods:parseInt(r.Periods)||1,start_year:parseInt(r.Start_Year)||new Date().getFullYear(),start_month:parseInt(r.Start_Month)||1,start_day:parseInt(r.Start_Day)||1,billing_day:parseInt(r.Billing_Day||r.Start_Day)||1,status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),hide_before:parseDMY(r.Hide_Before||'')||'',source:r.Source||'Manual'})});
+iRows.forEach(function(r){D.installments.push({name:r.Name||'',type:r.Type||'Other',card:r.Card||'',own_by:_impOwnerId(r.Own_By),total:parseFloat(r.Total)||0,per_period:parseFloat(r.Per_Period)||0,periods:parseInt(r.Periods)||1,start_year:parseInt(r.Start_Year)||new Date().getFullYear(),start_month:parseInt(r.Start_Month)||1,start_day:parseInt(r.Start_Day)||1,billing_day:parseInt(r.Billing_Day||r.Start_Day)||1,status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),hide_before:parseDMY(r.Hide_Before||'')||'',source:r.Source||'Manual'})});
 counts.installments=iRows.length}
 
 // Planned
 if(wb.SheetNames.indexOf('Planned')>=0){
 var pRows=XLSX.utils.sheet_to_json(wb.Sheets['Planned']);
-pRows.forEach(function(r){D.planned.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,date:parseDMY(r.Date||'')||r.Date||'',card:r.Card||'Cash/Direct',own_by:r.Own_By||'Me',notes:r.Notes||'',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y')})});
+pRows.forEach(function(r){D.planned.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,date:parseDMY(r.Date||'')||r.Date||'',card:r.Card||'Cash/Direct',own_by:_impOwnerId(r.Own_By),notes:r.Notes||'',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y')})});
 counts.planned=pRows.length}
 
 // Tax Exemptions
@@ -381,11 +382,11 @@ var count=0;
 if(type==='monthly'){
 rows.forEach(function(r){D.monthly.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,billing_day:parseInt(r.Billing_Day)||1,card:r.Card||'Cash/Direct',status:r.Status||'Active',end_mode:r.End_Mode||'forever',end_date:r.End_Mode==='date'?parseDMY(r.End_Date||''):'',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),deadline_mode:r.Deadline_Mode||undefined,deadline_day:r.Deadline_Day||'',start_mode:r.Start_Mode||'forever',start_date:r.Start_Mode==='date'?parseDMY(r.Start_Date||''):''});count++})}
 else if(type==='yearly'){
-rows.forEach(function(r){D.yearly.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,billing_day:parseInt(r.Billing_Day)||1,month:parseInt(r.Month)||1,pay_mode:r.Pay_Mode||'full',card:r.Card||'Cash/Direct',inst_periods:parseInt(r.Installment_Periods)||1,own_by:r.Own_By||'Me',status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),deadline_mode:r.Deadline_Mode||undefined,deadline_day:r.Deadline_Day||'',start_mode:r.Start_Mode||'forever',start_from:r.Start_Mode==='date'?parseDMY(r.Start_From||''):'',inst_hide_before:parseDMY(r.Inst_Hide_Before||'')||''});count++})}
+rows.forEach(function(r){D.yearly.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,billing_day:parseInt(r.Billing_Day)||1,month:parseInt(r.Month)||1,pay_mode:r.Pay_Mode||'full',card:r.Card||'Cash/Direct',inst_periods:parseInt(r.Installment_Periods)||1,own_by:_impOwnerId(r.Own_By),status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),deadline_mode:r.Deadline_Mode||undefined,deadline_day:r.Deadline_Day||'',start_mode:r.Start_Mode||'forever',start_from:r.Start_Mode==='date'?parseDMY(r.Start_From||''):'',inst_hide_before:parseDMY(r.Inst_Hide_Before||'')||''});count++})}
 else if(type==='installments'){
-rows.forEach(function(r){D.installments.push({name:r.Name||'',type:r.Type||'Other',card:r.Card||'',own_by:r.Own_By||'Me',total:parseFloat(r.Total)||0,per_period:parseFloat(r.Per_Period)||0,periods:parseInt(r.Periods)||1,start_year:parseInt(r.Start_Year)||new Date().getFullYear(),start_month:parseInt(r.Start_Month)||1,start_day:parseInt(r.Start_Day)||1,billing_day:parseInt(r.Billing_Day||r.Start_Day)||1,status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),hide_before:parseDMY(r.Hide_Before||'')||'',source:r.Source||'Manual'});count++})}
+rows.forEach(function(r){D.installments.push({name:r.Name||'',type:r.Type||'Other',card:r.Card||'',own_by:_impOwnerId(r.Own_By),total:parseFloat(r.Total)||0,per_period:parseFloat(r.Per_Period)||0,periods:parseInt(r.Periods)||1,start_year:parseInt(r.Start_Year)||new Date().getFullYear(),start_month:parseInt(r.Start_Month)||1,start_day:parseInt(r.Start_Day)||1,billing_day:parseInt(r.Billing_Day||r.Start_Day)||1,status:r.Status||'Active',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y'),hide_before:parseDMY(r.Hide_Before||'')||'',source:r.Source||'Manual'});count++})}
 else if(type==='planned'){
-rows.forEach(function(r){D.planned.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,date:parseDMY(r.Date||'')||r.Date||'',card:r.Card||'Cash/Direct',own_by:r.Own_By||'Me',notes:r.Notes||'',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y')});count++})}
+rows.forEach(function(r){D.planned.push({name:r.Name||'',direction:r.Direction||'expense',type:r.Type||'Other',amount:parseFloat(r.Amount)||0,date:parseDMY(r.Date||'')||r.Date||'',card:r.Card||'Cash/Direct',own_by:_impOwnerId(r.Own_By),notes:r.Notes||'',auto_pay:r.Auto_Pay===undefined?undefined:(r.Auto_Pay==='Y')});count++})}
 else if(type==='assets'){
 if(!D.retirement)D.retirement={};if(!Array.isArray(D.retirement.assets))D.retirement.assets=[];
 rows.forEach(function(r){D.retirement.assets.push({name:r.Name||'',type:r.Type||'Savings',currency:r.Currency||'THB',value:parseFloat(r.Value)||0,fx_rate:parseFloat(r.FX_Rate)||0,cashout_date:parseDMY(r.Cashout_Date||'')||'',notes:r.Notes||''});count++})}
