@@ -22,6 +22,7 @@ el.textContent='Today: '+days[d.getDay()]+' '+d.getDate()+' '+mons[d.getMonth()]
 
 // NAV
 document.getElementById('nav-tabs').onclick=function(e){
+if(e.target.closest('.nav-sub')||e.target.closest('.nav-tab')){try{window.scrollTo(0,0);}catch(_){}}
 var sub=e.target.closest('.nav-sub');
 if(sub){
 var ptab=sub.dataset.tab,skey=sub.dataset.sub;

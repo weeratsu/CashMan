@@ -85,8 +85,12 @@ function cbPaidRec(card,y,m,per){
   // PREFIX-match the paid ledger on 'CB|card|period::' so a record keyed ::period and one keyed
   // ::dueMonth(period+1) BOTH resolve — the two writers historically disagreed on the suffix
   // (requirements §3.6). period alone identifies the statement; the dueMonth suffix is cosmetic.
-  var bp=D.bill_payments||{}; var pfx='CB|'+card+'|'+per+'::';
-  for(var kk in bp){ if(kk.indexOf(pfx)===0){ var r=bp[kk]; if(r&&r.paid) return r; } }
+  var bp=D.bill_payments||{};
+  // v-id: records are keyed by card ID (CB|c3|...). Resolve name->id and scan BOTH id and name prefixes
+  // (name kept for any legacy pre-refactor record). period alone identifies the statement; dueMonth suffix is cosmetic.
+  var _cid=(typeof window.cardResolve==='function')?((window.cardResolve(card)||{}).id||card):card;
+  var _pfxs=['CB|'+_cid+'|'+per+'::','CB|'+card+'|'+per+'::'];
+  for(var kk in bp){ for(var _pi=0;_pi<_pfxs.length;_pi++){ if(kk.indexOf(_pfxs[_pi])===0){ var r=bp[kk]; if(r&&r.paid) return r; } } }
   // not found by prefix -> defer to central helper (exact canonical key) as a last resort
   if(typeof window.cardPaidRec==='function') return window.cardPaidRec(card,per);
   return bp[pfx+per]||null;
@@ -101,7 +105,7 @@ function cbMarkPaid(card,y,m,amt,per){
 function cbUnpaid(card,y,m,per){
 if(!/^\d{4}-\d{2}$/.test(per||'')) per=_cbPeriodForView(card,y,m);
 // Delete EVERY paid key matching 'CB|card|period::' (covers ::period and ::dueMonth suffix variants).
-if(D.bill_payments){var pfx='CB|'+card+'|'+per+'::';Object.keys(D.bill_payments).forEach(function(kk){if(kk.indexOf(pfx)===0)delete D.bill_payments[kk];});}
+if(D.bill_payments){var _cid2=(typeof window.cardResolve==='function')?((window.cardResolve(card)||{}).id||card):card;var _pfx2=['CB|'+_cid2+'|'+per+'::','CB|'+card+'|'+per+'::'];Object.keys(D.bill_payments).forEach(function(kk){for(var _i=0;_i<_pfx2.length;_i++){if(kk.indexOf(_pfx2[_i])===0){delete D.bill_payments[kk];break;}}});}
 if(typeof window.cardUnmarkPaid==='function'){ try{window.cardUnmarkPaid(card,per);}catch(e){} }
 saveD();renderCardBills();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof simulate==='function')try{simulate()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}
 toast('Marked '+card+' statement unpaid');
