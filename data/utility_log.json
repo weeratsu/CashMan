@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T16:12:46",
+  "generated_at": "2026-10-23T11:00:52",
   "bill_count": 78,
   "bills": [
     {
@@ -1830,7 +1830,14 @@
       "invoice_date": "2026-10-20",
       "ca_no": "69219988",
       "invoice_file": "[Invoice] 2026-10-20 - 25691020_0069219988_125570.pdf",
-      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\10 - October\\[Invoice] 2026-10-20 - 25691020_0069219988_125570.pdf"
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\10 - October\\[Invoice] 2026-10-20 - 25691020_0069219988_125570.pdf",
+      "water_charge": 241.25,
+      "vat": 16.89,
+      "paid_amount": 258.14,
+      "paid_date": "2026-10-22",
+      "receipt_file": "[Receipt] 2026-10-22 - 25691022_1236060343.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\10 - October\\[Receipt] 2026-10-22 - 25691022_1236060343.pdf",
+      "paid": true
     }
   ]
 }
