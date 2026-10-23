@@ -391,7 +391,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Name *','<input id="ra-name" class="inp" placeholder="'+(Y?'e.g. Car insurance':'e.g. Netflix')+'" style="width:100%">')
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
  +row('Income / Expense','<select id="ra-dir" class="sel">'+dirOpts('expense')+'</select>')
- +row('Type','<select id="ra-type" class="sel">'+tOpts(D.types[0]||'Other')+'</select>')
+ +row('Type','<select id="ra-type" class="sel">'+tOpts((D.types[0]&&D.types[0].id)||'')+'</select>')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:'+(Y?'1fr 1fr 1fr':'1fr 1fr')+';gap:10px">'
  +row('Amount *','<input id="ra-amt" class="inp inp-num" inputmode="decimal" placeholder="0.00">')
@@ -595,10 +595,11 @@ document.getElementById('inst-kpis').innerHTML=
 '<div class="kpi"><div class="kpi-label">Active Items</div><div class="kpi-val">'+activeInst.length+'</div></div>'+
 '<div class="kpi"><div class="kpi-label">Peak Monthly</div><div class="kpi-val text-error">\u0e3f'+fmt(instMonthly)+'</div><div class="kpi-note">'+(normalPay2.net>0?(instMonthly/normalPay2.net*100).toFixed(1)+'% of net pay':'')+'</div></div>'+
 '<div class="kpi"><div class="kpi-label">Total Committed</div><div class="kpi-val">\u0e3f'+fmt(instTotal)+'</div><div class="kpi-note">'+(annualIncome2>0?(instTotal/annualIncome2*100).toFixed(1)+'% of annual income':'')+'</div></div>';
-var instByType={};activeInst.forEach(function(x){var t=x.type||'Other';if(!instByType[t])instByType[t]={items:[],total:0};instByType[t].items.push(x);instByType[t].total+=x.total});
+var instByType={};activeInst.forEach(function(x){var t=x.type||'';if(!instByType[t])instByType[t]={items:[],total:0};instByType[t].items.push(x);instByType[t].total+=x.total});
 var igH='';Object.keys(instByType).sort().forEach(function(t){var g=instByType[t];
+var _tLabel=(typeof typeName==='function'&&t)?typeName(t):(t||'\u2014');
 igH+='<div class="acc-header" onclick="this.querySelector(\'.arr\').classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">'+
-'<span class="arr">\u25b6</span><span style="flex:1;font-weight:600;font-size:12px">'+esc(t)+'</span>'+
+'<span class="arr">\u25b6</span><span style="flex:1;font-weight:600;font-size:12px">'+esc(_tLabel)+'</span>'+
 '<span style="font-size:9px;color:var(--text3);margin-right:8px">'+(annualIncome2>0?(g.total/annualIncome2*100).toFixed(1)+'%':'')+'</span>'+
 '<span style="font-family:var(--mono);font-size:11px;font-weight:600;min-width:90px;text-align:right">\u0e3f'+fmt(g.total)+'</span></div>'+
 '<div class="acc-body">';
@@ -984,7 +985,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Name *','<input id="pa-name" class="inp" placeholder="e.g. Car insurance renewal" style="width:100%">')
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
  +row('Income / Expense','<select id="pa-dir" class="sel">'+dirOpts('expense')+'</select>')
- +row('Type','<select id="pa-type" class="sel">'+tOpts(D.types[0]||'Other')+'</select>')
+ +row('Type','<select id="pa-type" class="sel">'+tOpts((D.types[0]&&D.types[0].id)||'')+'</select>')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
  +row('Amount *','<input id="pa-amt" class="inp inp-num" inputmode="decimal" placeholder="0.00">')
@@ -1044,7 +1045,7 @@ function populatePlannedFilters(){
 var types={},cards={};
 D.planned.forEach(function(p){types[p.type]=1;if(p.card)cards[p.card]=1});
 var ft=document.getElementById('flt-p-type'),fc=document.getElementById('flt-p-card');
-if(ft){var cv=ft.value;ft.innerHTML='<option value="">All Types</option>'+Object.keys(types).sort().map(function(t){return '<option'+(cv===t?' selected':'')+'>'+esc(t)+'</option>'}).join('')}
+if(ft){var cv=ft.value;ft.innerHTML='<option value="">All Types</option>'+(typeof tOpts==='function'?tOpts(cv):'');ft.value=cv}
 if(fc){var cv2=fc.value;fc.innerHTML='<option value="">All Cards</option>'+Object.keys(cards).sort().map(function(c){return '<option'+(cv2===c?' selected':'')+'>'+esc(c)+'</option>'}).join('')}}
 
 
@@ -1069,7 +1070,7 @@ var sel=document.getElementById('inst-from-recurring');if(!sel)return;
 var items=[];
 D.yearly.forEach(function(y,yi){
 if(y.pay_mode==='installment'){
-items.push({idx:yi,name:y.name,type:y.type||'Other',amount:y.amount,month:y.month||1,day:y.billing_day||1,periods:y.inst_periods||1,card:y.card||''})}});
+items.push({idx:yi,name:y.name,type:y.type||'',amount:y.amount,month:y.month||1,day:y.billing_day||1,periods:y.inst_periods||1,card:y.card||''})}});
 items.sort(function(a,b){
 var tc=a.type.localeCompare(b.type);if(tc!==0)return tc;
 if(a.month!==b.month)return a.month-b.month;
@@ -1079,7 +1080,7 @@ var h='<option value="">\u2014 Select from Recurring (installment only) \u2014</
 var lastType='';
 items.forEach(function(it){
 var pp=it.periods>0?Math.round(it.amount/it.periods*100)/100:it.amount;
-if(it.type!==lastType){if(lastType)h+='</optgroup>';h+='<optgroup label="'+esc(it.type)+'">';lastType=it.type}
+if(it.type!==lastType){if(lastType)h+='</optgroup>';h+='<optgroup label="'+esc(typeName(it.type))+'">';lastType=it.type}
 h+='<option value="'+it.idx+'">'+esc(it.name)+' ('+MO[it.month-1]+', '+it.periods+'x \u0e3f'+fmt(pp)+'/mo, total \u0e3f'+fmt(it.amount)+')</option>'});
 if(lastType)h+='</optgroup>';
 sel.innerHTML=h}
@@ -1093,7 +1094,7 @@ if(isNaN(yi)){toast('\u26a0\ufe0f Select a recurring item first');return}
 var y=D.yearly[yi];if(!y){toast('\u26a0\ufe0f Item not found');return}
 D.installments.push({
 name:y.name,
-type:y.type||'Other',
+type:y.type||'',
 card:y.card||'',
 own_by:y.own_by||'me',
 total:y.amount,
@@ -1121,7 +1122,7 @@ function yMaterialize(i){
     if((D.installments||[]).some(function(it){return String(it.name||'').trim().toLowerCase()===nm.toLowerCase();})){ toast('\u26a0\ufe0f มี installment ชื่อนี้แล้ว'); return; }
     var pn=parseInt(y.inst_periods,10)||1;
     if(!D.installments)D.installments=[];
-    D.installments.push({ name:nm, type:y.type||'Other', card:y.card||'', own_by:y.own_by||'me',
+    D.installments.push({ name:nm, type:y.type||'', card:y.card||'', own_by:y.own_by||'me',
       total:(parseFloat(y.amount)||0)*pn, per_period:parseFloat(y.amount)||0, periods:pn,
       billing_day:parseInt(y.billing_day,10)||1, start_year:yr, start_month:mo,
       status:'Active', _fromYearly:nm });
@@ -1133,7 +1134,7 @@ function yMaterialize(i){
     var day=parseInt(y.billing_day,10)||1;
     var iso=yr+'-'+(mo<10?'0':'')+mo+'-'+(day<10?'0':'')+day;
     if((D.planned||[]).some(function(p){return String(p.name||'').trim().toLowerCase()===nm.toLowerCase() && (p.date||'').slice(0,7)===iso.slice(0,7);})){ toast('\u26a0\ufe0f มี planned ชื่อนี้ในเดือนนั้นแล้ว'); return; }
-    D.planned.push({ name:nm, type:y.type||'Other', card:y.card||'', amount:parseFloat(y.amount)||0,
+    D.planned.push({ name:nm, type:y.type||'', card:y.card||'', amount:parseFloat(y.amount)||0,
       date:iso, direction:y.direction||'expense', _fromYearly:nm });
     saveAll(); if(typeof renderPlanned==='function')try{renderPlanned()}catch(e){}
     toast('\u2705 สร้าง planned จาก '+nm+' (แก้/ลบได้)');
@@ -1160,7 +1161,7 @@ var item=autoItems[yearlyIdx];
 var y=item.y;
 var pp=y.inst_periods>0?Math.round(y.amount/y.inst_periods*100)/100:y.amount;
 D.installments.push({
-name:y.name,type:y.type||'Other',card:y.card||'',own_by:y.own_by||'me',
+name:y.name,type:y.type||'',card:y.card||'',own_by:y.own_by||'me',
 total:y.amount,per_period:pp,periods:y.inst_periods||1,
 start_year:y.month>=new Date().getMonth()+1?parseInt(D.profile.start_date.slice(0,4)):parseInt(D.profile.start_date.slice(0,4))+1,
 start_month:y.month||1,status:'Planned'});
@@ -1186,7 +1187,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +'<div style="display:grid;gap:10px">'
  +row('Name *','<input id="ia-name" class="inp" placeholder="e.g. iPhone 0% 10 months" style="width:100%">')
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
- +row('Type','<select id="ia-type" class="sel">'+tOpts(D.types[0]||'Other')+'</select>')
+ +row('Type','<select id="ia-type" class="sel">'+tOpts((D.types[0]&&D.types[0].id)||'')+'</select>')
  +row('Card *','<select id="ia-card" class="sel">'+cOnlyOpts(D.cards[0]?D.cards[0].name:'')+'</select>')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
@@ -1222,7 +1223,7 @@ var total=parseFloat(g('ia-total').replace(/,/g,'')); if(!(total>0)){err('Enter 
 var per=parseInt(g('ia-per'),10); if(!(per>=1&&per<=60)){err('Periods must be 1-60','ia-per');return;}
 var sd=g('ia-start'); var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(sd); if(!m){err('Pick the first payment date','ia-start');return;}
 var day=parseInt(m[3],10);
-D.installments.push({name:name,type:g('ia-type')||D.types[0]||'Other',card:card,own_by:g('ia-own')||'me',
+D.installments.push({name:name,type:g('ia-type')||(D.types[0]&&D.types[0].id)||'',card:card,own_by:g('ia-own')||'me',
  total:total,per_period:Math.round(total/per*100)/100,periods:per,
  start_year:parseInt(m[1],10),start_month:parseInt(m[2],10),start_day:day,billing_day:day,hide_before:'',status:g('ia-st')||'Active'});
 var idx=D.installments.length-1;
@@ -1311,7 +1312,7 @@ monthItems.sort(function(a,b){return b.amount-a.amount}).forEach(function(it){
 var dirBadge=it.direction==='income'?'<span style="font-size:8px;padding:1px 4px;border-radius:6px;background:var(--success);color:#fff;margin-right:4px">Income</span>':'';
 mh+='<div class="day-row" style="padding-left:32px">'+dirBadge+'<span class="day-name" style="font-size:11px">'+esc(it.name)+'</span>'+
 '<span style="font-size:9px;color:var(--text3);margin:0 6px">'+esc(it.freq)+'</span>'+
-'<span style="font-size:9px;color:var(--text3);margin-right:6px">'+esc(it.type||'')+'</span>'+
+'<span style="font-size:9px;color:var(--text3);margin-right:6px">'+esc(typeName(it.type)||'')+'</span>'+
 '<span class="day-bal" style="font-size:10px;min-width:80px;color:'+(it.direction==='income'?'var(--success)':'')+'">\u0e3f'+fmt(it.amount)+'</span></div>'});
 if(!monthItems.length)mh+='<div class="day-row" style="padding-left:32px;color:var(--text3);font-size:10px">No recurring items</div>';
 mh+='</div>'}
@@ -1331,8 +1332,9 @@ groups[key].items.push(it);groups[key].total+=it.annual});
 var gKeys=Object.keys(groups).sort();
 var h='';
 gKeys.forEach(function(gk,gi){var g=groups[gk];
+var _gkLabel=(groupBy==='type'&&typeof typeName==='function')?typeName(gk):((groupBy==='card'&&typeof cardDisplayName==='function')?cardDisplayName(gk):gk);
 h+='<div class="acc-header" onclick="this.querySelector(\'.arr\').classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">'+
-'<span class="arr">\u25b6</span><span style="flex:1;font-weight:600;font-size:12px">'+esc(gk)+'</span>'+
+'<span class="arr">\u25b6</span><span style="flex:1;font-weight:600;font-size:12px">'+esc(_gkLabel)+'</span>'+
 '<span style="font-size:10px;color:var(--text3)">'+g.items.length+' items</span>'+
 '<span style="font-size:9px;color:var(--text3);margin-right:8px">'+(annualIncome>0?(g.total/annualIncome*100).toFixed(1)+'%':'')+'</span>'+
 '<span style="font-family:var(--mono);font-size:10px;color:var(--text3);min-width:90px;text-align:right;margin-right:8px">\u0e3f'+fmt(g.total/12)+'/mo</span>'+

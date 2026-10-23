@@ -70,7 +70,7 @@ function migrateToUnified(D, opts){
   }
   function baseRow(o){
     return {
-      id:null, name:o.name||'', amount:0, type:o.type||'Other',
+      id:null, name:o.name||'', amount:0, type:o.type||'',
       recurrence:'once', mode:'full', settle:(o.auto_pay?'auto':'manual'),
       pay_with:(o.card && o.card!=='Cash/Direct')?('card:'+o.card):'cash',
       billing_day:parseInt(o.billing_day,10)||1, start_ym:null, periods:null, end_ym:null, month:null, start_cutoff:null,

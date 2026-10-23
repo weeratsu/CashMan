@@ -177,7 +177,7 @@ glob.billOccurrencesUnified=function(fromD,toD){
     // map to render shape
     var kk=_occKindKey(o);
     var base={
-      kind:kk.kind, key:kk.key, name:o.name, type:o.type||'Other',
+      kind:kk.kind, key:kk.key, name:o.name, type:o.type||'',
       amount:o.amount||0, card:isCash?'Cash/Direct':o.card, auto_pay:((kk.kind==='Installment')?true:(o.settle==='auto')),
       due:o.orig_due, orig_due:o.orig_due, deadline:null,
       info:(o.seq?('('+o.seq.replace('of','/')+')'):''),

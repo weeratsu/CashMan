@@ -92,7 +92,7 @@ function renderAnalysis(){if(!SIM)return;var R=SIM;
 renderPeriodBanner('analysis-period','Expense Analysis');
 var dk=document.documentElement.classList.contains('dark'),tc=dk?'#e8eaed':'#1a1d27',tc2=dk?'#6b7185':'#7a8098',gc=dk?'#353849':'#d4d7e0',bg2=dk?'#1a1d27':'#fff';
 // Pie
-var pieData=Object.keys(R.typeExp).sort().map(function(t,i){return{name:t,y:Math.round(R.typeExp[t]*100)/100,color:COLORS[i%COLORS.length]}}).filter(function(d){return d.y>0});
+var pieData=Object.keys(R.typeExp).sort().map(function(t,i){return{name:(typeof typeName==='function'?typeName(t):t),_id:t,y:Math.round(R.typeExp[t]*100)/100,color:COLORS[i%COLORS.length]}}).filter(function(d){return d.y>0});
 Highcharts.chart('chart-pie',{chart:{type:'pie',backgroundColor:'transparent'},title:{text:null},
 tooltip:{backgroundColor:bg2,borderColor:gc,style:{color:tc,fontSize:'10px'},pointFormat:'<b>฿{point.y:,.2f}</b> ({point.percentage:.1f}%)'},
 plotOptions:{pie:{allowPointSelect:true,cursor:'pointer',borderWidth:0,innerSize:'45%',
@@ -101,7 +101,7 @@ series:[{name:'Expenses',data:pieData}],credits:{enabled:false}});
 // Stacked bar by type per month
 var mK=Object.keys(R.mAgg).sort(),mL=mK.map(function(k){var a=R.mAgg[k];return MO[a.m]+' '+String(a.y).slice(2)});
 var allTypes=Object.keys(R.typeExp).sort();
-var series=allTypes.map(function(t,ti){return{name:t,data:mK.map(function(k){return Math.round((R.mAgg[k].byType[t]||0)*100)/100}),color:COLORS[ti%COLORS.length]}});
+var series=allTypes.map(function(t,ti){return{name:(typeof typeName==='function'?typeName(t):t),data:mK.map(function(k){return Math.round((R.mAgg[k].byType[t]||0)*100)/100}),color:COLORS[ti%COLORS.length]}});
 Highcharts.chart('chart-type-bar',{chart:{type:'column',backgroundColor:'transparent'},title:{text:null},
 xAxis:{categories:mL,labels:{style:{color:tc2,fontSize:'9px'}},lineColor:gc},
 yAxis:{title:{text:null},labels:{style:{color:tc2,fontSize:'9px'},formatter:function(){return Highcharts.numberFormat(this.value/1000,0)+'K'}},gridLineColor:gc,stackLabels:{enabled:false}},
@@ -121,7 +121,7 @@ var t=x.type||'Other';if(!typeItems[t])typeItems[t]=[];
 typeItems[t].push({name:x.name,freq:'Installment',amount:x.per_period,annual:x.per_period*12,card:x.card||'',direction:'expense'})});
 return pieData.sort(function(a,b){return b.y-a.y}).map(function(d,di){
 var pct=(d.y/R.totE*100).toFixed(1);
-var items=(typeItems[d.name]||[]).sort(function(a,b){return b.annual-a.annual});
+var items=(typeItems[d._id]||typeItems[d.name]||[]).sort(function(a,b){return b.annual-a.annual});
 var detail='';
 if(items.length>0){
 detail='<tr id="type-detail-'+di+'" style="display:none"><td colspan="4" style="padding:0;background:var(--bg2)"><div style="padding:6px 12px">';
@@ -507,7 +507,7 @@ body+='<div style="font-size:10px;color:var(--text3);margin-top:6px">'+o.childre
 body+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
 body+='<tr><td style="color:var(--text3);padding:3px 0">Amount</td><td style="text-align:right;font-family:var(--mono);font-weight:600">\u0e3f'+fmt(o.amount||0)+'</td></tr>';
 if(o.kind==='Installment'&&o.info)body+='<tr><td style="color:var(--text3);padding:3px 0">Period</td><td style="text-align:right">'+esc(o.info)+'</td></tr>';
-if(o.type)body+='<tr><td style="color:var(--text3);padding:3px 0">Type</td><td style="text-align:right">'+esc(o.type)+'</td></tr>';
+if(o.type)body+='<tr><td style="color:var(--text3);padding:3px 0">Type</td><td style="text-align:right">'+esc(typeof typeName==='function'?typeName(o.type):o.type)+'</td></tr>';
 if(o.card&&o.card!=='Cash/Direct')body+='<tr><td style="color:var(--text3);padding:3px 0">Card</td><td style="text-align:right">'+esc(o.card)+'</td></tr>';
 body+='<tr><td style="color:var(--text3);padding:3px 0">Payment</td><td style="text-align:right">'+(o.auto_pay?'Auto-charged':'Manual')+'</td></tr>';
 body+='</table>';

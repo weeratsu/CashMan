@@ -157,13 +157,13 @@ return {mode:mode,year:yr,target:s.target,auto:s.auto,manual:s.manual,done:s.don
 
 // Shared credit-limit group: members share ONE limit. Group limit = the largest limit set on
 // any member (they should all be the same shared ceiling); balance = sum of all members' balances.
-function ccGroupInfo(name){
-if(!name)return null;
-var members=(D.cards||[]).filter(function(c){return (c.limit_group||'')===name;});
+function ccGroupInfo(gid){
+if(!gid)return null;
+var members=(D.cards||[]).filter(function(c){return (c.limit_group||'')===gid;});
 if(members.length<2)return null; // a group needs 2+ cards to be meaningful
 var limit=0,bal=0;
 members.forEach(function(c){if((c.credit_limit||0)>limit)limit=c.credit_limit||0;bal+=(c.current_balance||0);});
-return {name:name,members:members,limit:limit,balance:bal,available:limit-bal,count:members.length};
+return {name:(typeof limitGroupName==='function'?limitGroupName(gid):gid),id:gid,members:members,limit:limit,balance:bal,available:limit-bal,count:members.length};
 }
 function ccLatestPoints(c){
 if(!c.points_log||!c.points_log.length)return null;

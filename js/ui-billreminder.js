@@ -343,7 +343,7 @@ var _odDay=item.billing_day||ep.day;var _od=new Date(ym[0],ym[1],Math.min(_odDay
 if(item.end_mode==='date'&&item.end_date&&d>new Date(item.end_date+'T00:00:00'))return;
 if(item.start_mode==='date'&&item.start_date&&d<new Date(item.start_date+'T00:00:00'))return;
 if(!within(d))return;
-occ.push({kind:'Monthly',key:_billKeyId('M',item.name),name:item.name,type:item.type||'Other',
+occ.push({kind:'Monthly',key:_billKeyId('M',item.name),name:item.name,type:item.type||'',
 amount:item.amount||0,card:_mIncome?'Cash/Direct':(item.card||'Cash/Direct'),auto_pay:!!item.auto_pay,due:d,orig_due:_od,deadline:_billDeadline(item,d),info:_mIncome?'receivable':'',_income:_mIncome});
 });
 });
@@ -360,7 +360,7 @@ var d=new Date(py,pm,Math.min(ep.day,dim(py,pm)));
 var _odDayY=item.billing_day||ep.day;var _odY=new Date(ym[0],ym[1],Math.min(_odDayY,dim(ym[0],ym[1])));
 if(item.start_mode==='date'&&item.start_from&&d<new Date(item.start_from+'T00:00:00'))return;
 if(!within(d))return;
-occ.push({kind:'Yearly',key:_billKeyId('Y',item.name),name:item.name,type:item.type||'Other',
+occ.push({kind:'Yearly',key:_billKeyId('Y',item.name),name:item.name,type:item.type||'',
 amount:item.amount||0,card:_yIncome?'Cash/Direct':(item.card||'Cash/Direct'),auto_pay:!!item.auto_pay,due:d,orig_due:_odY,deadline:_billDeadline(item,d),info:_yIncome?'receivable':'',_income:_yIncome});
 });
 });
@@ -383,7 +383,7 @@ var _odDayI=inst.billing_day||dl;var _odI=new Date(_yo,_mo,Math.min(_odDayI,dim(
 if(inst.hide_before&&d<new Date(inst.hide_before+'T00:00:00'))continue;
 if(!within(d))continue;
 var label='('+(i+1)+'/'+inst.periods+')'+(i===inst.periods-1?' \u2705 FINAL':'');
-occ.push({kind:'Installment',key:_billKeyId('I',inst.name,(i+1)+'of'+inst.periods),name:inst.name,type:inst.type||'Other',
+occ.push({kind:'Installment',key:_billKeyId('I',inst.name,(i+1)+'of'+inst.periods),name:inst.name,type:inst.type||'',
 amount:inst.per_period||0,card:inst.card||'Cash/Direct',
 auto_pay:(inst.auto_pay!==undefined?!!inst.auto_pay:(inst.card&&inst.card!=='Cash/Direct')),due:d,orig_due:_odI,deadline:_billDeadline({card:inst.card,deadline_mode:(inst.card&&inst.card!=='Cash/Direct')?'card':'custom'},d),info:label});
 }
@@ -415,7 +415,7 @@ if(!within(d)){
   }
   if(!_isUtilUnpaid)return;
 }
-occ.push({kind:'Planned',key:_billKeyId('P',item.name,item.date),name:item.name,type:item.type||'Other',
+occ.push({kind:'Planned',key:_billKeyId('P',item.name,item.date),name:item.name,type:item.type||'',
 amount:item.amount||0,card:_isIncome?'Cash/Direct':(item.card||'Cash/Direct'),auto_pay:!!item.auto_pay,due:d,orig_due:_odP,deadline:_billDeadline({card:(_isIncome?'Cash/Direct':item.card),deadline_mode:item.deadline_mode||((item.card&&item.card!=='Cash/Direct'&&!_isIncome)?'card':'custom'),deadline_day:item.deadline_day,deadline_date:item.deadline_date},d),info:_isIncome?'receivable':'one-time',_income:_isIncome,_fromUtility:!!item._fromUtility,_utilUtility:item._utilUtility||'',_utilPeriod:item._utilPeriod||'',_fromCard:!!item._fromCard,_cardName:item._cardName||'',_cardPeriod:item._cardPeriod||''});
 });
 
@@ -1202,7 +1202,7 @@ var _gid=_hasKids?('brk_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')):'';
 h+='<tr style="'+rowStyle+'">'+
 '<td class="r"><input type="checkbox" class="br-chk" data-key="'+esc(o.fullKey)+'" data-amt="'+o.amount+'" data-due="'+_billISO(o.due)+'" data-type="'+esc(o.type||'')+'" data-card="'+esc(o.card||'')+'" data-auto="'+(o.auto_pay?'1':'0')+'" data-paid="'+(o.paid?'1':'0')+'" onchange="brUpdateSelCount()"></td>'+
 '<td>'+(_hasKids?'<span style="cursor:pointer;user-select:none;color:var(--text3);margin-right:4px" onclick="var r=document.querySelectorAll(\'.'+_gid+'\');var open=r.length&&r[0].style.display!==\'none\';for(var _i=0;_i<r.length;_i++)r[_i].style.display=open?\'none\':\'\';this.textContent=open?\'\u25b6\':\'\u25bc\'">\u25b6</span>':'')+_billIcon(o)+' '+esc(o.name)+_perBadge(_rowPer(o))+(o.info?' <span style="font-size:8px;color:var(--text3)">'+esc(o.info)+'</span>':'')+(o._surfaced?' <span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px" title="This charge is already included in the '+esc(_cardDisp(o._inStmtCard))+' statement total below — surfaced here because you pay it manually">↳ in '+esc(_cardDisp(o._inStmtCard))+' statement</span>':'')+((!o.children||!o.children.length)&&o.kind&&o.kind!=='Card Statement'&&!o._surfaced?' <button title="Delete this bill from your setup" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:9px;padding:0 3px" onclick="event.stopPropagation();brDeleteSource('+_ri+')"><i class="fa-solid fa-trash"></i></button>':'')+'</td>'+
-'<td>'+esc(o.type)+'</td>'+
+'<td>'+esc(typeof typeName==='function'?typeName(o.type):o.type)+'</td>'+
 '<td>'+method+cardTxt+'</td>'+
 '<td class="r" style="font-family:var(--mono)'+(o._income?';color:#10b981;font-weight:600':'')+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount)+'</td>'+
 '<td style="white-space:nowrap">'+fmtDate(_billISO((o._surfaced&&o.orig_due)?o.orig_due:o.due))+'<span style="font-size:8px;color:var(--text3)">'+dueRel+'</span></td>'+
@@ -1495,7 +1495,7 @@ rows.forEach(function(r){
 // above, but its own row is hidden (option A). Skip rendering it.
 if(r._hiddenRow)return;
 // Type = kind (+ category); Method = auto/manual badge (+ card)
-var _tCell=(r.kind||'')+(r.kind&&r.type?' \u00b7 ':'')+(r.type?'<span style="font-size:9px;color:var(--text3)">'+esc(r.type)+'</span>':'');
+var _tCell=(r.kind||'')+(r.kind&&r.type?' \u00b7 ':'')+(r.type?'<span style="font-size:9px;color:var(--text3)">'+esc(typeof typeName==='function'?typeName(r.type):r.type)+'</span>':'');
 if(!_tCell)_tCell='<span style="color:var(--text3)">\u2014</span>';
 var _mBadge=(r.auto_pay===true)?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':(r.auto_pay===false?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>':'<span style="color:var(--text3)">\u2014</span>');
 var _mCell=_mBadge+((r.card&&r.card!=='Cash/Direct')?' <span style="font-size:9px;color:var(--text3)">'+esc(_cardDisp(r.card))+'</span>':'');
@@ -1540,7 +1540,7 @@ var _kidSum=0;
 _kids.forEach(function(ch){_kidSum+=(ch.amount||0);
 h+='<tr class="'+_hgid+'" style="display:none;background:var(--bg2)"><td></td>'+
 '<td style="padding-left:22px;color:var(--text2);font-size:10px">'+_billIcon(ch)+' '+esc(ch.name)+((ch.kind==='Installment'&&ch.info)?(' <span style="color:var(--text3);font-size:9px">'+esc(ch.info)+'</span>'):'')+_perBadge(_svcPer(ch))+'</td>'+
-'<td style="font-size:9px;color:var(--text3)">'+esc(ch.kind||'')+(ch.type?' \u00b7 '+esc(ch.type):'')+'</td>'+
+'<td style="font-size:9px;color:var(--text3)">'+esc(ch.kind||'')+(ch.type?' \u00b7 '+esc(typeof typeName==='function'?typeName(ch.type):ch.type):'')+'</td>'+
 '<td>'+((ch.auto_pay)?'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>')+((ch.card&&ch.card!=='Cash/Direct')?' <span style="font-size:8px;color:var(--text3)">'+esc(_cardDisp(ch.card))+'</span>':'')+'</td>'+
 '<td class="r" style="font-family:var(--mono);font-size:10px;color:var(--text2)">\u0e3f'+fmt(ch.amount)+'</td>'+
 '<td style="font-size:9px;color:var(--text3)">'+((ch.orig_due||ch.due)?fmtDate((typeof (ch.orig_due||ch.due)==='string')?(ch.orig_due||ch.due):_billISO(ch.orig_due||ch.due)):'\u2014')+'</td>'+'<td style="font-size:9px;color:var(--success)">'+(ch.paid_date?'\u2713 '+fmtDate(ch.paid_date):'')+'</td><td></td>'+'<td style="white-space:nowrap">'+(ch.key?('<button class="del-btn" title="Edit this record" style="color:var(--text3)" data-hkey="'+esc(ch.key)+'" onclick="histEditRecord(this.getAttribute(\'data-hkey\'))"><i class="fa-solid fa-pen"></i></button>'+'<button class="del-btn" title="Unmark paid / cancel this payment" data-hkey="'+esc(ch.key)+'" onclick="toggleBillPaid(this.getAttribute(\'data-hkey\'),0,false)"><i class="fa-solid fa-xmark"></i></button>'):'')+'</td></tr>';

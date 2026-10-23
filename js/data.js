@@ -46,6 +46,7 @@ function sS(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 // Global type->icon helper (Font Awesome, tinted). Used across Recurring/Installments/Planned/Bills.
 function typeIcon(type){
+if(type&&typeof typeName==='function'){var _rn=typeName(type);if(_rn)type=_rn;}
 var t=((type||'')+'').toLowerCase();
 function ic(n,col){return '<i class="fa-solid '+n+'" style="color:'+(col||'var(--text3)')+';width:14px;text-align:center"></i>';}
 if(/util|electric|water|gas/.test(t))return ic('fa-bolt','#f59e0b');
@@ -167,7 +168,9 @@ return{day:c.payment_day,monthShift:shift}}
 
 function sCards(){return D.cards.slice().sort(function(a,b){return a.name.localeCompare(b.name)})}
 
-function sTypes(){return D.types.slice().sort()}
+function typeName(id){var t=(D.types||[]).find(function(x){return x.id===id;});return t?t.name:(id||'');}
+function typeId(x){if(!x)return '';var t=(D.types||[]).find(function(z){return z.id===x||z.name===x;});return t?t.id:'';}
+function sTypes(){return (D.types||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});});}
 
 function cOpts(sel){var _s=(typeof window.cardResolve==='function'&&sel&&sel!=='Cash/Direct')?((window.cardResolve(sel)||{}).id||sel):sel;var h='<option value="Cash/Direct"'+(_s==='Cash/Direct'?' selected':'')+'>Cash/Direct</option>';sCards().forEach(function(c){h+='<option value="'+esc(c.id)+'"'+(_s===c.id?' selected':'')+'>'+esc(c.name)+' (pay:'+ord(c.payment_day)+', due:'+ord(c.deadline)+')</option>'});return h}
 
@@ -175,7 +178,7 @@ function cOnlyOpts(sel){var _s=(typeof window.cardResolve==='function'&&sel&&sel
 
 function dirOpts(v){return '<option value="expense"'+(v==='expense'?' selected':'')+'>Expense</option><option value="income"'+(v==='income'?' selected':'')+'>Income</option>'}
 
-function tOpts(sel){var h='';sTypes().forEach(function(t){h+='<option'+(sel===t?' selected':'')+'>'+esc(t)+'</option>'});return h}
+function tOpts(sel){var sid=typeId(sel)||sel||'';var h='';sTypes().forEach(function(t){h+='<option value="'+t.id+'"'+(t.id===sid?' selected':'')+'>'+esc(t.name)+'</option>'});return h}
 
 function ownerName(id){var o=(D.owners||[]).find(function(x){return x.id===id;});return o?o.name:(id==='Me'?'Me':(id||''));}
 function ownerId(x){if(!x)return 'me';var o=(D.owners||[]).find(function(z){return z.id===x||z.name===x;});return o?o.id:'me';}
@@ -486,7 +489,13 @@ D.yearly.forEach(function(y){if(y.inst_hide_before===undefined)y.inst_hide_befor
 // Deadline backfill: mode 'card' for card-paid bills, 'custom' for Cash/Direct; day empty until set.
 D.monthly.forEach(function(m){if(m.deadline_mode===undefined)m.deadline_mode=(m.card&&m.card!=='Cash/Direct')?'card':'custom';if(m.deadline_day===undefined)m.deadline_day='';});
 D.yearly.forEach(function(y){if(y.deadline_mode===undefined)y.deadline_mode=(y.card&&y.card!=='Cash/Direct')?'card':'custom';if(y.deadline_day===undefined)y.deadline_day='';});
-if(!D.asset_types)D.asset_types=['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'];
+if(!Array.isArray(D.asset_types))D.asset_types=[];
+if(typeof D._asset_type_seq!=='number')D._asset_type_seq=0;
+(function(){var seed=['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'];
+  if(!D.asset_types.length){seed.forEach(function(nm){D.asset_types.push({id:'at'+(++D._asset_type_seq),name:nm});});}
+  else{D.asset_types=D.asset_types.map(function(t){if(t&&typeof t==='object'&&t.id)return t;var nm=(typeof t==='string')?t:(t&&t.name)||'';return {id:'at'+(++D._asset_type_seq),name:nm};});}
+  D.asset_types.forEach(function(t){var m=/^at(\d+)$/.exec(t.id||'');if(m){var n=parseInt(m[1],10);if(n>D._asset_type_seq)D._asset_type_seq=n;}});
+})();
 if(!Array.isArray(D.banks))D.banks=[]; // user-managed bank master, id-keyed [{id,name}]
 if(typeof D._bank_seq!=='number')D._bank_seq=0;
 (function(){
@@ -498,8 +507,16 @@ if(typeof D._bank_seq!=='number')D._bank_seq=0;
     (D.accounts||[]).forEach(function(a){if(a.bank&&!/^bk\d+$/.test(a.bank)){a.bank=_byNm[String(a.bank).trim()]||'';}});
     D._bank_id_migrated=true;}catch(e){}}
 })();
-if(!Array.isArray(D.limit_groups))D.limit_groups=[]; // user-managed shared credit-limit group list (Setup chip UI)
-if(!D.limit_groups.length){var _lg={};(D.cards||[]).forEach(function(c){if(c.limit_group&&c.limit_group.trim())_lg[c.limit_group.trim()]=1;});D.limit_groups=Object.keys(_lg).sort();}
+if(!Array.isArray(D.limit_groups))D.limit_groups=[]; // user-managed shared credit-limit group master, id-keyed [{id,name}]
+if(typeof D._limit_group_seq!=='number')D._limit_group_seq=0;
+(function(){
+  if(!D.limit_groups.length){var _lg={};(D.cards||[]).forEach(function(c){if(c.limit_group&&String(c.limit_group).trim())_lg[String(c.limit_group).trim()]=1;});Object.keys(_lg).sort().forEach(function(nm){D.limit_groups.push({id:'lg'+(++D._limit_group_seq),name:nm});});}
+  else{D.limit_groups=D.limit_groups.map(function(g){if(g&&typeof g==='object'&&g.id)return g;var nm=(typeof g==='string')?g:(g&&g.name)||'';return {id:'lg'+(++D._limit_group_seq),name:nm};});}
+  D.limit_groups.forEach(function(g){var m=/^lg(\d+)$/.exec(g.id||'');if(m){var n=parseInt(m[1],10);if(n>D._limit_group_seq)D._limit_group_seq=n;}});
+  if(!D._limit_group_id_migrated){try{var _byNm={};D.limit_groups.forEach(function(g){_byNm[g.name]=g.id;});
+    (D.cards||[]).forEach(function(c){if(c.limit_group&&!/^lg\d+$/.test(c.limit_group)){c.limit_group=_byNm[String(c.limit_group).trim()]||'';}});
+    D._limit_group_id_migrated=true;}catch(e){}}
+})();
 // Monthly Planning (Payroll & Tax sub-page): accounts (1 bank -> many) + versioned master plans.
 if(!Array.isArray(D.accounts))D.accounts=[];
 if(!Array.isArray(D.plan_versions))D.plan_versions=[];
@@ -518,7 +535,17 @@ if(!D._plan_cat_id_migrated){try{var _byName={};(D.plan_categories||[]).forEach(
   if(r.category&&!/^pc\d+$/.test(r.category)){ r.category=_byName[r.category]||''; }
 });});D._plan_cat_id_migrated=true;}catch(e){}}
 if(!D.profile.name)D.profile.name='';
-if(!D.types)D.types=defaultData().types;if(!D.profile.start_date)D.profile.start_date='2026-09-15';if(!D.profile.dob)D.profile.dob='';if(!D.profile.end_date)D.profile.end_date='2027-05-31';
+if(!Array.isArray(D.types))D.types=[];
+if(typeof D._type_seq!=='number')D._type_seq=0;
+(function(){
+  if(!D.types.length){defaultData().types.forEach(function(nm){D.types.push({id:'ty'+(++D._type_seq),name:nm});});}
+  else{D.types=D.types.map(function(t){if(t&&typeof t==='object'&&t.id)return t;var nm=(typeof t==='string')?t:(t&&t.name)||'';return {id:'ty'+(++D._type_seq),name:nm};});}
+  D.types.forEach(function(t){var m=/^ty(\d+)$/.exec(t.id||'');if(m){var n=parseInt(m[1],10);if(n>D._type_seq)D._type_seq=n;}});
+  if(!D._type_id_migrated){try{var _byNm={};D.types.forEach(function(t){_byNm[t.name]=t.id;});
+    function _fixT(rec){if(rec&&rec.type&&!/^ty\d+$/.test(rec.type)){rec.type=_byNm[rec.type]||'';}}
+    (D.monthly||[]).forEach(_fixT);(D.yearly||[]).forEach(_fixT);(D.installments||[]).forEach(_fixT);(D.planned||[]).forEach(_fixT);
+    D._type_id_migrated=true;}catch(e){}}
+})();if(!D.profile.start_date)D.profile.start_date='2026-09-15';if(!D.profile.dob)D.profile.dob='';if(!D.profile.end_date)D.profile.end_date='2027-05-31';
 if(!D.planned)D.planned=[];if(D.tax_actual_override===undefined)D.tax_actual_override=null;if(!D.tax_refund_month)D.tax_refund_month=3;if(D.tax_refund_day==null)D.tax_refund_day=15;if(!D.tax_year)D.tax_year=parseInt(D.profile.start_date.slice(0,4))||new Date().getFullYear();
 if(!D.installments)D.installments=[];
 if(!D.card_txns)D.card_txns=[];
@@ -634,7 +661,10 @@ leave_cash_enabled:false,leave_balance_days:0,notice_already_given:false,company
 if(D.retirement.leave_cash_enabled===undefined)D.retirement.leave_cash_enabled=false;
 if(D.retirement.leave_balance_days===undefined)D.retirement.leave_balance_days=0;
 if(D.retirement.notice_already_given===undefined)D.retirement.notice_already_given=false;
-if(!D.retirement.company_special_pay)D.retirement.company_special_pay=[];if(!D.asset_types)D.asset_types=['Savings','Investment','Property','Vehicle','Insurance Surrender','Gold','Crypto','Other'];
+if(!D.retirement.company_special_pay)D.retirement.company_special_pay=[];if(!Array.isArray(D.asset_types))D.asset_types=[];
+if(!D._asset_type_id_migrated){try{var _atbyNm={};(D.asset_types||[]).forEach(function(t){if(t&&t.id)_atbyNm[t.name]=t.id;});
+(((D.retirement&&D.retirement.assets)||[])).forEach(function(a){if(a&&a.type&&!/^at\d+$/.test(a.type)){a.type=_atbyNm[a.type]||'';}});
+D._asset_type_id_migrated=true;}catch(e){}}
 if(!D.retirement.epf_vesting_schedule)D.retirement.epf_vesting_schedule=[{min_years:0,max_years:3,pct:0},{min_years:3,max_years:4,pct:20},{min_years:4,max_years:5,pct:40},{min_years:5,max_years:6,pct:60},{min_years:6,max_years:7,pct:80},{min_years:7,max_years:99,pct:100}];
 D.retirement.epf_vesting_schedule.forEach(function(row){row.min_years=Math.round(row.min_years);row.max_years=Math.round(row.max_years);row.pct=Math.round(row.pct)});
 if(D.retirement.include_severance===undefined)D.retirement.include_severance=true;
@@ -673,15 +703,16 @@ if(document.getElementById('f-catname'))document.getElementById('f-catname').val
 renderTypes();renderOwners();renderAssetTypes();renderBanks();renderLimitGroups();renderTodoCats();renderWishCats();if(typeof renderPlanCats==='function')renderPlanCats();if(typeof renderDashLayout==='function')renderDashLayout()}
 
 function renderTypes(){var c=document.getElementById('types-list');
-c.innerHTML=sTypes().map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmType('+i+')">&times;</span></span>'}).join('')+
+c.innerHTML=sTypes().map(function(t){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameType(\''+t.id+'\')">'+esc(t.name)+' <span class="x" onclick="event.stopPropagation();rmType(\''+t.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addType()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 
-function addType(){var t=prompt('New type:');if(t&&t.trim()&&D.types.indexOf(t.trim())===-1){D.types.push(t.trim());D.types.sort();if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),D.profile.daily_living);
+function addType(){var t=prompt('New type:');if(!t||!t.trim())return;t=t.trim();if((D.types||[]).some(function(x){return x.name===t;}))return;if(typeof D._type_seq!=='number')D._type_seq=0;D.types.push({id:'ty'+(++D._type_seq),name:t});saveD&&saveD();if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),D.profile.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),D.profile.cat_expense);
 if(document.getElementById('f-catname'))document.getElementById('f-catname').value=D.profile.cat_names||'';
-renderTypes()}}
+renderTypes()}
+function renameType(id){var t=(D.types||[]).find(function(x){return x.id===id;});if(!t)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e2b\u0e21\u0e27\u0e14:',t.name);if(n===null||!n.trim())return;t.name=n.trim();saveD&&saveD();renderTypes();try{filterMonthly&&filterMonthly()}catch(e){}}
 
-function rmType(i){D.types.splice(i,1);if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),D.profile.daily_living);
+function rmType(id){var t=(D.types||[]).find(function(x){return x.id===id;});if(!t)return;if(!confirm('Remove type "'+t.name+'"? (\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e2b\u0e21\u0e27\u0e14\u0e19\u0e35\u0e49\u0e08\u0e30\u0e44\u0e21\u0e48\u0e21\u0e35\u0e2b\u0e21\u0e27\u0e14)'))return;D.types=(D.types||[]).filter(function(x){return x.id!==id;});saveD&&saveD();if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),D.profile.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),D.profile.cat_expense);
 if(document.getElementById('f-catname'))document.getElementById('f-catname').value=D.profile.cat_names||'';
 renderTypes()}
@@ -698,13 +729,18 @@ function rmOwner(id){var o=(D.owners||[]).find(function(x){return x.id===id;});i
 if(!confirm('Remove owner "'+o.name+'"? Items assigned to them will keep their current value.')){return}
 D.owners=(D.owners||[]).filter(function(x){return x.id!==id;});OWNERS=D.owners;saveD();renderOwners()}
 
+function assetTypeName(id){var t=(D.asset_types||[]).find(function(x){return x.id===id;});return t?t.name:(id||'');}
+function assetTypeId(x){if(!x)return '';var t=(D.asset_types||[]).find(function(z){return z.id===x||z.name===x;});return t?t.id:'';}
+function _assetTypesSorted(){return (D.asset_types||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});});}
+function assetTypeOpts(sel){var sid=assetTypeId(sel)||sel||'';var h='';_assetTypesSorted().forEach(function(t){h+='<option value="'+t.id+'"'+(t.id===sid?' selected':'')+'>'+esc(t.name)+'</option>'});return h}
 function renderAssetTypes(){var el=document.getElementById('asset-types-list');if(!el)return;
-el.innerHTML=(D.asset_types||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmAssetType('+i+')">&times;</span></span>'}).join('')+
+el.innerHTML=_assetTypesSorted().map(function(t){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameAssetType(\''+t.id+'\')">'+esc(t.name)+' <span class="x" onclick="event.stopPropagation();rmAssetType(\''+t.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addAssetType()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 
-function addAssetType(){var n=prompt('New asset type:');if(!n||!n.trim())return;n=n.trim();if(D.asset_types.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.asset_types.push(n);saveD();renderAssetTypes()}
+function addAssetType(){var n=prompt('New asset type:');if(!n||!n.trim())return;n=n.trim();if((D.asset_types||[]).some(function(x){return x.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._asset_type_seq!=='number')D._asset_type_seq=0;D.asset_types.push({id:'at'+(++D._asset_type_seq),name:n});saveD();renderAssetTypes()}
+function renameAssetType(id){var t=(D.asset_types||[]).find(function(x){return x.id===id;});if(!t)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',t.name);if(n===null||!n.trim())return;t.name=n.trim();saveD();renderAssetTypes();try{renderAssetsPage&&renderAssetsPage()}catch(e){}}
 
-function rmAssetType(i){if(!confirm('Remove asset type "'+D.asset_types[i]+'"?'))return;D.asset_types.splice(i,1);saveD();renderAssetTypes()}
+function rmAssetType(id){var t=(D.asset_types||[]).find(function(x){return x.id===id;});if(!t)return;if(!confirm('Remove asset type "'+t.name+'"?'))return;D.asset_types=(D.asset_types||[]).filter(function(x){return x.id!==id;});saveD();renderAssetTypes()}
 
 // Banks — user-managed list for the Card Details bank dropdown (Setup page chip UI)
 function _bankName(id){var b=(D.banks||[]).find(function(x){return x.id===id;});return b?b.name:(id||'');}
@@ -717,13 +753,17 @@ function addBank(){var n=prompt('New bank:');if(!n||!n.trim())return;n=n.trim();
 function renameBank(id){var b=(D.banks||[]).find(function(x){return x.id===id;});if(!b)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23:',b.name);if(n===null||!n.trim())return;b.name=n.trim();saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){};if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
 function rmBank(id){var b=(D.banks||[]).find(function(x){return x.id===id;});if(!b)return;if(!confirm('Remove bank "'+b.name+'"? (\u0e01\u0e32\u0e23\u0e4c\u0e14/\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23\u0e19\u0e35\u0e49\u0e08\u0e30\u0e44\u0e21\u0e48\u0e21\u0e35\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23)'))return;D.banks=(D.banks||[]).filter(function(x){return x.id!==id;});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){};if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
 // Shared credit-limit groups — user-managed list for the limit_group dropdown (Setup chip UI). v313.
+function limitGroupName(id){var g=(D.limit_groups||[]).find(function(x){return x.id===id;});return g?g.name:(id||'');}
+function limitGroupIdOf(x){if(!x)return '';var g=(D.limit_groups||[]).find(function(z){return z.id===x||z.name===x;});return g?g.id:'';}
+function _limitGroupsSorted(){return (D.limit_groups||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});});}
 function renderLimitGroups(){var el=document.getElementById('limitgroups-list');if(!el)return;
-el.innerHTML=(D.limit_groups||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmLimitGroup('+i+')">&times;</span></span>'}).join('')+
+el.innerHTML=_limitGroupsSorted().map(function(g){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameLimitGroup(\''+g.id+'\')">'+esc(g.name)+' <span class="x" onclick="event.stopPropagation();rmLimitGroup(\''+g.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addLimitGroup()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
-function addLimitGroup(){var n=prompt('New shared limit group:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.limit_groups))D.limit_groups=[];if(D.limit_groups.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.limit_groups.push(n);D.limit_groups.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
-function rmLimitGroup(i){if(!confirm('Remove limit group "'+D.limit_groups[i]+'"? Cards keep their current group value.'))return;D.limit_groups.splice(i,1);saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function addLimitGroup(){var n=prompt('New shared limit group:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.limit_groups))D.limit_groups=[];if(D.limit_groups.some(function(x){return x.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._limit_group_seq!=='number')D._limit_group_seq=0;D.limit_groups.push({id:'lg'+(++D._limit_group_seq),name:n});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function renameLimitGroup(id){var g=(D.limit_groups||[]).find(function(x){return x.id===id;});if(!g)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',g.name);if(n===null||!n.trim())return;g.name=n.trim();saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function rmLimitGroup(id){var g=(D.limit_groups||[]).find(function(x){return x.id===id;});if(!g)return;if(!confirm('Remove limit group "'+g.name+'"? Cards keep their current group value.'))return;D.limit_groups=(D.limit_groups||[]).filter(function(x){return x.id!==id;});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
 // <option> list for a limit-group <select>; includes the current value even if not in the list, plus a blank.
-function limitGroupOpts(sel){var h='<option value="">\u2014 none \u2014</option>';var list=(D.limit_groups||[]).slice();if(sel&&list.indexOf(sel)<0)list.push(sel);list.sort(function(a,b){return a.localeCompare(b,undefined,{sensitivity:'base'})});list.forEach(function(b){h+='<option'+(sel===b?' selected':'')+'>'+esc(b)+'</option>'});return h}
+function limitGroupOpts(sel){var sid=limitGroupIdOf(sel)||sel||'';var h='<option value="">\u2014 none \u2014</option>';_limitGroupsSorted().forEach(function(g){h+='<option value="'+g.id+'"'+(g.id===sid?' selected':'')+'>'+esc(g.name)+'</option>'});return h}
 // To-Do categories — user-managed list for the To-Do module (Setup chip UI).
 function renderTodoCats(){var el=document.getElementById('todocats-list');if(!el)return;
 el.innerHTML=(D.todo_cats||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmTodoCat('+i+')">&times;</span></span>'}).join('')+
@@ -783,3 +823,6 @@ function planCatOpts(sel){var o='<option value="">\u2014 หมวด \u2014</op
 window.renderPlanCats=renderPlanCats;window.addPlanCat=addPlanCat;window.rmPlanCat=rmPlanCat;window.renamePlanCat=renamePlanCat;window.planCatOpts=planCatOpts;window._planCatName=_planCatName;
 window.bankName=bankName;window.bankId=bankId;window._bankName=_bankName;window.renameBank=renameBank;
 window.ownerName=ownerName;window.ownerId=ownerId;window.renameOwner=renameOwner;
+window.typeName=typeName;window.typeId=typeId;window.renameType=renameType;
+window.assetTypeName=assetTypeName;window.assetTypeId=assetTypeId;window.assetTypeOpts=assetTypeOpts;window.renameAssetType=renameAssetType;
+window.limitGroupName=limitGroupName;window.limitGroupIdOf=limitGroupIdOf;window.renameLimitGroup=renameLimitGroup;

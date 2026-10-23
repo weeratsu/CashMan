@@ -21,7 +21,7 @@ var ASSET_CURRENCIES=['THB','USD','EUR','GBP','JPY','SGD','AUD','CNY','HKD','CHF
 // Liquidity classification for asset types (used by Asset Summary liquidity grouping)
 // Liquid = readily convertible to cash; Illiquid = takes time/effort to sell
 var ASSET_LIQUIDITY={'Savings':'Liquid','Investment':'Liquid','Crypto':'Liquid','Gold':'Liquid','Insurance Surrender':'Illiquid','Property':'Illiquid','Vehicle':'Illiquid','Other':'Illiquid'};
-function assetLiquidity(type){return ASSET_LIQUIDITY[type]||'Illiquid'}
+function assetLiquidity(type){if(type&&typeof assetTypeName==='function'){var _n=assetTypeName(type);if(_n)type=_n;}return ASSET_LIQUIDITY[type]||'Illiquid'}
 
 // EPF action options
 var EPF_ACTIONS=[
@@ -190,8 +190,11 @@ action:action
 }
 
 // Social Security unemployment benefit
+// SSO Section 33 wage ceiling by year (Ministerial Regulation B.E.2568): 17,500 (2026-2028),
+// 20,000 (2029-2031), 23,000 (2032+). Before 2026 it was 15,000.
+function _ssoCeiling(year){year=parseInt(year,10)||new Date().getFullYear();if(year>=2032)return 23000;if(year>=2029)return 20000;if(year>=2026)return 17500;return 15000;}
 function calcSSOBenefit(scenario,lastSalary){
-var cap=15000;// SSO salary cap
+var cap=_ssoCeiling(new Date().getFullYear());// SSO wage ceiling (tiered by year)
 var base=Math.min(lastSalary,cap);
 var monthlyBenefit=0,months=0;
 
@@ -244,7 +247,7 @@ var yos=calcYearsOfService(hireDate,sepDate);
 // Use user-entered SSO contribution months if available, otherwise derive from hire date
 var contributionMonths=retData.sso_contribution_months>0?retData.sso_contribution_months:Math.floor(yos*12);
 
-var salaryCap=17500;// 2026+ cap
+var salaryCap=_ssoCeiling(pensionStart.getFullYear());// tiered ceiling at pension-start year (2026-28:17500, 2029-31:20000, 2032+:23000)
 // Estimate avg salary from accumulated contributions: accumulated = months × avg × 6% (3% employee + 3% employer)
 var avgMonthly=0;
 if(retData.sso_accumulated>0&&contributionMonths>0){

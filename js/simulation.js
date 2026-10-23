@@ -318,7 +318,7 @@ while(cur2<=ed){var mk=cur2.getFullYear()+'-'+(cur2.getMonth()<10?'0':'')+cur2.g
 if(mk!==prevMK){mAgg[mk]={income:0,expense:0,start:bal,end:0,y:cur2.getFullYear(),m:cur2.getMonth(),byType:{},byCard:{}};prevMK=mk}
 var k2=dk(cur2);var dE=events[k2]||[];
 dE.forEach(function(e){if(e.group==='payroll_detail')return;if(e.group==='card_charge')return;if(e.amount>0){mAgg[mk].income+=e.amount}else{mAgg[mk].expense+=Math.abs(e.amount);
-var tp=e.type||'Other';if(!mAgg[mk].byType[tp])mAgg[mk].byType[tp]=0;mAgg[mk].byType[tp]+=Math.abs(e.amount);var cd2=e.card||'Cash/Direct';if(!mAgg[mk].byCard[cd2])mAgg[mk].byCard[cd2]=0;mAgg[mk].byCard[cd2]+=Math.abs(e.amount);
+var tp=e.type||'';if(!mAgg[mk].byType[tp])mAgg[mk].byType[tp]=0;mAgg[mk].byType[tp]+=Math.abs(e.amount);var cd2=e.card||'Cash/Direct';if(!mAgg[mk].byCard[cd2])mAgg[mk].byCard[cd2]=0;mAgg[mk].byCard[cd2]+=Math.abs(e.amount);
 if(!typeExp[tp])typeExp[tp]=0;typeExp[tp]+=Math.abs(e.amount);var cd=e.card||'Cash/Direct';if(!cardExp[cd])cardExp[cd]=0;cardExp[cd]+=Math.abs(e.amount)}if(e.group!=='payroll_detail')bal+=e.amount});
 mAgg[mk].end=bal;cData.push([Date.UTC(cur2.getFullYear(),cur2.getMonth(),cur2.getDate()),Math.round(bal*100)/100]);
 var nL=dE.filter(function(e){return e.desc!=='Living'&&e.group!=='payroll_detail'});var payDetails=dE.filter(function(e){return e.group==='payroll_detail'});

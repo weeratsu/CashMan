@@ -458,7 +458,7 @@ h+='<tr><td>'+fmtDate(epfDate)+'</td><td>\ud83c\udfe6 EPF Cash Out</td><td class
 // Asset cashouts
 (r.assets||[]).forEach(function(a){
 if(a.cashout_date&&a.value>0){
-h+='<tr><td>'+fmtDate(a.cashout_date)+'</td><td>\ud83d\udcbc '+esc(a.name)+'</td><td class="r" style="font-family:var(--mono);color:var(--success)">+\u0e3f'+fmt(a.value)+'</td><td style="font-size:9px">'+esc(a.type)+'</td></tr>'}});
+h+='<tr><td>'+fmtDate(a.cashout_date)+'</td><td>\ud83d\udcbc '+esc(a.name)+'</td><td class="r" style="font-family:var(--mono);color:var(--success)">+\u0e3f'+fmt(a.value)+'</td><td style="font-size:9px">'+esc(typeof assetTypeName==='function'?assetTypeName(a.type):a.type)+'</td></tr>'}});
 
 h+='<tr style="font-weight:700;background:var(--bg3)"><td colspan="2">TOTAL CASH INFLOW</td><td class="r" style="font-family:var(--mono);color:var(--success);font-size:12px">+\u0e3f'+fmt(sev.netAfterTax+sso.total+(epf.action==='cashout'?epf.net:0)+assetsCashout)+'</td><td></td></tr>';
 h+='</tbody></table>';
@@ -589,7 +589,7 @@ h+='<table class="tbl" style="margin-top:10px;font-size:11px"><thead><tr><th>Typ
 Object.keys(byType).sort(function(a,b){return byType[b]-byType[a]}).forEach(function(t){
 var cnt=convAssets.filter(function(a){return a.type===t}).length;
 var pct=thbTotal>0?(byType[t]/thbTotal*100):0;
-h+='<tr><td>'+esc(t)+'</td><td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(byType[t])+'</td><td class="r" style="font-family:var(--mono);color:var(--text3)">'+pct.toFixed(1)+'%</td><td class="r">'+cnt+'</td></tr>'});
+h+='<tr><td>'+esc(typeof assetTypeName==='function'?assetTypeName(t):t)+'</td><td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(byType[t])+'</td><td class="r" style="font-family:var(--mono);color:var(--text3)">'+pct.toFixed(1)+'%</td><td class="r">'+cnt+'</td></tr>'});
 h+='<tr style="font-weight:700;background:var(--bg3)"><td>TOTAL</td><td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(thbTotal)+'</td><td class="r">100%</td><td class="r">'+convAssets.length+'</td></tr>';
 h+='</tbody></table>';
 if(otherCurs.length)h+='<div style="font-size:9px;color:var(--text3);margin-top:6px"><i class="fa-solid fa-circle-info" style="margin-right:3px"></i> Charts and \u0e3f totals include non-THB assets converted at their FX rate. Assets without a rate are excluded until you set one.</div>';
@@ -619,7 +619,7 @@ window._assetChartData={byType:byType,sched:schedTotal,unsched:unschedTotal,byLi
 // Assets table
 // Build a display list preserving each asset's ORIGINAL index (data-ai must stay the real index so
 // readAssetsPage / delete keep working regardless of display order).
-var _aTypes=(D.asset_types||['Savings','Investment','Property','Vehicle','Other']);
+var _aTypes=(D.asset_types||[]);
 var _rows=assets.map(function(a,i){return {a:a,i:i};});
 // Type filter
 if(_assetTypeFilter)_rows=_rows.filter(function(x){return (x.a.type||'')===_assetTypeFilter;});
@@ -639,7 +639,7 @@ var _arrow=function(col){return _assetSort===col?(_assetAsc?' \u25b2':' \u25bc')
 h+='<div class="filterbar">';
 h+='<span>Filter type:</span>';
 h+='<select class="sel" style="font-size:11px;padding:3px 8px" onchange="setAssetTypeFilter(this.value)"><option value=""'+(_assetTypeFilter?'':' selected')+'>All types ('+assets.length+')</option>';
-_aTypes.forEach(function(t){var n=assets.filter(function(a){return (a.type||'')===t;}).length;h+='<option value="'+esc(t)+'"'+(_assetTypeFilter===t?' selected':'')+'>'+esc(t)+' ('+n+')</option>';});
+_aTypes.forEach(function(t){var n=assets.filter(function(a){return (a.type||'')===t.id;}).length;h+='<option value="'+t.id+'"'+(_assetTypeFilter===t.id?' selected':'')+'>'+esc(t.name)+' ('+n+')</option>';});
 h+='</select>';
 if(_assetSort||_assetTypeFilter)h+='<button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="_assetSort=\'\';_assetTypeFilter=\'\';renderAssetsPage()"><i class="fa-solid fa-xmark"></i> Clear</button>';
 h+='<span style="flex:1"></span><span style="font-size:10px;color:var(--text3)">'+_rows.length+' shown</span>';
@@ -661,7 +661,7 @@ if(!_rows.length){h+='<tr><td colspan="8" style="text-align:center;color:var(--t
 _rows.forEach(function(x){var a=x.a,i=x.i;var _isTHB=((a.currency||'THB')==='THB');
 h+='<tr><td><input class="inp-inline" style="font-size:11px" value="'+esc(a.name||'')+'" data-ai="'+i+'" data-f="name" onchange="readAssetsPage();saveD()"></td>';
 h+='<td><select class="sel" style="font-size:11px" data-ai="'+i+'" data-f="type" onchange="readAssetsPage();saveD();renderAssetsPage()">';
-_aTypes.forEach(function(t){h+='<option'+(a.type===t?' selected':'')+'>'+esc(t)+'</option>'});
+_aTypes.forEach(function(t){h+='<option value="'+t.id+'"'+(a.type===t.id?' selected':'')+'>'+esc(t.name)+'</option>'});
 h+='</select></td>';
 // Currency cell — select + (for non-THB) an inline FX rate input directly beneath it.
 h+='<td><select class="sel" style="font-size:11px" data-ai="'+i+'" data-f="currency" onchange="readAssetsPage();saveD();simulate();renderAssetsPage()">';
@@ -708,7 +708,7 @@ var dk=document.documentElement.classList.contains('dark');
 var tc=dk?'#e8eaed':'#1a1d27',tc2=dk?'#6b7185':'#7a8098',gc=dk?'#353849':'#d4d7e0',bg2=dk?'#1a1d27':'#fff';
 var pal=['#4a7aed','#16a34a','#d97706','#dc2626','#7c3aed','#0891b2','#c026d3','#ea580c','#4f46e5','#059669'];
 // By Type pie
-var typeData=Object.keys(cd.byType).sort(function(a,b){return cd.byType[b]-cd.byType[a]}).map(function(t,i){return{name:t,y:cd.byType[t],color:pal[i%pal.length]}});
+var typeData=Object.keys(cd.byType).sort(function(a,b){return cd.byType[b]-cd.byType[a]}).map(function(t,i){return{name:(typeof assetTypeName==='function'?assetTypeName(t):t),y:cd.byType[t],color:pal[i%pal.length]}});
 if(document.getElementById('asset-chart-type')){
 Highcharts.chart('asset-chart-type',{chart:{type:'pie',backgroundColor:'transparent'},title:{text:null},
 tooltip:{backgroundColor:bg2,borderColor:gc,style:{color:tc,fontSize:'10px'},pointFormat:'<b>\u0e3f{point.y:,.2f}</b> ({point.percentage:.1f}%)'},
