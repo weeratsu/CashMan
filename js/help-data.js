@@ -290,7 +290,7 @@ content:'<div class="help-badge help-badge-law">\u2696\ufe0f LAW \u2014 Social S
 '<tr><td>Resigned / End of contract</td><td class="r" style="font-family:var(--mono)">30%</td><td class="r" style="font-family:var(--mono)">90 days (3 months)</td></tr>'+
 '</tbody></table>'+
 '<div style="background:var(--bg3);padding:10px 14px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;line-height:1.8;margin:10px 0">'+
-'<strong>Salary cap for calculation:</strong> \u0e3f17,500 (2026+)<br><br>'+
+'<strong>Salary cap for calculation:</strong> current-year ceiling \u2014 \u0e3f17,500 (2026\u201328), \u0e3f20,000 (2029\u201331), \u0e3f23,000 (2032+)<br><br>'+
 '<strong>Example \u2014 Dismissed:</strong><br>'+
 'Salary \u0e3f62,566 \u2192 capped at \u0e3f17,500<br>'+
 'Monthly benefit = 17,500 \u00d7 50% = <strong>\u0e3f8,750/month</strong><br>'+
@@ -316,6 +316,9 @@ content:'<div class="help-badge help-badge-law">\u2696\ufe0f LAW \u2014 Social S
 '<strong>Formula:</strong><br>'+
 'Base pension = 20% of average capped monthly earnings<br>'+
 '+ 1.5% for every 12 months of contributions <strong>over 180 months</strong><br><br>'+
+'<strong>Salary base (capped):</strong> estimated from your total SSO contributions '+
+'(avg = accumulated \u00f7 months \u00f7 6%), then capped at the ceiling <strong>of the year your pension starts</strong>.<br>'+
+'Ceiling by phase: \u0e3f17,500 (2026\u201328) \u00b7 \u0e3f20,000 (2029\u201331) \u00b7 \u0e3f23,000 (2032+).<br><br>'+
 '<strong>Example:</strong> 25 years contributions (300 months), avg capped salary \u0e3f15,000<br>'+
 'Base = 15,000 \u00d7 20% = \u0e3f3,000/mo<br>'+
 'Extra months = 300 \u2212 180 = 120 months = 10 \u00d7 12<br>'+
@@ -328,7 +331,7 @@ content:'<div class="help-badge help-badge-law">\u2696\ufe0f LAW \u2014 Social S
 '<li>Includes accumulated interest</li>'+
 '<li>No monthly pension entitlement</li>'+
 '</ul>'+
-'<p style="font-size:10px;color:var(--text3)">With the 2026 wage ceiling of \u0e3f17,500, future pensioners will receive higher pensions. The average capped earnings used in the formula will increase with each phase of the reform.</p>'
+'<p style="font-size:10px;color:var(--text3)">The wage ceiling rises in phases (\u0e3f17,500 \u2192 \u0e3f20,000 \u2192 \u0e3f23,000), so pensions starting in later years use a higher capped-earnings base. This app uses the ceiling of your pension-start year.</p>'
 },
 {id:'help-sso-benefits',category:'social-security',badge:'law',
 title:'SSO Benefits Summary (2026 Rates)',
@@ -677,7 +680,7 @@ content:'<div class="help-badge help-badge-law">\u2696\ufe0f \u0e01\u0e0e\u0e2b\
 '<tr><td>\u0e25\u0e32\u0e2d\u0e2d\u0e01/\u0e2a\u0e34\u0e49\u0e19\u0e2a\u0e38\u0e14\u0e2a\u0e31\u0e0d\u0e0d\u0e32</td><td class="r" style="font-family:var(--mono)">30%</td><td class="r" style="font-family:var(--mono)">90 \u0e27\u0e31\u0e19 (3 \u0e40\u0e14\u0e37\u0e2d\u0e19)</td></tr>'+
 '</tbody></table>'+
 '<div style="background:var(--bg3);padding:10px 14px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;line-height:1.8;margin:6px 0">'+
-'\u0e40\u0e1e\u0e14\u0e32\u0e19\u0e04\u0e48\u0e32\u0e08\u0e49\u0e32\u0e07: \u0e3f17,500 (2569+)<br>'+
+'\u0e40\u0e1e\u0e14\u0e32\u0e19\u0e04\u0e48\u0e32\u0e08\u0e49\u0e32\u0e07 (\u0e15\u0e32\u0e21\u0e1b\u0e35): \u0e3f17,500 (2569\u201371) \u00b7 \u0e3f20,000 (2572\u201374) \u00b7 \u0e3f23,000 (2575+)<br>'+
 '\u0e16\u0e39\u0e01\u0e40\u0e25\u0e34\u0e01\u0e08\u0e49\u0e32\u0e07: 17,500 \u00d7 50% = <strong>\u0e3f8,750/\u0e40\u0e14\u0e37\u0e2d\u0e19</strong> \u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 6 \u0e40\u0e14\u0e37\u0e2d\u0e19<br>'+
 '\u0e25\u0e32\u0e2d\u0e2d\u0e01: 17,500 \u00d7 30% = <strong>\u0e3f5,250/\u0e40\u0e14\u0e37\u0e2d\u0e19</strong> \u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 3 \u0e40\u0e14\u0e37\u0e2d\u0e19</div>'+
 '<p><strong>\u0e27\u0e34\u0e18\u0e35\u0e22\u0e37\u0e48\u0e19:</strong> \u0e02\u0e36\u0e49\u0e19\u0e17\u0e30\u0e40\u0e1a\u0e35\u0e22\u0e19\u0e17\u0e35\u0e48\u0e01\u0e23\u0e21\u0e01\u0e32\u0e23\u0e08\u0e31\u0e14\u0e2b\u0e32\u0e07\u0e32\u0e19\u0e20\u0e32\u0e22\u0e43\u0e19 <strong>30 \u0e27\u0e31\u0e19</strong>\u0e2b\u0e25\u0e31\u0e07\u0e2a\u0e34\u0e49\u0e19\u0e2a\u0e38\u0e14\u0e01\u0e32\u0e23\u0e08\u0e49\u0e32\u0e07\u0e07\u0e32\u0e19</p>'
@@ -689,6 +692,8 @@ content:'<div class="help-badge help-badge-law">\u2696\ufe0f \u0e01\u0e0e\u0e2b\
 '<div style="background:var(--bg3);padding:10px 14px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:11px;line-height:1.8;margin:10px 0">'+
 '\u0e1a\u0e33\u0e19\u0e32\u0e0d\u0e40\u0e14\u0e37\u0e2d\u0e19 = 20% \u0e02\u0e2d\u0e07\u0e04\u0e48\u0e32\u0e08\u0e49\u0e32\u0e07\u0e40\u0e09\u0e25\u0e35\u0e48\u0e22<br>'+
 '+ 1.5% \u0e15\u0e48\u0e2d\u0e17\u0e38\u0e01 12 \u0e40\u0e14\u0e37\u0e2d\u0e19\u0e17\u0e35\u0e48\u0e40\u0e01\u0e34\u0e19 180 \u0e40\u0e14\u0e37\u0e2d\u0e19<br><br>'+
+'<strong>\u0e10\u0e32\u0e19\u0e40\u0e07\u0e34\u0e19\u0e40\u0e14\u0e37\u0e2d\u0e19 (cap):</strong> \u0e1b\u0e23\u0e30\u0e21\u0e32\u0e13\u0e08\u0e32\u0e01\u0e40\u0e07\u0e34\u0e19\u0e2a\u0e21\u0e17\u0e1a\u0e2a\u0e30\u0e2a\u0e21 (\u0e40\u0e09\u0e25\u0e35\u0e48\u0e22 = \u0e2a\u0e30\u0e2a\u0e21 \u00f7 \u0e40\u0e14\u0e37\u0e2d\u0e19 \u00f7 6%) \u0e41\u0e25\u0e49\u0e27 cap \u0e14\u0e49\u0e27\u0e22\u0e40\u0e1e\u0e14\u0e32\u0e19<strong>\u0e1b\u0e35\u0e17\u0e35\u0e48\u0e40\u0e23\u0e34\u0e48\u0e21\u0e23\u0e31\u0e1a\u0e1a\u0e33\u0e19\u0e32\u0e0d</strong><br>'+
+'\u0e40\u0e1e\u0e14\u0e32\u0e19\u0e15\u0e32\u0e21\u0e40\u0e1f\u0e2a: \u0e3f17,500 (2569\u201371) \u00b7 \u0e3f20,000 (2572\u201374) \u00b7 \u0e3f23,000 (2575+)<br><br>'+
 '<strong>\u0e19\u0e49\u0e2d\u0e22\u0e01\u0e27\u0e48\u0e32 180 \u0e40\u0e14\u0e37\u0e2d\u0e19:</strong> \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e40\u0e07\u0e34\u0e19\u0e01\u0e49\u0e2d\u0e19\u0e04\u0e37\u0e19\u0e40\u0e1b\u0e47\u0e19\u0e01\u0e49\u0e2d\u0e19 (\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e1a\u0e33\u0e19\u0e32\u0e0d\u0e23\u0e32\u0e22\u0e40\u0e14\u0e37\u0e2d\u0e19)</div>'
 },
 {id:'help-sso-benefits',category:'social-security',badge:'law',
