@@ -534,6 +534,32 @@ if(!D._plan_cat_id_migrated){try{var _byName={};(D.plan_categories||[]).forEach(
 (D.plan_versions||[]).forEach(function(v){(v.rows||[]).forEach(function(r){
   if(r.category&&!/^pc\d+$/.test(r.category)){ r.category=_byName[r.category]||''; }
 });});D._plan_cat_id_migrated=true;}catch(e){}}
+// Account types master (Setup > Bank & Account) — id-keyed [{id,name}]. Seeded with the stable codes
+// the app already used as a.type values, so existing accounts keep working with no name-matching.
+if(!Array.isArray(D.account_types))D.account_types=[];
+if(!D.account_types.length){D.account_types=[
+  {id:'savings',name:'\u0e2d\u0e2d\u0e21\u0e17\u0e23\u0e31\u0e1e\u0e22\u0e4c (Savings)'},
+  {id:'esavings',name:'e-Savings (\u0e14\u0e2d\u0e01\u0e40\u0e1a\u0e35\u0e49\u0e22\u0e2a\u0e39\u0e07/\u0e2d\u0e2d\u0e19\u0e44\u0e25\u0e19\u0e4c)'},
+  {id:'current',name:'\u0e01\u0e23\u0e30\u0e41\u0e2a\u0e23\u0e32\u0e22\u0e27\u0e31\u0e19 (Current)'},
+  {id:'fixed',name:'\u0e1d\u0e32\u0e01\u0e1b\u0e23\u0e30\u0e08\u0e33 (Fixed)'},
+  {id:'fcd',name:'\u0e40\u0e07\u0e34\u0e19\u0e1d\u0e32\u0e01\u0e15\u0e48\u0e32\u0e07\u0e1b\u0e23\u0e30\u0e40\u0e17\u0e28 (FCD)'},
+  {id:'wallet',name:'\u0e01\u0e23\u0e30\u0e40\u0e1b\u0e4b\u0e32\u0e40\u0e07\u0e34\u0e19/e-Wallet'},
+  {id:'loan',name:'\u0e40\u0e07\u0e34\u0e19\u0e01\u0e39\u0e49/\u0e2a\u0e34\u0e19\u0e40\u0e0a\u0e37\u0e48\u0e2d (Loan)'},
+  {id:'other',name:'\u0e2d\u0e37\u0e48\u0e19 \u0e46 (Other)'}
+];}
+if(typeof D._account_type_seq!=='number')D._account_type_seq=0;
+// resolvers + chip CRUD (id-master pattern)
+function acctTypeName(id){var t=(D.account_types||[]).find(function(x){return x.id===id;});return t?t.name:(id||'');}
+function acctTypeId(x){if(!x)return '';var t=(D.account_types||[]).find(function(z){return z.id===x||z.name===x;});return t?t.id:'';}
+function _acctTypesSorted(){return (D.account_types||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});});}
+function acctTypeOpts(sel){var sid=acctTypeId(sel)||sel||'';var o='<option value="">\u2014 \u0e0a\u0e19\u0e34\u0e14 \u2014</option>';_acctTypesSorted().forEach(function(t){o+='<option value="'+t.id+'"'+(t.id===sid?' selected':'')+'>'+esc(t.name)+'</option>';});return o;}
+function renderAcctTypes(){var el=document.getElementById('accttypes-list');if(!el)return;
+el.innerHTML=_acctTypesSorted().map(function(t){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameAcctType(\''+t.id+'\')">'+esc(t.name)+' <span class="x" onclick="event.stopPropagation();rmAcctType(\''+t.id+'\')">&times;</span></span>'}).join('')+
+'<span class="type-add" onclick="addAcctType()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
+function addAcctType(){var n=prompt('\u0e0a\u0e19\u0e34\u0e14\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e43\u0e2b\u0e21\u0e48:');if(!n||!n.trim())return;n=n.trim();if((D.account_types||[]).some(function(x){return x.name===n;})){toast('\u26a0\ufe0f \u0e21\u0e35\u0e2d\u0e22\u0e39\u0e48\u0e41\u0e25\u0e49\u0e27');return}if(typeof D._account_type_seq!=='number')D._account_type_seq=0;D.account_types.push({id:'atp'+(++D._account_type_seq),name:n});saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
+function renameAcctType(id){var t=(D.account_types||[]).find(function(x){return x.id===id;});if(!t)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',t.name);if(n===null||!n.trim())return;t.name=n.trim();saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
+function rmAcctType(id){var t=(D.account_types||[]).find(function(x){return x.id===id;});if(!t)return;if(!confirm('\u0e25\u0e1a\u0e0a\u0e19\u0e34\u0e14 "'+t.name+'"? (\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e2d\u0e22\u0e39\u0e48\u0e08\u0e30\u0e44\u0e21\u0e48\u0e21\u0e35\u0e0a\u0e19\u0e34\u0e14)'))return;D.account_types=(D.account_types||[]).filter(function(x){return x.id!==id;});saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
+window.acctTypeName=acctTypeName;window.acctTypeId=acctTypeId;window.acctTypeOpts=acctTypeOpts;window.renderAcctTypes=renderAcctTypes;window.addAcctType=addAcctType;window.renameAcctType=renameAcctType;window.rmAcctType=rmAcctType;
 if(!D.profile.name)D.profile.name='';
 if(!Array.isArray(D.types))D.types=[];
 if(typeof D._type_seq!=='number')D._type_seq=0;
@@ -700,7 +726,7 @@ var _fe=document.getElementById('f-end');if(_fe)_fe.value=p.end_date;
 if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),p.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),p.cat_expense);
 if(document.getElementById('f-catname'))document.getElementById('f-catname').value=p.cat_names||'';
-renderTypes();renderOwners();renderAssetTypes();renderBanks();renderLimitGroups();renderTodoCats();renderWishCats();if(typeof renderPlanCats==='function')renderPlanCats();if(typeof renderDashLayout==='function')renderDashLayout()}
+renderTypes();renderOwners();renderAssetTypes();renderBanks();renderLimitGroups();renderTodoCats();renderWishCats();if(typeof renderPlanCats==='function')renderPlanCats();if(typeof renderAcctTypes==='function')renderAcctTypes();if(typeof renderDashLayout==='function')renderDashLayout()}
 
 function renderTypes(){var c=document.getElementById('types-list');
 c.innerHTML=sTypes().map(function(t){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameType(\''+t.id+'\')">'+esc(t.name)+' <span class="x" onclick="event.stopPropagation();rmType(\''+t.id+'\')">&times;</span></span>'}).join('')+

@@ -670,7 +670,13 @@ content:'<div class="help-badge help-badge-law">\u2696\ufe0f \u0e01\u0e0e\u0e2b\
 {id:'help-sso-ceiling',category:'social-security',badge:'law',
 title:'\u0e40\u0e1e\u0e14\u0e32\u0e19\u0e04\u0e48\u0e32\u0e08\u0e49\u0e32\u0e07 (\u0e1b\u0e23\u0e31\u0e1a\u0e2b\u0e25\u0e32\u0e22\u0e23\u0e30\u0e22\u0e30)',
 content:'<div class="help-badge help-badge-law">\u2696\ufe0f \u0e01\u0e0e\u0e2b\u0e21\u0e32\u0e22 \u2014 \u0e01\u0e0e\u0e01\u0e23\u0e30\u0e17\u0e23\u0e27\u0e07 \u0e1b\u0e23\u0e30\u0e01\u0e32\u0e28\u0e23\u0e32\u0e0a\u0e01\u0e34\u0e08\u0e08\u0e32\u0e19\u0e38\u0e40\u0e1a\u0e01\u0e29\u0e32 12 \u0e18.\u0e04. 2568</div>'+
-'<p>\u0e14\u0e39\u0e15\u0e32\u0e23\u0e32\u0e07\u0e40\u0e1e\u0e14\u0e32\u0e19\u0e43\u0e19\u0e2b\u0e31\u0e27\u0e02\u0e49\u0e2d\u0e20\u0e32\u0e29\u0e32\u0e2d\u0e31\u0e07\u0e01\u0e24\u0e29\u0e14\u0e49\u0e32\u0e19\u0e1a\u0e19 (\u0e40\u0e19\u0e37\u0e49\u0e2d\u0e2b\u0e32\u0e40\u0e2b\u0e21\u0e37\u0e2d\u0e19\u0e01\u0e31\u0e19)</p>'
+'<table class="tbl" style="margin:10px 0"><thead><tr><th>ระยะ</th><th>ช่วงเวลา</th><th class="r">เพดานค่าจ้าง</th><th class="r">สูงสุด/ฝ่าย</th><th class="r">รวมสูงสุด</th></tr></thead><tbody>'+
+'<tr><td><span class="tag tag-finished">เดิม</span></td><td>ก่อน 2569</td><td class="r" style="font-family:var(--mono)">฿15,000</td><td class="r" style="font-family:var(--mono)">฿750</td><td class="r" style="font-family:var(--mono)">฿1,500</td></tr>'+
+'<tr style="background:var(--success-bg)"><td><span class="tag tag-active">ระยะ 1</span></td><td>ม.ค. 2569 – ธ.ค. 2571</td><td class="r" style="font-family:var(--mono)">฿17,500</td><td class="r" style="font-family:var(--mono)">฿875</td><td class="r" style="font-family:var(--mono)">฿1,750</td></tr>'+
+'<tr><td><span class="tag tag-planned">ระยะ 2</span></td><td>ม.ค. 2572 – ธ.ค. 2574</td><td class="r" style="font-family:var(--mono)">฿20,000</td><td class="r" style="font-family:var(--mono)">฿1,000</td><td class="r" style="font-family:var(--mono)">฿2,000</td></tr>'+
+'<tr><td><span class="tag tag-planned">ระยะ 3</span></td><td>ตั้งแต่ ม.ค. 2575</td><td class="r" style="font-family:var(--mono)">฿23,000</td><td class="r" style="font-family:var(--mono)">฿1,150</td><td class="r" style="font-family:var(--mono)">฿2,300</td></tr>'+
+'</tbody></table>'+
+'<p style="font-size:10px;color:var(--text3)">เพดานค่าจ้างขั้นต่ำ: ฿1,650/เดือน · อัตราสมทบ 5% เท่าเดิม — เพิ่มเฉพาะเพดาน ทำให้เงินสมทบสูงสุดต่อเดือนเพิ่มขึ้น (ประกาศราชกิจจา 12 ธ.ค. 2568)</p>'
 },
 {id:'help-sso-unemployment',category:'social-security',badge:'law',
 title:'\u0e2a\u0e34\u0e17\u0e18\u0e34\u0e1b\u0e23\u0e30\u0e42\u0e22\u0e0a\u0e19\u0e4c\u0e01\u0e23\u0e13\u0e35\u0e27\u0e48\u0e32\u0e07\u0e07\u0e32\u0e19',
@@ -698,7 +704,13 @@ content:'<div class="help-badge help-badge-law">\u2696\ufe0f \u0e01\u0e0e\u0e2b\
 },
 {id:'help-sso-benefits',category:'social-security',badge:'law',
 title:'\u0e2a\u0e23\u0e38\u0e1b\u0e2a\u0e34\u0e17\u0e18\u0e34\u0e1b\u0e23\u0e30\u0e42\u0e22\u0e0a\u0e19\u0e4c (\u0e2d\u0e31\u0e15\u0e23\u0e32\u0e1b\u0e35 2569)',
-content:'<p>\u0e14\u0e39\u0e15\u0e32\u0e23\u0e32\u0e07\u0e43\u0e19\u0e2b\u0e31\u0e27\u0e02\u0e49\u0e2d\u0e20\u0e32\u0e29\u0e32\u0e2d\u0e31\u0e07\u0e01\u0e24\u0e29 (\u0e40\u0e19\u0e37\u0e49\u0e2d\u0e2b\u0e32\u0e40\u0e2b\u0e21\u0e37\u0e2d\u0e19\u0e01\u0e31\u0e19)</p>'
+content:'<table class="tbl" style="margin:10px 0"><thead><tr><th>สิทธิประโยชน์</th><th class="r">ก่อน 2569</th><th class="r">ตั้งแต่ ม.ค. 2569</th></tr></thead><tbody>'+
+'<tr><td>เจ็บป่วย/ทุพพลภาพ/ว่างงาน (ต่อเดือน)</td><td class="r" style="font-family:var(--mono)">฿7,500</td><td class="r" style="font-family:var(--mono)">฿8,750</td></tr>'+
+'<tr><td>คลอดบุตร (ต่อครั้ง)</td><td class="r" style="font-family:var(--mono)">฿22,500</td><td class="r" style="font-family:var(--mono)">฿26,250</td></tr>'+
+'<tr><td>ค่าทำศพ (ก้อน)</td><td class="r" style="font-family:var(--mono)">฿90,000</td><td class="r" style="font-family:var(--mono)">฿105,000</td></tr>'+
+'<tr><td>บำนาญ (15 ปี)</td><td class="r" style="font-family:var(--mono)">฿3,000/ด</td><td class="r" style="font-family:var(--mono)">฿3,500/ด</td></tr>'+
+'<tr><td>บำนาญ (25+ ปี)</td><td class="r" style="font-family:var(--mono)">฿5,250/ด</td><td class="r" style="font-family:var(--mono)">฿6,125/ด</td></tr>'+
+'</tbody></table>'
 },
 {id:'help-sso-compliance',category:'social-security',badge:'law',
 title:'\u0e02\u0e49\u0e2d\u0e1b\u0e0f\u0e34\u0e1a\u0e31\u0e15\u0e34\u0e2a\u0e33\u0e04\u0e31\u0e0d',
@@ -758,7 +770,16 @@ content:'<div class="help-badge help-badge-company">\ud83c\udfe2 \u0e1a\u0e23\u0
 {id:'help-dxc-leave',category:'company-benefits',badge:'company',
 title:'\u0e2a\u0e34\u0e17\u0e18\u0e34\u0e25\u0e32 DXC',
 content:'<div class="help-badge help-badge-company">\ud83c\udfe2 \u0e1a\u0e23\u0e34\u0e29\u0e31\u0e17 \u2014 DXC Technology</div>'+
-'<p>\u0e14\u0e39\u0e15\u0e32\u0e23\u0e32\u0e07\u0e43\u0e19\u0e2b\u0e31\u0e27\u0e02\u0e49\u0e2d\u0e20\u0e32\u0e29\u0e32\u0e2d\u0e31\u0e07\u0e01\u0e24\u0e29 (\u0e40\u0e19\u0e37\u0e49\u0e2d\u0e2b\u0e32\u0e40\u0e2b\u0e21\u0e37\u0e2d\u0e19\u0e01\u0e31\u0e19)</p>'
+'<table class="tbl" style="margin:10px 0"><thead><tr><th>ประเภทลา</th><th class="r">สิทธิ</th><th>เงื่อนไข</th></tr></thead><tbody>'+
+'<tr style="background:var(--bg3)"><td colspan="3"><strong>— ลาพักร้อน —</strong></td></tr>'+
+'<tr><td>อายุงาน &lt; 5 ปี</td><td class="r" style="font-family:var(--mono)">15 วัน/ปี</td><td>ปีแรกคิดตามสัดส่วน</td></tr>'+
+'<tr><td>อายุงาน 5–10 ปี</td><td class="r" style="font-family:var(--mono)">17 วัน/ปี</td><td>—</td></tr>'+
+'<tr><td>อายุงาน 10+ ปี</td><td class="r" style="font-family:var(--mono)">20 วัน/ปี</td><td>—</td></tr>'+
+'<tr style="background:var(--bg3)"><td colspan="3"><strong>— ลาอื่น ๆ —</strong></td></tr>'+
+'<tr><td>ลาป่วย</td><td class="r" style="font-family:var(--mono)">30 วัน/ปี</td><td>ได้รับค่าจ้าง · ใบรับรองแพทย์เมื่อลา 3 วันขึ้นไป</td></tr>'+
+'<tr><td>ลากิจส่วนตัว</td><td class="r" style="font-family:var(--mono)">3 วัน/ปี</td><td>ได้รับค่าจ้าง · สะสมไม่ได้</td></tr>'+
+'<tr><td>ลาคลอดบุตร</td><td class="r" style="font-family:var(--mono)">98 วัน</td><td>นายจ้างจ่าย 45 วัน · ประกันสังคมจ่าย 45 วัน</td></tr>'+
+'</tbody></table>'
 },
 {id:'help-app-simulation',category:'app-features',badge:'info',
 title:'\u0e0a\u0e48\u0e27\u0e07\u0e40\u0e27\u0e25\u0e32\u0e08\u0e33\u0e25\u0e2d\u0e07',

@@ -25,9 +25,8 @@ var _acctTouched={};                   // id -> true (soft highlight for newly a
 
 function _acctId(){return 'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 // Account types — fixed curated list (key=stable code acts as id; label is display).
-var _ACCT_TYPES=[['savings','\u0e2d\u0e2d\u0e21\u0e17\u0e23\u0e31\u0e1e\u0e22\u0e4c (Savings)'],['esavings','e-Savings (\u0e14\u0e2d\u0e01\u0e40\u0e1a\u0e35\u0e49\u0e22\u0e2a\u0e39\u0e07/\u0e2d\u0e2d\u0e19\u0e44\u0e25\u0e19\u0e4c)'],['current','\u0e01\u0e23\u0e30\u0e41\u0e2a\u0e23\u0e32\u0e22\u0e27\u0e31\u0e19 (Current)'],['fixed','\u0e1d\u0e32\u0e01\u0e1b\u0e23\u0e30\u0e08\u0e33 (Fixed)'],['fcd','\u0e40\u0e07\u0e34\u0e19\u0e1d\u0e32\u0e01\u0e15\u0e48\u0e32\u0e07\u0e1b\u0e23\u0e30\u0e40\u0e17\u0e28 (FCD)'],['wallet','\u0e01\u0e23\u0e30\u0e40\u0e1b\u0e4b\u0e32\u0e40\u0e07\u0e34\u0e19/e-Wallet'],['other','\u0e2d\u0e37\u0e48\u0e19 \u0e46 (Other)']];
-function _acctTypeLabel(code){for(var i=0;i<_ACCT_TYPES.length;i++){if(_ACCT_TYPES[i][0]===code)return _ACCT_TYPES[i][1];}return code||'';}
-function _acctTypeOpts(sel){var o='<option value="">\u2014 \u0e0a\u0e19\u0e34\u0e14 \u2014</option>';_ACCT_TYPES.slice().sort(function(a,b){return a[1].localeCompare(b[1],undefined,{sensitivity:'base'});}).forEach(function(t){o+='<option value="'+t[0]+'"'+(t[0]===sel?' selected':'')+'>'+esc(t[1])+'</option>';});return o;}
+function _acctTypeLabel(code){return (typeof acctTypeName==='function')?acctTypeName(code):code;}
+function _acctTypeOpts(sel){return (typeof acctTypeOpts==='function')?acctTypeOpts(sel):'';}
 function _acctBankOpts(sel){var o='<option value="">\u2014 bank \u2014</option>';(Array.isArray(D.banks)?D.banks.slice():[]).sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});}).forEach(function(b){o+='<option value="'+b.id+'"'+(b.id===sel?' selected':'')+'>'+esc(b.name)+'</option>';});return o;}
 
 function _acctSorted(){
