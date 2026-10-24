@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-23T11:10:50",
+ "generated_at": "2026-10-24T13:43:50",
  "bills": [
   {
    "card": "BAY AIA Visa Platinum",
@@ -692,6 +692,29 @@
    "paid_date": null,
    "paid_full": false,
    "remaining": 28220.81
+  },
+  {
+   "card": "ttb so smart",
+   "card_id": "c8",
+   "last4": "1394",
+   "period": "2026-10",
+   "stmt_date": "2026-10-22",
+   "due_date": "2026-11-11",
+   "amount_due": 13983.15,
+   "min_due": 7233.51,
+   "txn_total": 7340.66,
+   "installment_total": 6646.59,
+   "adjustment_total": null,
+   "total_payments": -28224.91,
+   "prev_balance": 28220.81,
+   "points_balance": null,
+   "points_date": "2026-10-22",
+   "source_file": "ttb e-credit card statement 22-Oct-2026_1394_2026-10-23.pdf",
+   "payments": [],
+   "paid_total": 0.0,
+   "paid_date": null,
+   "paid_full": false,
+   "remaining": 13983.15
   }
  ]
 }
