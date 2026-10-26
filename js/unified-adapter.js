@@ -215,7 +215,9 @@ glob.billOccurrencesUnified=function(fromD,toD){
     //            actionable row. (A charge's CURRENT card/card_period is a forecast, not a fold target.)
     if(!isCash && o.source!=='pdf' && base.key){
       var _isInst=(kk.kind==='Installment') || (typeof base.key==='string' && base.key.indexOf('I|')===0);
-      if(_isInst){
+      // v18 (locked fold rule): auto-debit recurring (auto_pay) also folds by its CUT date, like installments.
+      var _isAuto=!!(o.auto_pay||base.auto_pay);
+      if(_isInst||_isAuto){
         // v340 (user-locked Oct 17 2026): an INSTALLMENT is swiped on a specific date and auto-posts to
         // whichever statement period its CUT date (orig_due) falls into — ALWAYS, regardless of paid
         // status or the unreliable auto_pay field. It never surfaces as a manual actionable row; it is

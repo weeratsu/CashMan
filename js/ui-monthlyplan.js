@@ -14,6 +14,10 @@
 var _mpMonth = (function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);})();
 var _mpSort={col:null,dir:1};
 var _mpGroupBy='account'; // summary grouping: account|category|bank
+var _mpSumSort='total'; var _mpSumAsc=false; // Summary table sort: group|total|pct
+var _mpFilterCat='';   // table filter: category id (''=all)
+var _mpFilterAcct='';  // table filter: account id (''=all)
+var _mpFilterBank='';  // table filter: bank id (''=all)
 var _mpTouched={}; // row id -> true (soft highlight)
 
 function _mpId(pfx){return (pfx||'p')+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
@@ -25,9 +29,10 @@ function mpAcctLabel(id){
   var bn=(a.bank&&typeof bankName==='function')?bankName(a.bank):(a.bank||'');
   return (bn?bn+' \u00b7 ':'')+(a.name||'');
 }
-function mpAcctOpts(sel){
+function _mpBankOpts(sel){var o='<option value="">\u2014 \u0e17\u0e38\u0e01\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23 \u2014</option>';(D.banks||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});}).forEach(function(b){o+='<option value="'+b.id+'"'+(b.id===sel?' selected':'')+'>'+esc(b.name)+'</option>';});return o;}
+function mpAcctOpts(sel,bankFilter){
   var o='<option value="">\u2014 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e1a\u0e31\u0e0d\u0e0a\u0e35 \u2014</option>';
-  (D.accounts||[]).slice().map(function(a){var _bn=(a.bank&&typeof bankName==='function')?bankName(a.bank):(a.bank||'');return {id:a.id,label:(_bn?_bn+' \u00b7 ':'')+(a.name||'')};}).sort(function(a,b){return a.label.localeCompare(b.label,undefined,{sensitivity:'base'});}).forEach(function(a){
+  (D.accounts||[]).filter(function(a){return !bankFilter||a.bank===bankFilter;}).slice().map(function(a){var _bn=(a.bank&&typeof bankName==='function')?bankName(a.bank):(a.bank||'');return {id:a.id,label:(_bn?_bn+' \u00b7 ':'')+(a.name||'')};}).sort(function(a,b){return a.label.localeCompare(b.label,undefined,{sensitivity:'base'});}).forEach(function(a){
     o+='<option value="'+a.id+'"'+(a.id===sel?' selected':'')+'>'+esc(a.label)+'</option>';
   });
   return o;
@@ -76,6 +81,7 @@ function _mpSortedRows(rows){
   });}
   return list;
 }
+function setMpFilter(which,val){ if(which==='cat')_mpFilterCat=val; else if(which==='acct')_mpFilterAcct=val; else if(which==='bank'){_mpFilterBank=val; var _a=(D.accounts||[]).find(function(x){return x.id===_mpFilterAcct;}); if(val&&_a&&_a.bank!==val)_mpFilterAcct=''; } renderMonthlyPlan(); }
 function setMpSort(col){
   if(_mpSort.col===col){_mpSort.dir*=-1;if(_mpSort.dir===1)_mpSort.col=null;}
   else{_mpSort.col=col;_mpSort.dir=1;}
@@ -102,9 +108,15 @@ function renderMonthlyPlan(){
     '</div>';
 
   var rows=_mpSortedRows(V.rows||[]);
+  var _fCat=_mpFilterCat, _fAcct=_mpFilterAcct, _fBank=_mpFilterBank;
+  function _mpAcctBank(aid){var a=(D.accounts||[]).find(function(x){return x.id===aid;});return a?(a.bank||''):'';}
+  function _mpMatch(r){ return (!_fCat||r.category===_fCat) && (!_fAcct||r.account===_fAcct) && (!_fBank||_mpAcctBank(r.account)===_fBank); }
+  var _shownN=0;
   var bodyRows='',bal=inc.total,totalPlan=0;
   rows.forEach(function(r){
     var amt=+r.amount||0;totalPlan+=amt;bal-=amt;
+    if(!_mpMatch(r)) return;   // running balance still counts ALL rows; only display is filtered
+    _shownN++;
     var balColor=bal<0?'var(--error)':'var(--text)';
     var hl=_mpTouched[r.id]?';box-shadow:inset 3px 0 0 var(--primary);background:var(--primary-bg,rgba(59,130,246,0.06))':'';
     bodyRows+='<tr data-rid="'+r.id+'" style="'+hl.replace(/^;/,'')+'">'+
@@ -119,7 +131,7 @@ function renderMonthlyPlan(){
         '<button class="btn btn-ghost" style="font-size:11px;padding:3px 7px;line-height:1" title="\u0e25\u0e1a" onclick="mpDelRow(\''+r.id+'\')"><i class="fa-solid fa-xmark"></i></button>'+
       '</td></tr>';
   });
-  if(!rows.length)bodyRows='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:16px">\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 \u2014 \u0e01\u0e14 "\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23"</td></tr>';
+  if(!_shownN)bodyRows='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:16px">'+((_fCat||_fAcct)?'\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e15\u0e32\u0e21\u0e15\u0e31\u0e27\u0e01\u0e23\u0e2d\u0e07':'\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 \u2014 \u0e01\u0e14 "\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23"')+'</td></tr>';
 
   var finalColor=bal<0?'var(--error)':'var(--success,#16a34a)';
   var planTable=
@@ -129,7 +141,7 @@ function renderMonthlyPlan(){
       '<th style="white-space:nowrap;width:120px;cursor:pointer" onclick="setMpSort(\'category\')">\u0e2b\u0e21\u0e27\u0e14'+_mpAr('category')+'</th>'+
       '<th style="text-align:right;white-space:nowrap;width:100px;cursor:pointer" onclick="setMpSort(\'amount\')">\u0e08\u0e33\u0e19\u0e27\u0e19\u0e40\u0e07\u0e34\u0e19'+_mpAr('amount')+'</th>'+
       '<th style="white-space:nowrap;width:180px;cursor:pointer" onclick="setMpSort(\'account\')">\u0e1a\u0e31\u0e0d\u0e0a\u0e35'+_mpAr('account')+'</th>'+
-      '<th style="text-align:left;cursor:pointer" onclick="setMpSort(\'purpose\')">\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e2d\u0e30\u0e44\u0e23'+_mpAr('purpose')+'</th>'+
+      '<th style="text-align:left;cursor:pointer" onclick="setMpSort(\'purpose\')">Remarks'+_mpAr('purpose')+'</th>'+
       '<th style="text-align:right;white-space:nowrap;width:110px">\u0e04\u0e07\u0e40\u0e2b\u0e25\u0e37\u0e2d</th>'+
       '<th style="width:84px"></th>'+
     '</tr></thead><tbody>'+bodyRows+'</tbody>'+
@@ -155,6 +167,14 @@ function renderMonthlyPlan(){
         '<span style="margin-left:auto;font-size:11px;color:var(--text3)">\u0e41\u0e1c\u0e19</span>'+verSel+
         '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="mpNewVersion()" title="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e1c\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19\u0e40\u0e1b\u0e47\u0e19\u0e40\u0e27\u0e2d\u0e23\u0e4c\u0e0a\u0e31\u0e19 \u0e41\u0e25\u0e49\u0e27\u0e40\u0e23\u0e34\u0e48\u0e21\u0e41\u0e1c\u0e19\u0e43\u0e2b\u0e21\u0e48"><i class="fa-solid fa-code-branch"></i> \u0e40\u0e27\u0e2d\u0e23\u0e4c\u0e0a\u0e31\u0e19\u0e43\u0e2b\u0e21\u0e48</button>'+
         '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="mpRenameVersion()" title="\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e1c\u0e19\u0e19\u0e35\u0e49"><i class="fa-solid fa-pen"></i></button>'+
+      '</div>'+
+      // table filters (category + account) — sourced from Setup, id-linked, sorted
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">'+
+        '<span style="font-size:11px;color:var(--text3)">\u0e01\u0e23\u0e2d\u0e07</span>'+
+        '<select class="sel" style="font-size:11px" onchange="setMpFilter(\'cat\',this.value)">'+(typeof planCatOpts==='function'?planCatOpts(_mpFilterCat):'')+'</select>'+
+        '<select class="sel" style="font-size:11px" onchange="setMpFilter(\'bank\',this.value)">'+_mpBankOpts(_mpFilterBank)+'</select>'+
+        '<select class="sel" style="font-size:11px" onchange="setMpFilter(\'acct\',this.value)">'+mpAcctOpts(_mpFilterAcct,_mpFilterBank)+'</select>'+
+        ((_mpFilterCat||_mpFilterAcct||_mpFilterBank)?'<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="_mpFilterCat=\'\';_mpFilterAcct=\'\';_mpFilterBank=\'\';renderMonthlyPlan()">\u2715 \u0e25\u0e49\u0e32\u0e07</button>':'')+
       '</div>'+
       kpis+planTable+
     '</div>'+
@@ -183,7 +203,7 @@ function _mpRowPopup(existing){
     '<div class="form-group"><label>\u0e08\u0e33\u0e19\u0e27\u0e19\u0e40\u0e07\u0e34\u0e19</label><input class="inp" id="mp-f-amount" type="number" value="'+(r.amount!=null?r.amount:'')+'" placeholder="0"></div>'+
     '<div class="form-group"><label>\u0e2b\u0e21\u0e27\u0e14</label><select class="inp" id="mp-f-category">'+(typeof planCatOpts==='function'?planCatOpts(r.category):'')+'</select></div>'+
     '<div class="form-group"><label>\u0e1a\u0e31\u0e0d\u0e0a\u0e35</label><select class="inp" id="mp-f-account">'+mpAcctOpts(r.account)+'</select></div>'+
-    '<div class="form-group"><label>\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e2d\u0e30\u0e44\u0e23</label><input class="inp" id="mp-f-purpose" value="'+esc(r.purpose||'')+'" placeholder="(\u0e44\u0e21\u0e48\u0e1a\u0e31\u0e07\u0e04\u0e31\u0e1a)"></div>'+
+    '<div class="form-group"><label>Remarks</label><input class="inp" id="mp-f-purpose" value="'+esc(r.purpose||'')+'" placeholder="(\u0e44\u0e21\u0e48\u0e1a\u0e31\u0e07\u0e04\u0e31\u0e1a)"></div>'+
     '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">'+
       '<button class="btn btn-ghost" onclick="_mpClosePopup()">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>'+
       '<button class="btn btn-primary" onclick="mpSavePopup(\''+(r.id||'')+'\')"><i class="fa-solid fa-check"></i> \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button>'+
@@ -283,6 +303,8 @@ function _mpCharts(V, inc){
 
 // ---- group-by summary list -------------------------------------------------
 function setMpGroupBy(v){_mpGroupBy=v;renderMonthlyPlan();}
+function setMpSumSort(col){ if(_mpSumSort===col){_mpSumAsc=!_mpSumAsc;} else {_mpSumSort=col;_mpSumAsc=(col==='group');} renderMonthlyPlan(); }
+function _mpSumArrow(col){ return _mpSumSort===col?(_mpSumAsc?' \u25b2':' \u25bc'):''; }
 function _mpSummaryHtml(V){
   var rows=(V&&V.rows)||[];
   var gb=_mpGroupBy||'account';
@@ -296,7 +318,8 @@ function _mpSummaryHtml(V){
     if(!groups[label])groups[label]={amt:0,n:0,items:[]};
     groups[label].amt+=amt;groups[label].n++;groups[label].items.push(r);
   });
-  var keys=Object.keys(groups).filter(function(k){return (groups[k].amt||0)!==0;}).sort(function(a,b){return groups[b].amt-groups[a].amt;});
+  var keys=Object.keys(groups).filter(function(k){return (groups[k].amt||0)!==0;});
+  keys.sort(function(a,b){var r;if(_mpSumSort==='group')r=a.localeCompare(b,undefined,{sensitivity:'base'});else r=groups[a].amt-groups[b].amt;/* total and pct share the same order */return _mpSumAsc?r:-r;});
   var sel='<select class="sel" style="font-size:11px" onchange="setMpGroupBy(this.value)">'+
     '<option value="account"'+(gb==='account'?' selected':'')+'>Account</option>'+
     '<option value="category"'+(gb==='category'?' selected':'')+'>Category</option>'+
@@ -332,7 +355,11 @@ function _mpSummaryHtml(V){
       '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--text3)">Group by</span>'+sel+'</div>'+
     '</div>'+
     '<table class="tbl" style="font-size:11px;width:100%">'+
-      '<thead><tr><th style="text-align:left">Group</th><th style="text-align:right;white-space:nowrap;width:120px">Total</th><th style="text-align:right;width:60px">%</th></tr></thead>'+
+      '<thead><tr>'+
+      '<th style="text-align:left;cursor:pointer" onclick="setMpSumSort(\'group\')">Group'+_mpSumArrow('group')+'</th>'+
+      '<th style="text-align:right;white-space:nowrap;width:120px;cursor:pointer" onclick="setMpSumSort(\'total\')">Total'+_mpSumArrow('total')+'</th>'+
+      '<th style="text-align:right;width:60px;cursor:pointer" onclick="setMpSumSort(\'pct\')">%'+_mpSumArrow('pct')+'</th>'+
+      '</tr></thead>'+
       '<tbody>'+body+'</tbody>'+
       '<tfoot><tr style="border-top:2px solid var(--border)"><td style="font-weight:700">Grand total</td><td style="text-align:right;font-weight:700;white-space:nowrap">\u0e3f'+fmt(total)+'</td><td></td></tr></tfoot>'+
     '</table></div>';
@@ -343,9 +370,9 @@ function _mpToggleGrp(gid,tr){
   var ic=tr&&tr.querySelector('i');if(ic)ic.style.transform=open?'rotate(90deg)':'';
 }
 
-window.setMpGroupBy=setMpGroupBy;window._mpToggleGrp=_mpToggleGrp;
+window.setMpGroupBy=setMpGroupBy;window.setMpSumSort=setMpSumSort;window._mpToggleGrp=_mpToggleGrp;
 window.renderMonthlyPlan=renderMonthlyPlan;
-window.setMpSort=setMpSort;
+window.setMpSort=setMpSort;window.setMpFilter=setMpFilter;
 window.mpAddPopup=mpAddPopup;window.mpEditPopup=mpEditPopup;window.mpSavePopup=mpSavePopup;window.mpDelRow=mpDelRow;window._mpClosePopup=_mpClosePopup;
 window.mpSwitchVer=mpSwitchVer;window.mpNewVersion=mpNewVersion;window.mpRenameVersion=mpRenameVersion;
 window.mpAcctLabel=mpAcctLabel;

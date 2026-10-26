@@ -173,6 +173,8 @@ else if(_wishSort==='price')r=(a.target_price||0)-(b.target_price||0);
 else if(_wishSort==='target')r=((a.target_date||'zzzz')).localeCompare(b.target_date||'zzzz');
 else if(_wishSort==='name')r=(a.item||'').localeCompare(b.item||'');
 else if(_wishSort==='status')r=(a.status||'').localeCompare(b.status||'');
+else if(_wishSort==='category')r=(a.category||'').localeCompare(b.category||'');
+else if(_wishSort==='fits'){var _fr={fits:0,short:1,unknown:2,none:3};var _fa=_fr[(_wishFit(a)||{}).state]; var _fb=_fr[(_wishFit(b)||{}).state]; r=((_fa==null?9:_fa)-(_fb==null?9:_fb));}
 if(r===0)r=(a.priority||2)-(b.priority||2);
 return _wishAsc?r:-r;
 };
@@ -257,11 +259,11 @@ var _ar=function(col){return _wishSort===col?(_wishAsc?' \u25b2':' \u25bc'):'';}
 if(_wishFrozen){h+='<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);background:var(--primary-bg,rgba(79,70,229,.08));border-radius:6px;padding:5px 10px;margin:6px 0"><i class="fa-solid fa-lock"></i> Order paused while you edit (edited rows outlined)<span style="flex:1"></span><button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="wishResort()"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort now</button></div>';}
 h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:11px;min-width:900px"><thead><tr>'+
 '<th style="cursor:pointer" onclick="setWishSort(\'name\')">Item'+_ar('name')+'</th>'+
-'<th>Category</th>'+
+'<th style="cursor:pointer" onclick="setWishSort(\'category\')">Category'+_ar('category')+'</th>'+
 '<th style="cursor:pointer" onclick="setWishSort(\'priority\')">Priority'+_ar('priority')+'</th>'+
 '<th class="r" style="cursor:pointer" onclick="setWishSort(\'price\')">Target \u0e3f'+_ar('price')+'</th>'+
 '<th style="cursor:pointer" onclick="setWishSort(\'target\')">Target date'+_ar('target')+'</th>'+
-'<th>Fits?</th>'+
+'<th style="cursor:pointer" onclick="setWishSort(\'fits\')">Fits?'+_ar('fits')+'</th>'+
 '<th style="cursor:pointer" onclick="setWishSort(\'status\')">Status'+_ar('status')+'</th>'+
 '<th style="width:80px"></th></tr></thead><tbody>';
 

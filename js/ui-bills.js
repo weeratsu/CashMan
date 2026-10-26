@@ -241,7 +241,7 @@ var k=(/^\d{4}-\d{2}$/.test(_cbPerEff||''))?window.cardExtraKey(c.name,_cbPerEff
 var extra=parseFloat((D.cardbill_extra||{})[k])||0;
 var eff=auto+extra;
 var _cbPaidNow=(typeof cbPaidRec==='function')?cbPaidRec(c.name,y,m,_cbPer):null;
-_cbDefaultOpenMap[c.name]=(eff>0&&!(_cbPaidNow&&_cbPaidNow.paid));
+_cbDefaultOpenMap[c.name]=false;// v338: default collapsed (user Oct 26)
 var _cbIsOpen=(_cbOpen[c.name]===undefined)?_cbDefaultOpenMap[c.name]:_cbOpen[c.name];
 // v318b: show the ACTUAL statement occurrence due/deadline (the adapter already computes it as
 // statement_day+due_offset in the correct pay month = period+1), NOT a value re-derived from the
@@ -508,7 +508,7 @@ var all=allInstallments().filter(function(x){
 if(x.status==='Cancelled'||x.status==='Hold')return false;
 if(x.status==='Active'||x.status==='Planned')return true;
 // Finished: keep only if its last period ended within the recent window (~40 days)
-var _ld=_instLastDueMs(x);return _ld!=null&&_ld>=_mRecentMs&&_ld<=_mTodayMs;
+var _ld=_instLastDueMs(x);if(_ld==null)return false;var _sv=(window._instMatrixStart||'');var _sm=/^\d{4}-\d{2}$/.test(_sv)?Date.UTC(+_sv.slice(0,4),+_sv.slice(5,7),1):_mRecentMs;return _ld>=Math.min(_sm,_mRecentMs);// v337: Finished visible if last period >= matrix Start-from month
 });
 if(!all.length){
 document.getElementById('inst-monthly-kpis').innerHTML='<div class="kpi"><div class="kpi-label">No active installments</div></div>';
@@ -570,14 +570,15 @@ if(!D||!Array.isArray(D.installments))return false;
 var today=new Date();today=new Date(today.getFullYear(),today.getMonth(),today.getDate());
 var changed=false;
 D.installments.forEach(function(inst){
-if((inst.status||'Active')!=='Active')return;
+var _st=inst.status||'Active';if(_st!=='Active'&&_st!=='Finished')return;
 var per=inst.periods||0;if(per<=0)return;
 var cardObj=(D.cards||[]).find(function(x){return x.id===inst.card||x.name===inst.card;});
 var dl=cardObj?(cardObj.payment_day||15):15;
 var shift=(cardObj&&inst.billing_day&&inst.billing_day>cardObj.statement_day)?1:0;
 var lastM=(inst.start_month-1)+(per-1)+shift,lastY=inst.start_year;while(lastM>11){lastM-=12;lastY++;}
 var lastD=new Date(lastY,lastM,Math.min(dl,dim(lastY,lastM)));
-if(lastD<today){inst.status='Finished';changed=true;}
+if(lastD<today){if(_st!=='Finished'){inst.status='Finished';changed=true;}}
+else if(_st==='Finished'){inst.status='Active';changed=true;}// v336: start date edited later -> periods still running -> back to Active
 });
 if(changed){saveD&&saveD();}
 return changed;
@@ -737,7 +738,7 @@ function _instLastDueMs(inst){var cc=D.cards.find(function(x){return x.id===inst
 var all=allInstallments().filter(function(x){
 if(x.status==='Cancelled'||x.status==='Hold')return false;
 if(x.status==='Active'||x.status==='Planned')return true;
-var _ld=_instLastDueMs(x);return _ld!=null&&_ld>=_mRecentMs&&_ld<=_mTodayMs;
+var _ld=_instLastDueMs(x);if(_ld==null)return false;var _sv=(window._instMatrixStart||'');var _sm=/^\d{4}-\d{2}$/.test(_sv)?Date.UTC(+_sv.slice(0,4),+_sv.slice(5,7),1):_mRecentMs;return _ld>=Math.min(_sm,_mRecentMs);// v337: Finished visible if last period >= matrix Start-from month
 });
 if(!all.length){el.innerHTML='<div class="text-muted" style="font-size:10px;padding:8px">No active installments.</div>';return}
 
@@ -975,7 +976,7 @@ populatePlannedFilters()}
 /* Add Planned opens a popup form (same pattern as To-Do): the item is added only on Save,
    then the page scrolls to the new row and outlines it so it's easy to find. */
 var _plNewIdx=-1;
-function addPlanned(){
+function addPlanned(prefillISO){
 readAll();
 var ov=document.getElementById('pl-add-ov');
 if(!ov){ov=document.createElement('div');ov.id='pl-add-ov';
@@ -1007,7 +1008,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel</div>'
  +'</div>';
 ov.style.display='flex';
-setTimeout(function(){var e=document.getElementById('pa-name');if(e)e.focus();},30);
+setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var pd=document.getElementById('pa-date');if(pd)pd.value=prefillISO;}var e=document.getElementById('pa-name');if(e)e.focus();},30);
 }
 function plAddClose(){var ov=document.getElementById('pl-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
 function plAddSave(){
@@ -1615,3 +1616,5 @@ allInstallments().filter(function(x){return x.status==='Active'||x.status==='Pla
 var cn=inst.card||'Cash/Direct';if(!breakdown[cn])breakdown[cn]={monthly:[],yearly:[],installments:[]};
 breakdown[cn].installments.push({name:inst.name,per_period:inst.per_period,periods:inst.periods,total:inst.total})});
 return breakdown}
+
+window.addPlanned=addPlanned;

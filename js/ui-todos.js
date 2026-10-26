@@ -42,7 +42,7 @@ function setTodoSortMode(mode){_todoFrozen=null;_todoTouched={};_todoSort=mode;_
 function _todoId(){return 't'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
 
 /* Add task opens a popup form; the task is added to the list only on Save (nothing jumps while typing). */
-function addTodo(){
+function addTodo(prefillISO){
 readAll();
 var cats=(D.todo_cats||['Other']).slice().sort(function(a,b){return a.localeCompare(b);});
 var ov=document.getElementById('todo-add-ov');
@@ -61,7 +61,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Priority','<select id="ta-pri" class="sel"><option value="1">\ud83d\udd34 High</option><option value="2" selected>\ud83d\udfe1 Normal</option><option value="3">\ud83d\udfe3 Low</option></select>')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
- +row('Deadline','<select id="ta-mode" class="sel" onchange="document.getElementById(\'ta-datewrap\').style.visibility=this.value===\'date\'?\'visible\':\'hidden\'"><option value="none">None</option><option value="date">Date</option><option value="asap">ASAP</option></select>')
+ +row('Deadline','<select id="ta-mode" class="sel" id="ta-dmode" onchange="document.getElementById(\'ta-datewrap\').style.visibility=this.value===\'date\'?\'visible\':\'hidden\'"><option value="none">None</option><option value="date">Date</option><option value="asap">ASAP</option></select>')
  +'<div id="ta-datewrap" style="visibility:hidden">'+row('Date','<input id="ta-date" type="date" class="inp">')+'</div>'
  +row('Time','<input id="ta-time" type="time" class="inp">')
  +'</div>'
@@ -72,7 +72,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 recurrence details (every N, day, until) can be fine-tuned in the row after saving</div>'
  +'</div>';
 ov.style.display='flex';
-setTimeout(function(){var e=document.getElementById('ta-title');if(e)e.focus();},30);
+setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var dm=document.getElementById('ta-dmode');var dd=document.getElementById('ta-date');var dw=document.getElementById('ta-datewrap');if(dm)dm.value='date';if(dw)dw.style.visibility='visible';if(dd)dd.value=prefillISO;}var e=document.getElementById('ta-title');if(e)e.focus();},30);
 }
 function todoAddClose(){var ov=document.getElementById('todo-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
 function todoAddSave(){
@@ -236,15 +236,56 @@ else{t.done=true;t.done_date=doneISO;toast('\u2705 Done');}
 }else{
 t.done=true;t.done_date=doneISO;toast('\u2705 Done');
 }
-saveD();renderTodos();
+saveD();renderTodos();if(typeof renderDashCalendar==='function'){try{renderDashCalendar();}catch(e){}}
+}
+
+// ===== Cancel a single occurrence (recurring continues) =====
+// Cancels ONLY this round's occurrence. Recurring tasks roll forward to the next occurrence
+// exactly like completing does, so the series stays alive. The cancelled occurrence is written
+// to todo_log with cancelled:true so it shows in Completion History; a non-recurring task is
+// flagged done+cancelled so it stays in the table (greyed/struck/italic) instead of vanishing.
+function todoCancelOccurrence(id,occISO){
+var t=(D.todos||[]).find(function(x){return x.id===id;});if(!t)return;
+var todayISO=_billISO(new Date());
+if(!D.todo_log)D.todo_log=[];
+var wasRecurring=!!(t.recur&&t.recur!=='none');
+// The occurrence being cancelled: the explicit date passed from the calendar popup, else the task's own due date.
+var occDue=occISO||((t.deadline_mode==='date'&&t.due_date)?t.due_date:'');
+// Record this specific cancelled occurrence date so the calendar can still show it (struck), even for
+// recurring tasks whose due_date rolls forward to the next occurrence.
+if(occDue){if(!Array.isArray(t.cancelled_occ))t.cancelled_occ=[];if(t.cancelled_occ.indexOf(occDue)<0)t.cancelled_occ.push(occDue);}
+D.todo_log.push({id:_todoId(),todo_id:t.id,title:t.title||'',category:t.category||'',
+priority:t.priority||2,done_date:todayISO,due_date:occDue,cancelled:true,recurring:wasRecurring,recur:t.recur||'none',recur_every:t.recur_every||1,recur_dow:t.recur_dow||0,recur_dom:t.recur_dom||1,recur_month:t.recur_month||1});
+if(wasRecurring){
+var from=(t.recur==='daily')?(occDue||todayISO):((occDue&&occDue>todayISO)?occDue:todayISO);
+var next=_todoNextDate(t,from);
+if(next&&t.recur_until&&next>t.recur_until){t.done=true;t.cancelled=true;t.done_date=todayISO;toast('\u2715 Cancelled \u00b7 recurring ended '+fmtDate(t.recur_until));}
+else if(next){t.due_date=next;t.deadline_mode='date';toast('\u2715 Cancelled this round \u00b7 next '+fmtDate(next));}
+else{t.done=true;t.cancelled=true;t.done_date=todayISO;toast('\u2715 Cancelled');}
+}else{
+t.done=true;t.cancelled=true;t.done_date=todayISO;toast('\u2715 Cancelled');
+}
+saveD();renderTodos();if(typeof renderDashCalendar==='function'){try{renderDashCalendar();}catch(e){}}
 }
 
 function todoReopen(id){
 var t=(D.todos||[]).find(function(x){return x.id===id;});if(!t)return;
 t.done=false;t.done_date='';
-// Remove the newest log entry for this (one-time) task so reopening undoes its completion record.
-if(D.todo_log&&D.todo_log.length){for(var i=D.todo_log.length-1;i>=0;i--){if(D.todo_log[i].todo_id===t.id){D.todo_log.splice(i,1);break;}}}
-saveD();renderTodos();
+t.cancelled=false;
+// Find the newest log entry for this task (the occurrence being reopened) so we can restore its date.
+var _li=-1;if(D.todo_log&&D.todo_log.length){for(var i=D.todo_log.length-1;i>=0;i--){if(D.todo_log[i].todo_id===t.id){_li=i;break;}}}
+var _L=(_li>=0)?D.todo_log[_li]:null;
+var _occDate=_L?(_L.due_date||_L.done_date):'';
+// Drop just this occurrence's date from cancelled_occ (not the whole array) so other cancelled rounds stay.
+if(_occDate&&Array.isArray(t.cancelled_occ)){t.cancelled_occ=t.cancelled_occ.filter(function(d){return d!==_occDate;});}
+else if(Array.isArray(t.cancelled_occ)){t.cancelled_occ=[];}
+// Recurring: roll the live due_date BACK to the reopened occurrence so it reappears on that date
+// (completion/cancel had advanced it to the next occurrence). One-time: just un-done above.
+var _wasRecurring=!!(_L&&_L.recurring)||!!(t.recur&&t.recur!=='none');
+if(_wasRecurring&&_occDate){t.due_date=_occDate;t.deadline_mode='date';}
+// Remove the log entry for this reopened occurrence.
+if(_li>=0)D.todo_log.splice(_li,1);
+saveD();renderTodos();if(typeof renderDashCalendar==='function'){try{renderDashCalendar();}catch(e){}}
 }
 
 // Undo a specific completion from history. Removes the log entry and restores the task:
@@ -258,6 +299,10 @@ var L=D.todo_log[idx];
 var t=(D.todos||[]).find(function(x){return x.id===L.todo_id;});
 if(!confirm('Undo completion of "'+(L.title||'task')+'"'+(L.done_date?' (done '+fmtDate(L.done_date)+')':'')+'?'))return;
 if(t){
+t.cancelled=false;
+// If this log entry was a cancelled occurrence, drop its date from cancelled_occ so the calendar
+// stops drawing the struck copy (otherwise undo shows the live row AND the struck one = 2 rows).
+if(L.cancelled&&Array.isArray(t.cancelled_occ)){var _cd=L.due_date||L.done_date;t.cancelled_occ=t.cancelled_occ.filter(function(d){return d!==_cd;});}
 if(L.recurring){
 // Roll the task's due date BACK to the completed occurrence. Prefer the logged occurrence date;
 // if it wasn't stored, step the current (advanced) due date back one interval so undo reverses
@@ -272,7 +317,7 @@ t.done=false;t.done_date='';
 }
 }
 D.todo_log.splice(idx,1);
-saveD();renderTodos();
+saveD();renderTodos();if(typeof renderDashCalendar==='function'){try{renderDashCalendar();}catch(e){}}
 toast('\u21a9\ufe0f Completion undone');
 }
 // Edit a history entry's Done-on or Was-due date (backlogging fixes). For recurring entries,
@@ -317,6 +362,7 @@ function _todoRankUP(t,today){
 }
 
 function _todoStatusBadge(t,today){
+if(t.done&&t.cancelled)return '<span style="color:var(--text3);font-style:italic">\u2715 \u0e22\u0e01\u0e40\u0e25\u0e34\u0e01'+(t.done_date?' '+fmtDate(t.done_date):'')+'</span>';
 if(t.done)return '<span style="color:var(--success)">\u2705 Done'+(t.done_date?' '+fmtDate(t.done_date):'')+'</span>';
 if(t.deadline_mode==='asap')return '<span style="color:var(--error);font-weight:700">\u2757 ASAP</span>';
 if(t.deadline_mode!=='date'||!t.due_date)return '<span style="color:var(--text3)">\u2014 no deadline</span>';
@@ -343,7 +389,7 @@ return '<span style="font-size:8px;color:var(--primary);background:var(--primary
 
 // ---- To-Do calm summary (Oct 9 2026) ----
 var _todoEditOpen={};
-function todoEditToggle(id){ _todoEditOpen[id]=!_todoEditOpen[id]; var el=document.getElementById('tedit_'+id); if(el) el.style.display=_todoEditOpen[id]?'flex':'none'; }
+function todoEditToggle(id){ _todoEditOpen[id]=!_todoEditOpen[id]; var el=document.getElementById('tedit_'+id); if(el) el.style.display=_todoEditOpen[id]?'grid':'none'; var c=document.getElementById('tcar_'+id); if(c) c.style.transform='rotate('+(_todoEditOpen[id]?'90':'0')+'deg)'; }
 // v288 (user Oct 14 2026): per-column chip builders so the task list shows REAL columns
 // (Task / Category / Priority / Deadline / Status / Delete) instead of cramming everything into
 // one left cell. Each returns a bare chip (or '' / dash) for its own <td>.
@@ -374,7 +420,7 @@ function _todoSummary(t,MON,DOW){
  if(t.link) p.push('<span class="tchip">\ud83d\udd17 '+esc(String(t.link).replace(/^\w+:/,''))+'</span>');
  return p.length?p.join(''):'';
 }
-window.todoEditToggle=todoEditToggle;
+window.todoEditToggle=todoEditToggle;window.addTodo=addTodo;
 function _todoLinkOptions(t){
 var h='<option value="">\u2014 no link</option>';
 var groups=[];
@@ -414,10 +460,11 @@ var items=D.todos.slice().filter(function(t){
 if(_todoSearch&&!_todoMatch(t,_todoSearch))return false;
 if(_todoCatFilter&&(t.category||'')!==_todoCatFilter)return false;
 if(_todoFilter==='all')return true;
-if(_todoFilter==='open')return !t.done;
-if(_todoFilter==='done')return !!t.done;
-// Urgency-band filters apply to OPEN tasks only (done tasks are history).
-if(t.done)return false;
+if(_todoFilter==='open')return !t.done||!!t.cancelled;
+if(_todoFilter==='done')return !!t.done&&!t.cancelled;
+// Urgency-band filters apply to OPEN tasks only (done tasks are history). Cancelled-this-round stays visible.
+if(t.done&&!t.cancelled)return false;
+if(t.done&&t.cancelled)return (_todoFilter==='all'||_todoFilter==='open');
 var rk=_todoRank(t,today);// 0 asap,1 overdue,2 today,3 soon,4 upcoming/later,5 none
 if(_todoFilter==='asap')return rk===0;
 if(_todoFilter==='overdue')return rk===1;
@@ -560,7 +607,7 @@ var _rs=rowStyle+(_todoTouched[t.id]?';box-shadow:inset 3px 0 0 var(--primary);b
 // Two-row layout (Oct 9 2026): row 1 = done ☐ | task + note | status | ✕ ; row 2 = category · priority · deadline · repeat · link
 h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
 
-'<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:600;font-size:12px;width:100%'+(t.done?';text-decoration:line-through':'')+'">'+
+'<td><input class="inp-inline" value="'+esc(t.title||'')+'" data-tid="'+t.id+'" data-tf="title" onchange="todoSaveField(\''+t.id+'\',\'title\',this)" style="font-weight:600;font-size:12px;width:100%'+(t.done?';text-decoration:line-through':'')+(t.cancelled?';font-style:italic;color:var(--text3)':'')+'">'+
 '<input class="inp-inline" value="'+esc(t.note||'')+'" placeholder="note / idea" data-tid="'+t.id+'" data-tf="note" onchange="todoSaveField(\''+t.id+'\',\'note\',this)" style="font-size:10px;color:var(--text3);width:100%"></td>'+'<td rowspan="2" onclick="todoEditToggle(\''+t.id+'\')" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e41\u0e01\u0e49\u0e44\u0e02" style="vertical-align:top;padding-top:10px;white-space:nowrap;cursor:pointer">'+_tdCat(t)+'</td>'+'<td rowspan="2" onclick="todoEditToggle(\''+t.id+'\')" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e41\u0e01\u0e49\u0e44\u0e02" style="vertical-align:top;padding-top:10px;white-space:nowrap;cursor:pointer">'+_tdPri(t)+'</td>'+'<td rowspan="2" onclick="todoEditToggle(\''+t.id+'\')" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e41\u0e01\u0e49\u0e44\u0e02" style="vertical-align:top;padding-top:10px;cursor:pointer">'+_tdDue(t,MON,DOW)+'</td>'+'<td class="todo-st" rowspan="2" style="vertical-align:top;padding-top:10px">'+_todoStatusBadge(t,today)+// v285 (user Oct 14 2026): Done/Reopen button lives at the END of the row in the STATUS column
 // (like the Pay button in Bill Reminder), not in front of the task where it overlapped the title.
 '<div style="margin-top:6px">'+(t.done
@@ -570,13 +617,8 @@ h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
 '</tr>'+
 '<tr class="todo-r2" style="'+_rs+'"><td>'+
 // Calm summary line (Oct 9 2026): readable chips; tap ✎ to open the full editors (kept below, hidden).
-'<div class="todo-sum" onclick="todoEditToggle(\''+t.id+'\')" title="แตะเพื่อแก้ไข" style="cursor:pointer">'+_todoSummary(t,MON,DOW)+'</div>'+
-'<div class="todo-meta" id="tedit_'+t.id+'" style="display:'+(_todoEditOpen[t.id]?'flex':'none')+'">'+
-'<select class="sel" data-tid="'+t.id+'" data-tf="category" onchange="todoSaveField(\''+t.id+'\',\'category\',this)" style="font-size:10px" title="Category">'+catOpts(t.category)+'</select>'+
-'<select class="sel" data-tid="'+t.id+'" data-tf="priority" onchange="todoSaveField(\''+t.id+'\',\'priority\',this)" style="font-size:10px" title="Priority"><option value="1"'+(t.priority===1?' selected':'')+'>\ud83d\udd34 High</option><option value="2"'+((t.priority||2)===2?' selected':'')+'>\ud83d\udfe1 Normal</option><option value="3"'+(t.priority===3?' selected':'')+'>\u26aa Low</option></select>'+
-'<span class="todo-dl">'+dlCell+'</span><span class="todo-dl">'+recCell+'</span>'+
-'<select class="sel" data-tid="'+t.id+'" data-tf="link" onchange="todoSaveLink(\''+t.id+'\',this)" style="font-size:9px;max-width:140px" title="Link">'+_todoLinkOptions(t)+'</select>'+
-'</div></td></tr>';
+'<div class="todo-sum" onclick="todoEditToggle(\''+t.id+'\')" title="แตะเพื่อแก้ไข" style="cursor:pointer;display:flex;align-items:center;gap:6px">'+'<i class="fa-solid fa-chevron-right todo-caret" id="tcar_'+t.id+'" style="font-size:9px;color:var(--text3);transition:transform .15s;transform:rotate('+(_todoEditOpen[t.id]?'90':'0')+'deg)"></i>'+'<span>'+_todoSummary(t,MON,DOW)+'</span></div>'+
+'<div class="todo-meta" id="tedit_'+t.id+'" style="display:'+(_todoEditOpen[t.id]?'grid':'none')+';grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;background:var(--bg3,rgba(0,0,0,0.015));border:1px dashed var(--border);border-radius:10px;padding:10px;margin-top:4px">'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e2b\u0e21\u0e27\u0e14 \u00b7 CATEGORY</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="category" onchange="todoSaveField(\''+t.id+'\',\'category\',this)" style="font-size:11px;width:100%">'+catOpts(t.category)+'</select>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e04\u0e27\u0e32\u0e21\u0e2a\u0e33\u0e04\u0e31\u0e0d \u00b7 PRIORITY</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="priority" onchange="todoSaveField(\''+t.id+'\',\'priority\',this)" style="font-size:11px;width:100%"><option value="1"'+(t.priority===1?' selected':'')+'>\ud83d\udd34 High</option><option value="2"'+((t.priority||2)===2?' selected':'')+'>\ud83d\udfe1 Normal</option><option value="3"'+(t.priority===3?' selected':'')+'>\u26aa Low</option></select>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07 \u00b7 DEADLINE</span>'+'<div class="todo-dl" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+dlCell+'</div>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e17\u0e33\u0e0b\u0e49\u0e33 \u00b7 REPEAT</span>'+'<div class="todo-dl" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+recCell+'</div>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e25\u0e34\u0e07\u0e01\u0e4c \u00b7 LINK</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="link" onchange="todoSaveLink(\''+t.id+'\',this)" style="font-size:10px;width:100%">'+_todoLinkOptions(t)+'</select>'+'</div>'+'</div></td></tr>';
 });
 h+='</tbody></table></div>';
 
@@ -596,7 +638,7 @@ h+='<tr><td style="min-width:220px;white-space:normal;word-break:normal;overflow
 '<td style="font-size:10px;color:var(--text3)">'+esc(L.category||'')+'</td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.done_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'done_date\',this)" style="width:130px" title="Completion date (editable)"></td>'+
 '<td style="white-space:nowrap"><input type="date" class="inp-inline" value="'+esc(L.due_date||'')+'" onchange="todoEditLog(\''+L.id+'\',\'due_date\',this)" style="width:130px" title="Original due date (editable)"></td>'+
-'<td style="white-space:nowrap">'+(L.recurring?'<span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px">\ud83d\udd01 recurring</span>':'<span style="font-size:8px;color:var(--text3)">one-time</span>')+'</td>'+
+'<td style="white-space:nowrap">'+(L.cancelled?'<span style="font-size:8px;color:var(--text3);background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px;margin-right:3px">\u2715 cancelled</span>':'')+(L.recurring?'<span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px">\ud83d\udd01 recurring</span>':'<span style="font-size:8px;color:var(--text3)">one-time</span>')+'</td>'+
 '<td style="white-space:nowrap;text-align:center"><button class="btn btn-ghost" style="font-size:11px;padding:3px 7px;line-height:1;border-radius:5px" title="Undo this completion" onclick="todoUndoLog(\''+L.id+'\')"><i class="fa-solid fa-rotate-left"></i></button></td></tr>';
 });
 h+='</tbody></table></div>';

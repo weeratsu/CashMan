@@ -104,7 +104,7 @@ var rowsHtml=''+
 '<div style="display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Amount (\u0e3f)</label>'+
 '<input id="he-amt" type="number" step="0.01" value="'+amt+'" style="font-size:12px;padding:5px 8px"></div>'+
 '<div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Method</label>'+
-'<select id="he-auto" style="font-size:12px;padding:5px 8px"><option value="manual"'+(!ap?' selected':'')+'>\u270b Manual</option><option value="auto"'+(ap?' selected':'')+'>\u26a1 Auto</option></select></div></div>'+
+'<select id="he-auto" style="font-size:12px;padding:5px 8px"><option value="manual"'+(!ap?' selected':'')+'>\u270b Manual</option><option value="auto"'+(ap?' selected':'')+'>\ud83e\udd16 Auto</option></select></div></div>'+
 '<div style="display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Due date</label>'+
 '<input id="he-due" type="date" value="'+dueD+'" style="font-size:12px;padding:5px 8px"></div>'+
 '<div style="flex:1;display:flex;flex-direction:column;gap:2px"><label style="font-size:10px;color:var(--text2)">Marked paid</label>'+
@@ -1180,7 +1180,7 @@ rows.forEach(function(o,_ri){
 var st=billStatus(o,today);
 var _disp=_billDisp(o,today);
 var stBadge=st==='overdue'?'<span style="color:var(--error);font-weight:600">\u26a0\ufe0f Overdue</span>':
-_disp==='due_today'?(o.auto_pay?'<span style="color:var(--text3)" title="Auto-charged today \u2014 no action needed">\u26a1 Auto today</span>':'<span style="color:#dc2626;font-weight:700">\ud83d\udccc Due today</span>'):
+_disp==='due_today'?(o.auto_pay?'<span style="color:var(--text3)" title="Auto-charged today \u2014 no action needed"><i class="fa-solid fa-robot"></i> Auto today</span>':'<span style="color:#dc2626;font-weight:700">\ud83d\udccc Due today</span>'):
 st==='due'?'<span style="color:var(--warning);font-weight:600">\ud83d\udd14 Due soon</span>':
 st==='upcoming'?'<span style="color:var(--primary)">\ud83d\udcc5 Upcoming</span>':
 st==='auto_paid'?'<span style="color:var(--success)" title="Auto-charged \u2014 assumed paid automatically on its date">\u2705 Auto-paid</span>':
@@ -1191,7 +1191,7 @@ if(_dfl)stBadge+='<br><span style="font-size:9px;font-weight:700;color:'+(_dfl.s
 var diff=Math.round(((o.orig_due||o.due)-today)/86400000);
 var dueRel=o.paid?'':(diff===0?' (today)':diff>0?' (in '+diff+'d)':' ('+(-diff)+'d ago)');
 var method=o.auto_pay?
-'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff" title="Auto-charged to '+esc(_cardDisp(o.card))+'">\u26a1 Auto</span>':
+'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff" title="Auto-charged to '+esc(_cardDisp(o.card))+'"><i class="fa-solid fa-robot"></i> Auto</span>':
 '<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--warning);color:#fff" title="You must pay this manually">\u270b Manual</span>';
 var cardTxt=o.card&&o.card!=='Cash/Direct'?' <span style="font-size:9px;color:var(--text3)">'+esc(_cardDisp(o.card))+'</span>':'';
 // Highlight rows needing attention with a subtle tint + left accent bar (inset box-shadow keeps table layout intact).
@@ -1438,7 +1438,7 @@ if(rr.type)_cSet[rr.type]=1;});
 var _kList=Object.keys(_kSet).sort(),_cList=Object.keys(_cSet).sort();
 h+='<select id="hist-f-type" class="sel" style="font-size:10px;padding:2px 6px" onchange="setHistTCM()"><option value="">All types</option>'+_kList.map(function(t){return '<option value="'+esc(t)+'"'+(_histFType===t?' selected':'')+'>'+esc(t)+'</option>';}).join('')+'</select>';
 h+='<select id="hist-f-cat" class="sel" style="font-size:10px;padding:2px 6px" onchange="setHistTCM()"><option value="">All categories</option>'+_cList.map(function(t){return '<option value="'+esc(t)+'"'+(_histFCat===t?' selected':'')+'>'+esc(t)+'</option>';}).join('')+'</select>';
-h+='<select id="hist-f-method" class="sel" style="font-size:10px;padding:2px 6px" onchange="setHistTCM()"><option value="">All methods</option><option value="auto"'+(_histFMethod==='auto'?' selected':'')+'>\u26a1 Auto</option><option value="manual"'+(_histFMethod==='manual'?' selected':'')+'>\u270b Manual</option></select>';
+h+='<select id="hist-f-method" class="sel" style="font-size:10px;padding:2px 6px" onchange="setHistTCM()"><option value="">All methods</option><option value="auto"'+(_histFMethod==='auto'?' selected':'')+'>\ud83e\udd16 Auto</option><option value="manual"'+(_histFMethod==='manual'?' selected':'')+'>\u270b Manual</option></select>';
 // Payment-method (card) filter — distinct cards across all paid records + Cash/Direct.
 var _cardSet={};Object.keys(D.bill_payments||{}).forEach(function(k){var rr=D.bill_payments[k]||{};var cn=(rr.card&&rr.card!=='')?_cardDisp(rr.card):'Cash/Direct';_cardSet[cn]=1;});
 var _cardList=Object.keys(_cardSet).sort(function(a,b){if(a==='Cash/Direct')return 1;if(b==='Cash/Direct')return -1;return a.localeCompare(b);});
@@ -1497,7 +1497,7 @@ if(r._hiddenRow)return;
 // Type = kind (+ category); Method = auto/manual badge (+ card)
 var _tCell=(r.kind||'')+(r.kind&&r.type?' \u00b7 ':'')+(r.type?'<span style="font-size:9px;color:var(--text3)">'+esc(typeof typeName==='function'?typeName(r.type):r.type)+'</span>':'');
 if(!_tCell)_tCell='<span style="color:var(--text3)">\u2014</span>';
-var _mBadge=(r.auto_pay===true)?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':(r.auto_pay===false?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>':'<span style="color:var(--text3)">\u2014</span>');
+var _mBadge=(r.auto_pay===true)?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--primary);color:#fff"><i class="fa-solid fa-robot"></i> Auto</span>':(r.auto_pay===false?'<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>':'<span style="color:var(--text3)">\u2014</span>');
 var _mCell=_mBadge+((r.card&&r.card!=='Cash/Direct')?' <span style="font-size:9px;color:var(--text3)">'+esc(_cardDisp(r.card))+'</span>':'');
 // Reconstruct statement children (credit-card statements only) for an expandable breakdown.
 // Prefer the actually-paid child records; enrich each with orig_due (real bill due) by
@@ -1541,7 +1541,7 @@ _kids.forEach(function(ch){_kidSum+=(ch.amount||0);
 h+='<tr class="'+_hgid+'" style="display:none;background:var(--bg2)"><td></td>'+
 '<td style="padding-left:22px;color:var(--text2);font-size:10px">'+_billIcon(ch)+' '+esc(ch.name)+((ch.kind==='Installment'&&ch.info)?(' <span style="color:var(--text3);font-size:9px">'+esc(ch.info)+'</span>'):'')+_perBadge(_svcPer(ch))+'</td>'+
 '<td style="font-size:9px;color:var(--text3)">'+esc(ch.kind||'')+(ch.type?' \u00b7 '+esc(typeof typeName==='function'?typeName(ch.type):ch.type):'')+'</td>'+
-'<td>'+((ch.auto_pay)?'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>')+((ch.card&&ch.card!=='Cash/Direct')?' <span style="font-size:8px;color:var(--text3)">'+esc(_cardDisp(ch.card))+'</span>':'')+'</td>'+
+'<td>'+((ch.auto_pay)?'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--primary);color:#fff"><i class="fa-solid fa-robot"></i> Auto</span>':'<span style="font-size:8px;padding:1px 5px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>')+((ch.card&&ch.card!=='Cash/Direct')?' <span style="font-size:8px;color:var(--text3)">'+esc(_cardDisp(ch.card))+'</span>':'')+'</td>'+
 '<td class="r" style="font-family:var(--mono);font-size:10px;color:var(--text2)">\u0e3f'+fmt(ch.amount)+'</td>'+
 '<td style="font-size:9px;color:var(--text3)">'+((ch.orig_due||ch.due)?fmtDate((typeof (ch.orig_due||ch.due)==='string')?(ch.orig_due||ch.due):_billISO(ch.orig_due||ch.due)):'\u2014')+'</td>'+'<td style="font-size:9px;color:var(--success)">'+(ch.paid_date?'\u2713 '+fmtDate(ch.paid_date):'')+'</td><td></td>'+'<td style="white-space:nowrap">'+(ch.key?('<button class="del-btn" title="Edit this record" style="color:var(--text3)" data-hkey="'+esc(ch.key)+'" onclick="histEditRecord(this.getAttribute(\'data-hkey\'))"><i class="fa-solid fa-pen"></i></button>'+'<button class="del-btn" title="Unmark paid / cancel this payment" data-hkey="'+esc(ch.key)+'" onclick="toggleBillPaid(this.getAttribute(\'data-hkey\'),0,false)"><i class="fa-solid fa-xmark"></i></button>'):'')+'</td></tr>';
 });
@@ -1566,7 +1566,7 @@ h+='</div>';
 h+='</div>';
 
 // Info note
-h+='<div style="font-size:9px;color:var(--text3);margin-top:4px"><i class="fa-solid fa-lightbulb" style="margin-right:3px"></i> <b>\u26a1 Auto</b> = charged automatically (credit card / auto-deduct). <b>\u270b Manual</b> = you pay it yourself. Set the method per bill in the Bills &amp; Plans tab (Auto-pay column). Bills come from your Monthly, Yearly, Installment and Planned setups.</div>';
+h+='<div style="font-size:9px;color:var(--text3);margin-top:4px"><i class="fa-solid fa-lightbulb" style="margin-right:3px"></i> <b><i class="fa-solid fa-robot"></i> Auto</b> = charged automatically (credit card / auto-deduct). <b>\u270b Manual</b> = you pay it yourself. Set the method per bill in the Bills &amp; Plans tab (Auto-pay column). Bills come from your Monthly, Yearly, Installment and Planned setups.</div>';
 
 el.innerHTML=h;
 try{if(typeof renderPeriodBanner==='function')renderPeriodBanner('billreminder-period','Bills');}catch(e){}
@@ -1587,9 +1587,9 @@ if(!occ.length){h+='<p class="text-muted" style="font-size:11px">Nothing due in 
 h+='<table class="tbl" style="font-size:11px"><thead><tr><th>Bill</th><th>Method</th><th class="r">Amount</th><th>Due</th><th>Status</th></tr></thead><tbody>';
 occ.slice(0,12).forEach(function(o){
 var st=billStatus(o,today);var _eDue=o.orig_due||o.due;var diff=Math.round((_eDue-today)/86400000);
-var _dispD=_billDisp(o,today);var stTxt=st==='overdue'?'<span style="color:var(--error);font-weight:600">Overdue</span>':_dispD==='due_today'?(o.auto_pay?'<span style="color:var(--text3)" title="Auto-charged today \u2014 no action needed">\u26a1 Auto today</span>':'<span style="color:#dc2626;font-weight:700">\ud83d\udccc Due today</span>'):st==='due'?'<span style="color:var(--warning);font-weight:600">Due soon</span>':'<span style="color:var(--primary)">Upcoming</span>';
+var _dispD=_billDisp(o,today);var stTxt=st==='overdue'?'<span style="color:var(--error);font-weight:600">Overdue</span>':_dispD==='due_today'?(o.auto_pay?'<span style="color:var(--text3)" title="Auto-charged today \u2014 no action needed"><i class="fa-solid fa-robot"></i> Auto today</span>':'<span style="color:#dc2626;font-weight:700">\ud83d\udccc Due today</span>'):st==='due'?'<span style="color:var(--warning);font-weight:600">Due soon</span>':'<span style="color:var(--primary)">Upcoming</span>';
 var rel=diff===0?'today':diff>0?'in '+diff+'d':(-diff)+'d ago';
-var method=o.auto_pay?'<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:var(--primary);color:#fff">\u26a1 Auto</span>':'<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>';
+var method=o.auto_pay?'<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:var(--primary);color:#fff"><i class="fa-solid fa-robot"></i> Auto</span>':'<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:var(--warning);color:#fff">\u270b Manual</span>';
 h+='<tr style="'+(st==='overdue'?'background:rgba(220,38,38,0.06);box-shadow:inset 3px 0 0 var(--error)':((_dispD==='due_today'&&!o.auto_pay)?'background:rgba(245,158,11,0.08);box-shadow:inset 3px 0 0 var(--warning)':''))+'"><td>'+_billIcon(o)+' '+esc(o.name)+(o.info?' <span style="font-size:8px;color:var(--text3)">'+esc(o.info)+'</span>':'')+'</td><td>'+method+'</td>'+
 '<td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(o.amount)+'</td><td style="white-space:nowrap">'+fmtDate(_billISO(o.orig_due||o.due))+' <span style="font-size:8px;color:var(--text3)">'+rel+'</span></td><td>'+stTxt+'</td></tr>';
 });
@@ -1600,7 +1600,7 @@ var totManual=occ.filter(function(o){return !o.auto_pay&&!o._surfaced&&!o._incom
 var totAuto=occ.filter(function(o){return o.auto_pay&&!o._surfaced&&!o._income}).reduce(function(s,o){return s+o.amount},0);
 h+='<div style="display:flex;gap:8px;margin-top:8px;font-size:10px">';
 h+='<div style="flex:1;background:var(--bg3);border-radius:6px;padding:6px 10px"><span style="color:var(--warning);font-weight:600">\u270b Manual to pay</span> \u0e3f'+fmt(totManual)+'</div>';
-h+='<div style="flex:1;background:var(--bg3);border-radius:6px;padding:6px 10px"><span style="color:var(--primary);font-weight:600">\u26a1 Auto-charged</span> \u0e3f'+fmt(totAuto)+'</div>';
+h+='<div style="flex:1;background:var(--bg3);border-radius:6px;padding:6px 10px"><span style="color:var(--primary);font-weight:600"><i class="fa-solid fa-robot"></i> Auto-charged</span> \u0e3f'+fmt(totAuto)+'</div>';
 h+='</div>';
 h+='<div style="margin-top:8px"><button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="document.querySelector(\'.nav-tab[data-tab=&quot;billreminder&quot;]\').click()"><i class="fa-solid fa-arrow-right"></i> Open Bills Reminder</button></div>';
 h+='</div>';

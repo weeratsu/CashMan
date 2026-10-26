@@ -45,7 +45,7 @@ var b=e.target.closest('.nav-tab');if(!b)return;
 document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active')});
 document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
 b.classList.add('active');document.getElementById('tab-'+b.dataset.tab).classList.add('active');
-if(b.dataset.tab==='todos'){try{renderTodos()}catch(e){console.error('renderTodos:',e)}};if(b.dataset.tab==='wishlist'){try{renderWishlist()}catch(e){console.error('renderWishlist:',e)}};if(b.dataset.tab==='help')renderHelp();
+if(b.dataset.tab==='dashboard'){try{if(typeof Highcharts!=='undefined')renderDash();}catch(e){console.error('renderDash:',e)};try{renderDashBills()}catch(e){};try{renderDashTodos()}catch(e){};try{renderDashCalendar()}catch(e){}};if(b.dataset.tab==='todos'){try{renderTodos()}catch(e){console.error('renderTodos:',e)}};if(b.dataset.tab==='wishlist'){try{renderWishlist()}catch(e){console.error('renderWishlist:',e)}};if(b.dataset.tab==='help')renderHelp();
 // sync sidebar sub-item highlight to whichever sub-panel is active in this parent
 try{document.querySelectorAll('.nav-sub').forEach(function(s){s.classList.remove('active')});
 var _wrap=document.querySelector('.nav-subwrap[data-parent="'+b.dataset.tab+'"]');
