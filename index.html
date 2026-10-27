@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-26 20:50";
+window.APP_VERSION="2026-10-27 12:15";
 window.addEventListener("error",function(e){
 try{
 // Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
@@ -291,7 +291,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div class="nav-subwrap" data-parent="analysis"><button class="nav-sub" data-tab="analysis" data-sub="type"><span>By Type</span></button><button class="nav-sub" data-tab="analysis" data-sub="card"><span>By Card</span></button></div>
 <div class="nav-group">Configuration</div>
 <button class="nav-tab" data-tab="setup" title="Setup"><i class="fa-solid fa-gear"></i><span>Setup</span></button>
-<div class="nav-subwrap" data-parent="setup"><button class="nav-sub" data-tab="setup" data-sub="profile"><span>Profile &amp; Settings</span></button><button class="nav-sub" data-tab="setup" data-sub="bank"><span>Bank &amp; Account</span></button></div>
+<div class="nav-subwrap" data-parent="setup"><button class="nav-sub" data-tab="setup" data-sub="profile"><span>Profile &amp; Settings</span></button><button class="nav-sub" data-tab="setup" data-sub="bank"><span>Bank &amp; Account</span></button><button class="nav-sub" data-tab="setup" data-sub="holiday"><span>Holidays</span></button></div>
 <button class="nav-tab" data-tab="help" title="Help"><i class="fa-solid fa-circle-question"></i><span>Help</span></button>
 </div>
 <div class="nav-right"><button class="theme-btn" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon"></i><span>Dark</span></button></div>
@@ -344,7 +344,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 
 <!-- ===== SETUP ===== -->
 <div id="tab-setup" class="tab-content">
-<div class="sub-tabs"><span class="sub-tab active" onclick="swSetup(this,'profile')">Profile &amp; Settings</span><span class="sub-tab" onclick="swSetup(this,'bank')">Bank &amp; Account</span></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swSetup(this,'profile')">Profile &amp; Settings</span><span class="sub-tab" onclick="swSetup(this,'bank')">Bank &amp; Account</span><span class="sub-tab" onclick="swSetup(this,'holiday')">Holidays</span></div>
 <div id="setup-profile" class="sub-panel active">
 <div class="card" style="border-color:var(--primary)"><h2><i class="fa-solid fa-cloud-arrow-up"></i> Backup &amp; Restore</h2><p class="text-muted" style="font-size:10px;margin-bottom:8px">Save all your data to a file, or load it on another device (e.g. move from computer to phone). Data lives in this browser only — export to move it.</p><div class="filterbar" style="margin-bottom:0"><button class="btn btn-primary" onclick="exportData()"><i class="fa-solid fa-download"></i> Export (JSON)</button><button class="btn btn-ghost" onclick="document.getElementById('imp').click()"><i class="fa-solid fa-upload"></i> Import (JSON)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="exportTrxExcel('all')"><i class="fa-solid fa-file-excel"></i> Export (Excel)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="document.getElementById('imp-all-xlsx').click()"><i class="fa-solid fa-file-excel"></i> Import (Excel)</button></div><p class="text-muted" style="font-size:9px;margin-top:6px;margin-bottom:0"><i class="fa-solid fa-circle-info"></i> Import replaces ALL current data with the file's contents.</p></div>
 <div class="card"><h2><i class="fa-solid fa-user"></i> Profile &amp; Income</h2><div class="form-grid">
@@ -372,6 +372,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <input type="file" id="imp-all-xlsx" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel('all',event)">
 </div>
 </div>
+<div id="setup-holiday" class="sub-panel"><div class="card"><h2>🎌 Holidays (วันหยุดประจำปี)</h2><div id="holiday-body"></div></div></div>
 <div id="setup-bank" class="sub-panel">
 <div class="card" style="margin-bottom:10px"><h2><i class="fa-solid fa-building-columns"></i> Banks</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Bank issuers — ใช้ใน Credit Cards &rarr; Card Details และเป็นตัวเลือกธนาคารของบัญชีด้านล่าง</p><div class="types-list" id="banks-list"></div></div>
 <div id="setup-accounts-host"></div>
@@ -669,7 +670,8 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 </script>
 <script src="js/simulation.js?v=289"></script>
 
-<script src="js/ui-setup.js?v=258"></script>
+<script src="js/ui-setup.js?v=259"></script>
+<script src="js/ui-holidays.js?v=2"></script>
 
 <script src="js/ui-payroll.js?v=255"></script>
 <script src="js/ui-monthlyplan.js?v=14"></script>
@@ -677,7 +679,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-creditcards.js?v=315"></script>
 
 <script src="js/ui-timeline.js?v=255"></script>
-<script src="js/ui-dashboard.js?v=291"></script>
+<script src="js/ui-dashboard.js?v=293"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>
@@ -701,7 +703,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-cardtxns.js?v=2"></script>
 <script src="js/ui-cardsummary.js?v=17"></script>
 <script src="js/drive-view.js?v=2"></script>
-<script src="js/app.js?v=294"></script>
+<script src="js/app.js?v=295"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
 <script src="../WRHub/shared/table-fit.js?v=3" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=3';document.body.appendChild(s);"></script>
 <script src="js/table-search.js?v=1"></script>

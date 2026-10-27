@@ -371,6 +371,7 @@ h+='<span><i class="fa-solid fa-credit-card" style="color:#7c3aed"></i> Card sta
 h+='<span><i class="fa-solid fa-file-invoice"></i> Bill (icon by type)</span>';
 h+='<span><span style="color:var(--text3)">\ud83e\udd16</span> Auto-pay</span>';
 h+='<span><i class="fa-solid fa-list-check" style="color:var(--accent)"></i> Task</span>';
+h+='<span style="color:#b45309">\ud83c\udf8c Holiday</span>';
 h+='</div>';
 h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
 ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(dn,di){
@@ -388,7 +389,8 @@ var isToday=(y===now.getFullYear()&&m===now.getMonth()&&day===now.getDate());
 var _dow=new Date(y,m,day).getDay();var _isWe=(_dow===0||_dow===6);
 var _act=dayStatus[day]||0;// 2=overdue,1=due today (manual, unpaid)
 // Background priority: overdue (red) > due-today (amber) > today (blue) > weekend (soft amber) > normal.
-var cellBg=_act===2?'rgba(220,38,38,0.10)':(_act===1?'rgba(245,158,11,0.12)':(isToday?'rgba(59,130,246,0.06)':(_isWe?'rgba(245,158,11,0.06)':'var(--bg2)')));
+var _hol=(typeof holidayOn==='function')?holidayOn(y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0')):null;
+var cellBg=(_hol&&!_act&&!isToday)?'rgba(245,158,11,0.10)':_act===2?'rgba(220,38,38,0.10)':(_act===1?'rgba(245,158,11,0.12)':(isToday?'rgba(59,130,246,0.06)':(_isWe?'rgba(245,158,11,0.06)':'var(--bg2)')));
 // Border priority: keep today's blue ring; else overdue red / due-today amber; else weekend/normal.
 var cellBd=isToday?'border:2px solid rgba(59,130,246,0.55)':(_act===2?'border:1px solid var(--error)':(_act===1?'border:1px solid var(--warning)':(_isWe?'border:1px solid rgba(245,158,11,0.25)':'border:1px solid var(--border)')));
 // Left accent bar for action days (doesn't shift layout).
@@ -403,8 +405,9 @@ h+='<div onclick="dashCalDay('+_dk+',event)" title="Tap for the full list of thi
 if(isToday){
   h+='<div style="margin-bottom:2px"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:rgba(59,130,246,0.16);color:var(--accent);font-size:10px;font-weight:700">'+day+'</span></div>';
 }else{
-  h+='<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:2px">'+day+'</div>';
+  h+='<div style="font-size:10px;font-weight:600;color:'+(_hol?'var(--warning)':'var(--text3)')+';margin-bottom:2px">'+day+'</div>';
 }
+if(_hol)h+='<div title="'+esc(_hol.map(function(x){return x.name;}).join(', '))+'" style="display:block;font-size:9px;line-height:1.4;color:#b45309;background:rgba(245,158,11,0.18);border-radius:8px;padding:0 6px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\ud83c\udf8c '+esc(_hol.map(function(x){return x.name||'Holiday';}).join(', '))+'</div>';
 var bills=billByDay[day]||[],tasks=taskByDay[day]||[];
 bills.forEach(function(o){h+=_calBillLine(o,false);});
 _calTaskSort(tasks).forEach(function(t){h+=_calTaskLine(t,false);});
@@ -445,6 +448,7 @@ var dt=d.date,DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var title=DOW[dt.getDay()]+' '+dt.getDate()+' '+MO[dt.getMonth()]+' '+dt.getFullYear();
 var body='<div style="font-size:15px;font-weight:700;margin-bottom:10px"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i> '+title+'</div>';
 var _diso=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+var _dh=(typeof holidayOn==='function')?holidayOn(_diso):null;if(_dh)body+='<div style="font-size:12px;color:#b45309;font-weight:600;margin:-4px 0 8px">\ud83c\udf8c '+esc(_dh.map(function(x){return x.name||'Holiday';}).join(', '))+'</div>';
 if(!d.bills.length&&!d.tasks.length) body+='<div style="color:var(--text3);font-size:12px;padding:8px 0">Nothing on this day.</div>';
 if(d.bills.length){
 var tot=0,inc=0;

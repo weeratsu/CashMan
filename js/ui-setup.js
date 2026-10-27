@@ -13,7 +13,7 @@ function addCard(){readAll();D.cards.push({name:'New Card',statement_day:1,payme
 
 // MONTHLY
 
-function swSetup(el,tab){document.querySelectorAll('#tab-setup .sub-panel').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('#tab-setup .sub-tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');document.getElementById('setup-'+tab).classList.add('active');if(tab==='bank')try{renderBankAccount()}catch(e){console.error('renderBankAccount:',e)}}
+function swSetup(el,tab){document.querySelectorAll('#tab-setup .sub-panel').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('#tab-setup .sub-tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');document.getElementById('setup-'+tab).classList.add('active');if(tab==='bank')try{renderBankAccount()}catch(e){console.error('renderBankAccount:',e)}if(tab==='holiday')try{renderHolidays()}catch(e){console.error('renderHolidays:',e)}}
 
 
 
