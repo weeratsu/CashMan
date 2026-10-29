@@ -500,6 +500,25 @@ function deleteSelectedYearly(){var idxs=[];document.querySelectorAll('.y-chk:ch
 
 function togInstMonth(el){el.nextElementSibling.classList.toggle('open');el.querySelector('.arr').classList.toggle('open')}
 
+// v339: matrix cell is PAID when that month's card statement is paid (installments post into the
+// card bill), or for non-card installments when an I|<name>::YYYY-MM paid record exists.
+// v341: tiny caption under each matrix amount: short card name + statement period (MM/YY).
+function _instCellSub(inst,y,m0){
+var c=inst.card||'';if(!c||c==='Cash/Direct')return '';
+var co=(D.cards||[]).find(function(x){return x.id===c||x.name===c;})||{};
+var nm=co.name||c;var sh=nm.length>6?nm.slice(0,6)+'..':nm;
+var rule=co.period_rule||((co.statement_day||15)<=15?'prev':'same');
+var py=y,pm=m0+(rule==='prev'?0:1);if(pm<1){pm=12;py--;}
+return '<div style="font-size:7.5px;line-height:1.1;color:var(--text3);opacity:.85;text-decoration:none;font-family:var(--font,inherit);font-weight:400" title="'+esc(nm)+' \u00b7 \u0e07\u0e27\u0e14 '+py+'-'+(pm<10?'0':'')+pm+'">'+esc(sh)+' \u00b7 '+String(py).slice(2)+'-'+(pm<10?'0':'')+pm+'</div>';}
+function _instCellPaid(inst,y,m0){
+try{
+var per=y+'-'+(m0+1<10?'0':'')+(m0+1);
+var c=inst.card||'';
+if(c&&c!=='Cash/Direct'&&typeof cbPaidRec==='function'){var co=(D.cards||[]).find(function(x){return x.id===c||x.name===c;})||{};var rule=co.period_rule||((co.statement_day||15)<=15?'prev':'same');var py=y,pm=m0+(rule==='prev'?0:1);if(pm<1){pm=12;py--;}var sp=py+'-'+(pm<10?'0':'')+pm;var r=cbPaidRec(c,py,pm,sp);if(r&&r.paid)return true;}
+var bp=D.bill_payments||{},pre='I|'+(inst.name||'')+'::';
+for(var k in bp){if(k.indexOf(pre)===0&&bp[k]&&bp[k].paid&&(k.slice(pre.length,pre.length+7)===per||(bp[k].period===per)))return true;}
+}catch(e){}
+return false;}
 function renderInstMonthly(){
 var _mNow=new Date();var _mTodayMs=Date.UTC(_mNow.getFullYear(),_mNow.getMonth(),_mNow.getDate());
 var _mRecentMs=_mTodayMs-40*86400000;
@@ -853,10 +872,12 @@ var nowLabel=isNow?'<span style="display:inline-block;background:var(--primary);
 h+='<tr style="'+rowStyle+'"><td style="position:sticky;left:0;background:'+stickyBg+';z-index:1;font-weight:600">'+nowLabel+(overThreshold?'\u26a0\ufe0f ':'')+ MO[mo.m]+' '+String(mo.y).slice(2)+'</td>';
 order.forEach(function(idx){
 var v=matrix[idx][mk]||0;
+var _ip=v>0&&_instCellPaid(all[idx],mo.y,mo.m);
 var cellStyle='font-family:var(--mono);color:'+(v>0?'var(--text)':'var(--border)');
 if(isNow&&v>0)cellStyle+=';font-weight:600;color:var(--primary)';
-h+='<td class="r" style="'+cellStyle+'">'+
-(v>0?'\u0e3f'+fmt(v):'\u2014')+'</td>'});
+if(_ip)cellStyle+=';color:var(--text3);opacity:.55;text-decoration:line-through;font-weight:400';
+h+='<td class="r" style="'+cellStyle+'"'+(_ip?' title="\u0e08\u0e48\u0e32\u0e22\u0e41\u0e25\u0e49\u0e27"':'')+'>'+
+(v>0?(_ip?'<span style="color:var(--success);text-decoration:none;display:inline-block;margin-right:3px">\u2713</span>':'')+'\u0e3f'+fmt(v)+_instCellSub(all[idx],mo.y,mo.m):'\u2014')+'</td>'});
 h+='<td class="r" style="font-family:var(--mono);font-weight:700;color:'+(overThreshold?'#fff':'var(--error)')+';background:'+(overThreshold?'var(--error)':'var(--error-bg)')+';border-radius:'+(overThreshold?'4px':'0')+'">\u0e3f'+fmt(rowTotal)+(overThreshold?' \u26a0\ufe0f':'')+'</td></tr>'});
 
 // Footer: column totals
@@ -865,6 +886,10 @@ order.forEach(function(idx){
 h+='<td class="r" style="font-family:var(--mono);font-size:9px">\u0e3f'+fmt(colTotals[idx])+'</td>'});
 h+='<td class="r" style="font-family:var(--mono);color:var(--error);font-size:11px">\u0e3f'+fmt(grandTotal)+'</td></tr>';
 
+var _nm=0,_cnt={};order.forEach(function(idx){_cnt[idx]=0;});months.forEach(function(mo){var mk=mo.y+'-'+(mo.m<10?'0':'')+mo.m;var any=false;order.forEach(function(idx){if((matrix[idx][mk]||0)>0){_cnt[idx]++;any=true;}});if(any)_nm++;});
+h+='<tr style="background:var(--bg3);color:var(--text2)"><td style="position:sticky;left:0;background:var(--bg3);z-index:1;font-weight:700">AVG / mo</td>';
+order.forEach(function(idx){h+='<td class="r" style="font-family:var(--mono);font-size:9px">\u0e3f'+fmt(_cnt[idx]?Math.round(colTotals[idx]/_cnt[idx]*100)/100:0)+'</td>'});
+h+='<td class="r" style="font-family:var(--mono);font-weight:700;color:var(--primary);font-size:11px" title="Grand total \u00f7 '+_nm+' months">\u0e3f'+fmt(_nm?Math.round(grandTotal/_nm*100)/100:0)+'</td></tr>';
 h+='</tbody></table>';
 el.innerHTML=h;
 
@@ -887,7 +912,7 @@ chart:{type:'areaspline',backgroundColor:'transparent',height:280},
 title:{text:'Monthly Installment Payments',style:{color:tc,fontWeight:'600',fontSize:'13px'}},
 xAxis:{categories:cLabels,labels:{style:{color:tc2,fontSize:'9px'},rotation:-45},lineColor:gc},
 yAxis:{title:{text:null},labels:{style:{color:tc2,fontSize:'9px'},formatter:function(){return'\u0e3f'+Highcharts.numberFormat(this.value/1000,0)+'K'}},gridLineColor:gc,min:0,
-plotLines:threshold>0?[{color:dk?'#fbbf24':'#d97706',width:2,value:threshold,dashStyle:'ShortDash',label:{text:'Threshold \u0e3f'+fmt(threshold),style:{color:dk?'#fbbf24':'#d97706',fontSize:'9px',fontWeight:'600'},align:'right'},zIndex:4}]:[]},
+plotLines:(function(){var pl=[];var _av=cTotals.length?Math.round(cTotals.reduce(function(s,v){return s+v;},0)/cTotals.length*100)/100:0;var _tUp=threshold>=_av;if(threshold>0)pl.push({color:dk?'#fbbf24':'#d97706',width:2,value:threshold,dashStyle:'ShortDash',label:{text:'Threshold \u0e3f'+fmt(threshold),style:{color:dk?'#fbbf24':'#d97706',fontSize:'9px',fontWeight:'600'},align:'right',x:-4,y:_tUp?-4:12},zIndex:4});if(_av>0)pl.push({color:dk?'#60a5fa':'#2563eb',width:2,value:_av,dashStyle:'Dot',label:{text:'Avg \u0e3f'+fmt(_av),style:{color:dk?'#60a5fa':'#2563eb',fontSize:'9px',fontWeight:'600'},align:'right',x:-4,y:(threshold>0&&_tUp)?12:-4},zIndex:4});return pl;})()},
 tooltip:{backgroundColor:bg2,borderColor:gc,style:{color:tc,fontSize:'10px'},
 pointFormat:'\u0e3f{point.y:,.2f}'},
 plotOptions:{areaspline:{marker:{enabled:false,states:{hover:{enabled:true,radius:3}}}}},
@@ -924,7 +949,7 @@ function _planIsPaid(p){
 function _planStatus(p){
   if(_planIsPaid(p))return 'paid';
   var d=p&&p.date?p.date:'';
-  if(d){var t=new Date();var ts=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');if(d<ts)return 'overdue';}
+  if(d){var t=new Date();var ts=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');if(d<=ts&&p.auto_pay)return 'paid';/* v343: auto-pay past due = auto-charged (same as Bill Reminder) */if(d<ts)return 'overdue';}
   return 'upcoming';
 }
 // Small coloured status pill for the Planned table Status column.
