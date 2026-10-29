@@ -694,3 +694,23 @@ h+='</div>';
 el.innerHTML=h;
 }
 window._todoOccInRange=_todoOccInRange;
+
+// Jump from elsewhere (e.g. Dashboard calendar popup) to a task in the To-Do list: switch tab,
+// relax filters so the task is visible, scroll to it, flash-highlight, optionally open its editor.
+function todoJumpTo(id,openEdit){
+var t=(D.todos||[]).find(function(x){return x.id===id;});if(!t)return;
+var b=document.querySelector('.nav-tab[data-tab="todos"]');if(b)b.click();
+_todoSearch='';_todoCatFilter='';
+if(t.done&&!t.cancelled){_todoFilter='all';}else if(_todoFilter!=='all'&&_todoFilter!=='open'){_todoFilter='open';}
+if(openEdit)_todoEditOpen[id]=true;
+renderTodos();
+setTimeout(function(){
+var r=document.querySelector('[data-row="'+id+'"]');if(!r)return;
+try{r.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){r.scrollIntoView();}
+var rows=[r];if(r.nextElementSibling&&r.nextElementSibling.classList.contains('todo-r2'))rows.push(r.nextElementSibling);
+rows.forEach(function(x){x.style.transition='background .4s';x.style.background='rgba(59,130,246,0.18)';x.style.boxShadow='inset 3px 0 0 var(--primary)';});
+setTimeout(function(){rows.forEach(function(x){x.style.background='';});},2200);
+if(openEdit){var ed=document.getElementById('tedit_'+id);if(ed){ed.style.display='grid';var c=document.getElementById('tcar_'+id);if(c)c.style.transform='rotate(90deg)';}}
+},120);
+}
+window.todoJumpTo=todoJumpTo;
