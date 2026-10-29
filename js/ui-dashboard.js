@@ -193,6 +193,8 @@ el3.innerHTML=rows}}
 // ===== DASHBOARD CALENDAR (monthly view: bills + to-do tasks per date) =====
 var _dashCalMonth=''; // 'YYYY-MM'; '' = current month
 var _dashCalCache=[],_dashCalDays=[]; // per-render cache of occurrences/tasks for click-to-expand
+var _dashCalHideDone=(function(){try{return localStorage.getItem('cm_cal_hide_done')==='1';}catch(e){return false;}})(); // calendar: hide paid bills + done tasks
+function dashCalToggleDone(cb){_dashCalHideDone=!!cb.checked;try{localStorage.setItem('cm_cal_hide_done',_dashCalHideDone?'1':'0');}catch(e){}renderDashCalendar();}
 var _dashCalShowAuto=true; // calendar: whether to show auto-pay bills
 var _dashCalShowBills=true; // calendar: whether to show bills at all
 var _dashCalShowTasks=true; // calendar: whether to show to-do tasks
@@ -278,6 +280,7 @@ var _isPaid=(o.paid||(typeof billStatus==='function'&&(function(){var s=billStat
 // Income receivables render green (received or not); expenses red unless auto/paid (grey).
 var col=o._income?'#10b981':((o.auto_pay||_isPaid)?'var(--text3)':'var(--error)');
 var paidMark=_isPaid?' <span style="color:var(--text3)" title="paid">\u2713</span>':'';
+if(_dashCalHideDone&&_isPaid)return '';
 var _paidFade=_isPaid?';opacity:.45;text-decoration:line-through':'';  // v291: paid bills fade + strike so they drop focus
 var isStmt=(o.kind==='Card Statement'&&o.children&&o.children.length);
 var caret=isStmt?'<span style="color:var(--text3);font-size:8px">\u25b8</span> ':'';
@@ -317,6 +320,19 @@ else if(ty===_nextY&&tm===_nextM)(nextTaskByDay[day]=nextTaskByDay[day]||[]).pus
 // Cancelled-occurrence pass: place each cancelled date (t.cancelled_occ[]) as a struck marker on the
 // calendar, even for recurring tasks whose live due_date has rolled forward. Keeps the cancelled round
 // visible instead of vanishing. Rendered via _calTaskLine with done styling (grey + strikethrough).
+// Completed-occurrence pass: every done (non-cancelled) entry in todo_log is shown struck on its
+// WAS-DUE date (fallback done date). Recurring tasks roll forward on completion and one-time done
+// tasks are skipped by the main loop, so without this, finished tasks vanished from the calendar.
+if(_dashCalShowTasks)(D.todo_log||[]).forEach(function(L){
+if(L.cancelled)return;
+var iso=String(L.due_date||L.done_date||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(iso))return;
+var parts=iso.split('-');var ty=parseInt(parts[0],10),tm=parseInt(parts[1],10)-1,day=parseInt(parts[2],10);
+var t0=(D.todos||[]).find(function(x){return x.id===L.todo_id;})||{id:L.todo_id,title:L.title,category:L.category,priority:L.priority};
+var _c=Object.assign({},t0,{_occDate:iso,done:true,cancelled:false,done_date:L.done_date,title:t0.title||L.title});
+if(ty===y&&tm===m)(taskByDay[day]=taskByDay[day]||[]).push(_c);
+else if(ty===_prevY&&tm===_prevM)(prevTaskByDay[day]=prevTaskByDay[day]||[]).push(_c);
+else if(ty===_nextY&&tm===_nextM)(nextTaskByDay[day]=nextTaskByDay[day]||[]).push(_c);
+});
 if(_dashCalShowTasks)(D.todos||[]).forEach(function(t){
 if(!Array.isArray(t.cancelled_occ)||!t.cancelled_occ.length)return;
 t.cancelled_occ.forEach(function(iso){
@@ -337,6 +353,7 @@ if(ta&&!tb)return -1;if(!ta&&tb)return 1;if(ta!==tb)return ta<tb?-1:1;
 return String((a&&a.title)||'').localeCompare(String((b&&b.title)||''));});
 }
 function _calTaskLine(t,muted){
+if(_dashCalHideDone&&t.done)return '';
 var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
 // Overdue = date-mode task whose due date is before today and not done. Carried-over pending tasks
 // must STAND OUT (red + bold + \u26a0), never fade — even in a faded adjacent-month cell.
@@ -364,6 +381,7 @@ h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclic
 h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="Show or hide bills"><input type="checkbox" '+(_dashCalShowBills?'checked':'')+' onchange="dashCalToggleBills(this)"> Bills</label>';
 h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer" title="Show or hide to-do tasks"><input type="checkbox" '+(_dashCalShowTasks?'checked':'')+' onchange="dashCalToggleTasks(this)"> Tasks</label>';
 h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="Show or hide auto-pay bills"><input type="checkbox" '+(_dashCalShowAuto?'checked':'')+' onchange="dashCalToggleAuto(this)"> Show auto</label>';
+h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="\u0e0b\u0e48\u0e2d\u0e19\u0e1a\u0e34\u0e25\u0e17\u0e35\u0e48\u0e08\u0e48\u0e32\u0e22\u0e41\u0e25\u0e49\u0e27 + task \u0e17\u0e35\u0e48\u0e40\u0e2a\u0e23\u0e47\u0e08/\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01"><input type="checkbox" '+(_dashCalHideDone?'checked':'')+' onchange="dashCalToggleDone(this)"> Hide done</label>';
 h+='</div>';
 // Legend
 h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--text3);margin-bottom:8px">';
@@ -440,6 +458,7 @@ el.innerHTML=h;
 var _dashCalDays=[];
 function _calDaySortTasks(arr){return (arr||[]).slice().sort(function(a,b){var ta=(a&&a.due_time)?String(a.due_time):'',tb=(b&&b.due_time)?String(b.due_time):'';if(ta&&!tb)return -1;if(!ta&&tb)return 1;if(ta!==tb)return ta<tb?-1:1;return String((a&&a.title)||'').localeCompare(String((b&&b.title)||''));});}
 function _calDayReg(dt,bills,tasks){return _dashCalDays.push({date:dt,bills:(bills||[]).slice(),tasks:_calDaySortTasks(tasks)})-1;}
+function _calPill(txt,fg,bg){return '<span style="flex:none;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;color:'+fg+';background:'+bg+';white-space:nowrap">'+txt+'</span>';}
 function dashCalDay(k,ev){
 var d=_dashCalDays[k];if(!d)return;
 var _calToday=(function(){var t=new Date();t.setHours(0,0,0,0);return t;})(); // own copy: the calendar's _calToday is local to renderDashCalendar
@@ -458,10 +477,11 @@ if(o._income)inc+=(o.amount||0);else tot+=(o.amount||0);
 var isPaid=(o.paid||(typeof billStatus==='function'&&(function(){var st=billStatus(o,_calToday);return st==='paid'||st==='auto_paid';})()));
 var col=o._income?'#10b981':((o.auto_pay||isPaid)?'var(--text3)':'var(--error)');
 var bic=(typeof _billIcon==='function')?_billIcon(o):'';
-body+='<div onclick="dashCalShow('+o._calIdx+')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--border);font-size:13px">'
+var _bp=o._income?(isPaid?_calPill('\u2713 Received','#047857','rgba(16,185,129,.15)'):_calPill('To receive','#047857','rgba(16,185,129,.10)')):(isPaid?_calPill('\u2713 Paid','#15803d','rgba(22,163,74,.14)'):(o.auto_pay?_calPill('\ud83e\udd16 Auto','#6d28d9','rgba(124,58,237,.12)'):_calPill('\u23f3 Pending','#b45309','rgba(245,158,11,.18)')));
+body+='<div onclick="dashCalShow('+o._calIdx+')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--border);font-size:13px'+(isPaid?';opacity:.6':'')+'">'
  +'<span style="flex:none;width:18px;text-align:center">'+bic+'</span>'
- +'<span style="flex:1;min-width:0;white-space:normal;word-break:break-word">'+esc(o.name||'')+(o.kind==='Installment'&&o.info?' <span style="font-size:10px;color:var(--text3)">'+esc(o.info)+'</span>':'')
- +(o.auto_pay?' <span title="auto-pay">\ud83e\udd16</span>':'')+(isPaid?' <span style="color:var(--text3)">\u2713</span>':'')+'</span>'
+ +'<span style="flex:1;min-width:0;white-space:normal;word-break:break-word'+(isPaid?';text-decoration:line-through':'')+'">'+esc(o.name||'')+(o.kind==='Installment'&&o.info?' <span style="font-size:10px;color:var(--text3)">'+esc(o.info)+'</span>':'')
+ +(o.auto_pay&&isPaid?' <span title="auto-pay">\ud83e\udd16</span>':'')+'</span>'+_bp
  +'<span style="flex:none;font-family:var(--mono);color:'+col+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+'</span>'
  +'<span style="flex:none;color:var(--text3)">\u203a</span></div>';
 });
@@ -472,9 +492,10 @@ body+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transf
 d.tasks.forEach(function(t){
 var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
 var ovd=false;if(!t.done&&t.deadline_mode==='date'&&t.due_date){var dd=new Date(t.due_date+'T00:00:00');if(!isNaN(dd.getTime())&&dd<_calToday)ovd=true;}
-body+='<div onclick="dashCalShow('+tidx+')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--border);font-size:13px'+(ovd?';color:var(--error);font-weight:700':'')+'">'
+var _tp=t.cancelled?_calPill('\u2715 Cancelled','#64748b','rgba(100,116,139,.15)'):(t.done?_calPill('\u2713 Done','#15803d','rgba(22,163,74,.14)'):(ovd?_calPill('\u26a0 Overdue','#b91c1c','rgba(220,38,38,.12)'):_calPill('\u23f3 Pending','#b45309','rgba(245,158,11,.18)')));
+body+='<div onclick="dashCalShow('+tidx+')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--border);font-size:13px'+(ovd?';color:var(--error);font-weight:700':'')+(t.done?';opacity:.6':'')+'">'
  +'<span style="flex:none;width:44px;font-family:var(--mono);font-size:12px;color:'+(ovd?'var(--error)':'var(--text2)')+'">'+(t.due_time?esc(String(t.due_time).slice(0,5)):(t.deadline_mode==='asap'?'ASAP':'\ud83d\udcc5'))+'</span>'
- +'<span style="flex:1;min-width:0;white-space:normal;word-break:break-word">'+(ovd?'\u26a0\ufe0f ':'')+esc(t.title||'')+(t.category?' <span style="font-size:10px;color:var(--text3)">'+esc(t.category)+'</span>':'')+'</span>'
+ +'<span style="flex:1;min-width:0;white-space:normal;word-break:break-word'+(t.done?';text-decoration:line-through'+(t.cancelled?';font-style:italic':''):'')+'">'+(ovd?'\u26a0\ufe0f ':'')+esc(t.title||'')+(t.category?' <span style="font-size:10px;color:var(--text3)">'+esc(t.category)+'</span>':'')+'</span>'+_tp
  +'<span style="flex:none;color:var(--text3)">\u203a</span></div>';
 });
 }
