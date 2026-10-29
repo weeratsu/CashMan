@@ -193,8 +193,10 @@ el3.innerHTML=rows}}
 // ===== DASHBOARD CALENDAR (monthly view: bills + to-do tasks per date) =====
 var _dashCalMonth=''; // 'YYYY-MM'; '' = current month
 var _dashCalCache=[],_dashCalDays=[]; // per-render cache of occurrences/tasks for click-to-expand
-var _dashCalHideDone=(function(){try{return localStorage.getItem('cm_cal_hide_done')==='1';}catch(e){return false;}})(); // calendar: hide paid bills + done tasks
-function dashCalToggleDone(cb){_dashCalHideDone=!!cb.checked;try{localStorage.setItem('cm_cal_hide_done',_dashCalHideDone?'1':'0');}catch(e){}renderDashCalendar();}
+var _dashCalShowDone=(function(){try{var v=localStorage.getItem('cm_cal_show_done');if(v!==null)return v==='1';return localStorage.getItem('cm_cal_hide_done')!=='1';}catch(e){return true;}})(); // calendar: show done/cancelled tasks
+var _dashCalShowPaid=(function(){try{var v=localStorage.getItem('cm_cal_show_paid');if(v!==null)return v==='1';return localStorage.getItem('cm_cal_hide_done')!=='1';}catch(e){return true;}})(); // calendar: show paid bills
+function dashCalToggleDone(cb){_dashCalShowDone=!!cb.checked;try{localStorage.setItem('cm_cal_show_done',_dashCalShowDone?'1':'0');}catch(e){}renderDashCalendar();}
+function dashCalTogglePaid(cb){_dashCalShowPaid=!!cb.checked;try{localStorage.setItem('cm_cal_show_paid',_dashCalShowPaid?'1':'0');}catch(e){}renderDashCalendar();}
 var _dashCalShowAuto=true; // calendar: whether to show auto-pay bills
 var _dashCalShowBills=true; // calendar: whether to show bills at all
 var _dashCalShowTasks=true; // calendar: whether to show to-do tasks
@@ -223,6 +225,16 @@ function dashCalRefresh(){
   // also pick up new bills written by run_utility.bat since the page was opened
   if(typeof utilReloadLog==='function'){ utilReloadLog().then(go, go); } else { go(); }
 }
+function _calfPill(txt,on,fn,tip,dis){
+return '<button type="button" onclick="'+fn+'" title="'+tip+'" style="font-size:10px;line-height:1;padding:4px 9px;border-radius:999px;cursor:pointer;white-space:nowrap;border:1px solid '+(on?'var(--primary)':'var(--border)')+';background:'+(on?'var(--primary)':'transparent')+';color:'+(on?'#fff':'var(--text3)')+(dis?';opacity:.4':'')+'">'+txt+'</button>';}
+function dashCalPill(k){
+function st(n,v){try{localStorage.setItem(n,v?'1':'0');}catch(e){}}
+if(k==='bills')_dashCalShowBills=!_dashCalShowBills;
+else if(k==='tasks')_dashCalShowTasks=!_dashCalShowTasks;
+else if(k==='auto')_dashCalShowAuto=!_dashCalShowAuto;
+else if(k==='paid'){_dashCalShowPaid=!_dashCalShowPaid;st('cm_cal_show_paid',_dashCalShowPaid);}
+else if(k==='done'){_dashCalShowDone=!_dashCalShowDone;st('cm_cal_show_done',_dashCalShowDone);}
+renderDashCalendar();}
 function dashCalToggleAuto(cb){_dashCalShowAuto=!!cb.checked;renderDashCalendar();}
 function dashCalToggleBills(cb){_dashCalShowBills=!!cb.checked;renderDashCalendar();}
 function dashCalToggleTasks(cb){_dashCalShowTasks=!!cb.checked;renderDashCalendar();}
@@ -249,6 +261,16 @@ var dayStatus={};
 var _calToday=new Date();_calToday.setHours(0,0,0,0);
 var _prevY=(m===0?y-1:y),_prevM=(m===0?11:m-1);
 var _nextY=(m===11?y+1:y),_nextM=(m===11?0:m+1);
+// v303: a charge that is PAID gets folded into its card statement and drops out of the top-level list,
+// so it vanished from the calendar. Re-surface every statement child on its own date (display-only,
+// excluded from totals like other _surfaced rows), marked paid when folded/paid. Hide-done controls it.
+(function(){var seen={};occ.forEach(function(o){if(o._surfaced){var dd=o.orig_due||o.due;if(dd)seen[(o.key||o.name)+'|'+dd.toDateString()]=1;}});
+var extra=[];occ.forEach(function(s){if(s.kind!=='Card Statement'||!Array.isArray(s.children))return;
+s.children.forEach(function(ch){var dd=ch.orig_due||ch.due;if(!(dd instanceof Date))return;var k=(ch.key||ch.name)+'|'+dd.toDateString();if(seen[k])return;seen[k]=1;
+var c=Object.assign({},ch,{_surfaced:true,_inStmtCard:s.card,_calFromStmt:true});
+if(ch._paidFold||ch.paid||(ch.auto_pay&&s.paid)||s.paid)c.paid=true;
+extra.push(c);});});
+Array.prototype.push.apply(occ,extra);})();
 occ.forEach(function(o){
 var d=o.orig_due||o.due;if(!d)return;
 // Optional filter: hide ALL bills when the user unchecks "Bills".
@@ -290,7 +312,7 @@ var _isPaid=(o.paid||(typeof billStatus==='function'&&(function(){var s=billStat
 // Income receivables render green (received or not); expenses red unless auto/paid (grey).
 var col=o._income?'#10b981':((o.auto_pay||_isPaid)?'var(--text3)':'var(--error)');
 var paidMark=_isPaid?' <span style="color:var(--text3)" title="paid">\u2713</span>':'';
-if(_dashCalHideDone&&_isPaid)return '';
+if(!_dashCalShowPaid&&_isPaid)return '';
 var _paidFade=_isPaid?';opacity:.45;text-decoration:line-through':'';  // v291: paid bills fade + strike so they drop focus
 var isStmt=(o.kind==='Card Statement'&&o.children&&o.children.length);
 var caret=isStmt?'<span style="color:var(--text3);font-size:8px">\u25b8</span> ':'';
@@ -363,7 +385,7 @@ if(ta&&!tb)return -1;if(!ta&&tb)return 1;if(ta!==tb)return ta<tb?-1:1;
 return String((a&&a.title)||'').localeCompare(String((b&&b.title)||''));});
 }
 function _calTaskLine(t,muted){
-if(_dashCalHideDone&&t.done)return '';
+if(!_dashCalShowDone&&t.done)return '';
 var tidx=_dashCalCache.push({_isTask:true,task:t})-1;
 // Overdue = date-mode task whose due date is before today and not done. Carried-over pending tasks
 // must STAND OUT (red + bold + \u26a0), never fade — even in a faded adjacent-month cell.
@@ -388,10 +410,17 @@ h+='<div style="font-weight:600;min-width:96px;text-align:center">'+MO[m]+' '+y+
 h+='<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" onclick="dashCalNav(1)" title="Next month"><i class="fa-solid fa-chevron-right"></i></button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="dashCalToday()" title="Jump to current month">Today</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="dashCalRefresh()" title="Reload latest bills, tasks and payments"><i class="fa-solid fa-rotate-right"></i> Refresh</button>';
-h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="Show or hide bills"><input type="checkbox" '+(_dashCalShowBills?'checked':'')+' onchange="dashCalToggleBills(this)"> Bills</label>';
-h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer" title="Show or hide to-do tasks"><input type="checkbox" '+(_dashCalShowTasks?'checked':'')+' onchange="dashCalToggleTasks(this)"> Tasks</label>';
-h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="Show or hide auto-pay bills"><input type="checkbox" '+(_dashCalShowAuto?'checked':'')+' onchange="dashCalToggleAuto(this)"> Show auto</label>';
-h+='<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);cursor:pointer;margin-left:4px" title="\u0e0b\u0e48\u0e2d\u0e19\u0e1a\u0e34\u0e25\u0e17\u0e35\u0e48\u0e08\u0e48\u0e32\u0e22\u0e41\u0e25\u0e49\u0e27 + task \u0e17\u0e35\u0e48\u0e40\u0e2a\u0e23\u0e47\u0e08/\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01"><input type="checkbox" '+(_dashCalHideDone?'checked':'')+' onchange="dashCalToggleDone(this)"> Hide done</label>';
+// v305: grouped pill toggles (on = coloured, off = grey). Bills: all / auto / paid · Tasks: all / done.
+h+='<style>.calf-grp{display:inline-flex;align-items:center;gap:4px;padding:2px 6px 2px 4px;border:1px solid var(--border);border-radius:999px;background:var(--bg3,rgba(0,0,0,.02))}.calf-lbl{font-size:11px;color:var(--text3);padding:0 2px}</style><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:4px">'+
+ '<div class="calf-grp"><span class="calf-lbl"><i class="fa-solid fa-file-invoice"></i></span>'+
+  _calfPill('Bills',_dashCalShowBills,'dashCalPill(\'bills\')','Show or hide bills')+
+  _calfPill('\ud83e\udd16 Auto',_dashCalShowAuto,'dashCalPill(\'auto\')','Show auto-pay bills',!_dashCalShowBills)+
+  _calfPill('\u2713 Paid',_dashCalShowPaid,'dashCalPill(\'paid\')','Show paid bills',!_dashCalShowBills)+
+ '</div>'+
+ '<div class="calf-grp"><span class="calf-lbl"><i class="fa-solid fa-list-check"></i></span>'+
+  _calfPill('Tasks',_dashCalShowTasks,'dashCalPill(\'tasks\')','Show or hide tasks')+
+  _calfPill('\u2713 Done',_dashCalShowDone,'dashCalPill(\'done\')','Show done / cancelled tasks',!_dashCalShowTasks)+
+ '</div></div>';
 h+='</div>';
 // Legend
 h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--text3);margin-bottom:8px">';
