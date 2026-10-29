@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-29 10:55";
+window.APP_VERSION="2026-10-29 11:20";
 window.addEventListener("error",function(e){
 try{
 // Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
@@ -660,13 +660,14 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <div id="data-footer" style="margin-top:20px;padding:10px;text-align:center;font-size:9px;color:var(--text3);border-top:1px solid var(--border)"></div>
 </div><!-- /.main -->
 
+<script>try{window.__cmBootLM=(JSON.parse(localStorage.getItem('cashflow_v5')||'null')||{}).last_modified||'';}catch(e){window.__cmBootLM='';}</script>
 <script src="js/data.js?v=320"></script>
 <script src="js/unified.js?v=8"></script>
 <script src="js/unified-adapter.js?v=18"></script>
 <script>window.CM_USE_UNIFIED=true;/* Step 2: Bill Reminder/Timeline/Calendar read the unified generator via billOccurrencesUnified. Set false to A/B against legacy. */</script>
 <!-- Google Sheet sync (local only): config-sheet.js is in .gitignore; if missing (e.g. GitHub Pages) CashMan uses localStorage only -->
 <script src="js/config-sheet.js" onerror="window.CM_SHEET_CFG=null"></script>
-<script src="js/sheet-sync.js?v=10"></script>
+<script src="js/sheet-sync.js?v=11"></script>
 </script>
 <script src="js/simulation.js?v=289"></script>
 

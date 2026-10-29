@@ -112,6 +112,10 @@
   if(typeof _saveD==='function'){
     window.saveD=function(){ var r=_saveD.apply(this,arguments); gen++; dirty(true); schedule(1500); return r; };
   }
+  // v11: local last_modified as stored BEFORE this session's load-time auto-saves (migrations,
+  // card/utility auto-sync). Those stamp last_modified=now, which made a stale device look newer than
+  // the Sheet -> it kept old data and pushed it over the other device. First pull compares against this.
+  var _llBoot=(typeof window.__cmBootLM==='string')?window.__cmBootLM:(function(){try{return (JSON.parse(localStorage.getItem(SKEY)||'null')||{}).last_modified||'';}catch(e){return '';}})();
   function pull(){
     if(_syncPaused()){ badge('⏸ sync paused (local only)','var(--text2)'); return; }   // paused -> don't pull Sheet over local
     if(pulledOnce && dirty()){ schedule(0); return; }   // unsent local edits win: push them first
@@ -127,6 +131,7 @@
           return;
         }
         var rl=remote.last_modified||'', ll=(typeof D!=='undefined'&&D&&D.last_modified)||'';
+        if(first && _llBoot) ll=_llBoot;   // v11: ignore load-time auto-save timestamps on first pull
         var lReal=(typeof D!=='undefined')&&isReal(D), rReal=isReal(remote);
         var takeRemote = rReal && ( !lReal || rl>ll || (first && !hadLocal) );   // real Sheet beats empty local, always
         if(!rReal && lReal){ gen++; dirty(true); schedule(0); badge('\u2191 restoring Sheet from local\u2026'); return; } // Sheet empty/broken -> repair from local
