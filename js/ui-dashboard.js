@@ -505,6 +505,8 @@ document.body.appendChild(ov);
 var _dashCalDays=[];
 function _calDaySortTasks(arr){return (arr||[]).slice().sort(function(a,b){var ta=(a&&a.due_time)?String(a.due_time):'',tb=(b&&b.due_time)?String(b.due_time):'';if(ta&&!tb)return -1;if(!ta&&tb)return 1;if(ta!==tb)return ta<tb?-1:1;return String((a&&a.title)||'').localeCompare(String((b&&b.title)||''));});}
 function _calDayReg(dt,bills,tasks){return _dashCalDays.push({date:dt,bills:(bills||[]).slice(),tasks:_calDaySortTasks(tasks)})-1;}
+// v301: global paid check (the in-calendar _calIsPaid lives inside renderDashCalendar's scope, not visible here)
+function _calIsPaidG(o){var t0=new Date();t0.setHours(0,0,0,0);return !!(o&&(o.paid||(typeof billStatus==='function'&&(function(){var s=billStatus(o,t0);return s==='paid'||s==='auto_paid';})())));}
 function _calPill(txt,fg,bg){return '<span style="flex:none;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;color:'+fg+';background:'+bg+';white-space:nowrap">'+txt+'</span>';}
 function dashCalDay(k,ev){
 var d=_dashCalDays[k];if(!d)return;
@@ -519,7 +521,7 @@ if(!d.bills.length&&!d.tasks.length) body+='<div style="color:var(--text3);font-
 if(d.bills.length){
 var tot=0,inc=0;
 body+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin:4px 0">Bills ('+d.bills.length+')</div>';
-d.bills.slice().sort(function(a,b){return (_calIsPaid(a)?1:0)-(_calIsPaid(b)?1:0);}).forEach(function(o){
+d.bills.slice().sort(function(a,b){return (_calIsPaidG(a)?1:0)-(_calIsPaidG(b)?1:0);}).forEach(function(o){
 if(o._income)inc+=(o.amount||0);else tot+=(o.amount||0);
 var isPaid=(o.paid||(typeof billStatus==='function'&&(function(){var st=billStatus(o,_calToday);return st==='paid'||st==='auto_paid';})()));
 var col=o._income?'#10b981':((o.auto_pay||isPaid)?'var(--text3)':'var(--error)');
