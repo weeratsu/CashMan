@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-29 11:20";
+window.APP_VERSION="2026-10-29 11:45";
 window.addEventListener("error",function(e){
 try{
 // Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
@@ -260,6 +260,13 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
   .todo-tbl input.inp-inline{width:100%!important}
   .todo-meta{width:100%}
 }
+</style>
+<style>/* v-dark-input: readable text in inputs/selects (esp. focused) in dark mode */
+.inp,.sel,select,textarea,input{color:var(--text)}
+.inp:focus,.sel:focus,select:focus,textarea:focus,input:focus{color:var(--text)!important}
+html.dark .inp,html.dark .sel,html.dark select,html.dark textarea,html.dark input:not([type=checkbox]):not([type=radio]){color:#e8eaed!important;-webkit-text-fill-color:#e8eaed;caret-color:#93c5fd}
+html.dark input::placeholder,html.dark textarea::placeholder{color:#8b90a0;-webkit-text-fill-color:#8b90a0}
+html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </style>
 </head>
 <body>
@@ -687,7 +694,7 @@ div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:var(--border,#
 <script src="js/ui-retirement.js?v=254"></script>
 
 <script src="js/ui-billreminder.js?v=348"></script>
-<script src="js/ui-todos.js?v=311"></script>
+<script src="js/ui-todos.js?v=312"></script>
 <script src="js/ui-wishlist.js?v=255"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below

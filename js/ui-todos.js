@@ -61,7 +61,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Priority','<select id="ta-pri" class="sel"><option value="1">\ud83d\udd34 High</option><option value="2" selected>\ud83d\udfe1 Normal</option><option value="3">\ud83d\udfe3 Low</option></select>')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
- +row('Deadline','<select id="ta-mode" class="sel" id="ta-dmode" onchange="document.getElementById(\'ta-datewrap\').style.visibility=this.value===\'date\'?\'visible\':\'hidden\'"><option value="none">None</option><option value="date">Date</option><option value="asap">ASAP</option></select>')
+ +row('Deadline','<select id="ta-mode" class="sel" onchange="document.getElementById(\'ta-datewrap\').style.visibility=this.value===\'date\'?\'visible\':\'hidden\'"><option value="none">None</option><option value="date">Date</option><option value="asap">ASAP</option></select>')
  +'<div id="ta-datewrap" style="visibility:hidden">'+row('Date','<input id="ta-date" type="date" class="inp">')+'</div>'
  +row('Time','<input id="ta-time" type="time" class="inp">')
  +'</div>'
@@ -72,7 +72,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 recurrence details (every N, day, until) can be fine-tuned in the row after saving</div>'
  +'</div>';
 ov.style.display='flex';
-setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var dm=document.getElementById('ta-dmode');var dd=document.getElementById('ta-date');var dw=document.getElementById('ta-datewrap');if(dm)dm.value='date';if(dw)dw.style.visibility='visible';if(dd)dd.value=prefillISO;}var e=document.getElementById('ta-title');if(e)e.focus();},30);
+setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var dm=document.getElementById('ta-mode');var dd=document.getElementById('ta-date');var dw=document.getElementById('ta-datewrap');if(dm)dm.value='date';if(dw)dw.style.visibility='visible';if(dd)dd.value=prefillISO;}var e=document.getElementById('ta-title');if(e)e.focus();},30);
 }
 function todoAddClose(){var ov=document.getElementById('todo-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
 function todoAddSave(){
