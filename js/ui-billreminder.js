@@ -1199,7 +1199,7 @@ var cardTxt=o.card&&o.card!=='Cash/Direct'?' <span style="font-size:9px;color:va
 var rowStyle=st==='overdue'?'background:rgba(220,38,38,0.06);box-shadow:inset 3px 0 0 var(--error)':((_disp==='due_today'&&!o.auto_pay)?'background:rgba(245,158,11,0.08);box-shadow:inset 3px 0 0 var(--warning)':((o.paid||st==='auto_paid')?'opacity:.6':''));
 var _hasKids=o.children&&o.children.length;
 var _gid=_hasKids?('brk_'+o.fullKey.replace(/[^a-zA-Z0-9]/g,'_')):'';
-h+='<tr style="'+rowStyle+'">'+
+h+='<tr data-bkey="'+esc(o.fullKey)+'" style="'+rowStyle+'">'+
 '<td class="r"><input type="checkbox" class="br-chk" data-key="'+esc(o.fullKey)+'" data-amt="'+o.amount+'" data-due="'+_billISO(o.due)+'" data-type="'+esc(o.type||'')+'" data-card="'+esc(o.card||'')+'" data-auto="'+(o.auto_pay?'1':'0')+'" data-paid="'+(o.paid?'1':'0')+'" onchange="brUpdateSelCount()"></td>'+
 '<td>'+(_hasKids?'<span style="cursor:pointer;user-select:none;color:var(--text3);margin-right:4px" onclick="var r=document.querySelectorAll(\'.'+_gid+'\');var open=r.length&&r[0].style.display!==\'none\';for(var _i=0;_i<r.length;_i++)r[_i].style.display=open?\'none\':\'\';this.textContent=open?\'\u25b6\':\'\u25bc\'">\u25b6</span>':'')+_billIcon(o)+' '+esc(o.name)+_perBadge(_rowPer(o))+(o.info?' <span style="font-size:8px;color:var(--text3)">'+esc(o.info)+'</span>':'')+(o._surfaced?' <span style="font-size:8px;color:var(--primary);background:var(--primary-bg,rgba(59,130,246,0.1));padding:1px 5px;border-radius:4px" title="This charge is already included in the '+esc(_cardDisp(o._inStmtCard))+' statement total below — surfaced here because you pay it manually">↳ in '+esc(_cardDisp(o._inStmtCard))+' statement</span>':'')+((!o.children||!o.children.length)&&o.kind&&o.kind!=='Card Statement'&&!o._surfaced?' <button title="Delete this bill from your setup" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:9px;padding:0 3px" onclick="event.stopPropagation();brDeleteSource('+_ri+')"><i class="fa-solid fa-trash"></i></button>':'')+'</td>'+
 '<td>'+esc(typeof typeName==='function'?typeName(o.type):o.type)+'</td>'+
@@ -1606,3 +1606,33 @@ h+='<div style="margin-top:8px"><button class="btn btn-ghost" style="font-size:1
 h+='</div>';
 el.innerHTML=h;
 }
+
+// v349: jump from the Dashboard calendar popup to a bill row (same concept as To-Do jump).
+function billJumpTo(fullKey){
+var b=document.querySelector('.nav-tab[data-tab="billreminder"]');if(b)b.click();
+var rec=(D.bill_payments||{})[fullKey];
+_billFilter=(rec&&rec.paid)?'all':'unpaid';_billYear='';_billMonth='';_billDay='';
+try{var s=document.querySelector('#billreminder-content input[type=search],#billreminder-content .tbl-search');if(s){s.value='';s.dispatchEvent(new Event('input'));}}catch(e){}
+try{renderBillReminder();}catch(e){}
+setTimeout(function(){
+var rows=document.querySelectorAll('[data-bkey]'),r=null;
+for(var i=0;i<rows.length;i++){if(rows[i].getAttribute('data-bkey')===fullKey){r=rows[i];break;}}
+if(!r){toast('\u0e1a\u0e34\u0e25\u0e19\u0e35\u0e49\u0e44\u0e21\u0e48\u0e2d\u0e22\u0e39\u0e48\u0e43\u0e19\u0e0a\u0e48\u0e27\u0e07\u0e17\u0e35\u0e48\u0e41\u0e2a\u0e14\u0e07');return;}
+try{r.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){r.scrollIntoView();}
+var bg=r.style.background,bs=r.style.boxShadow;r.style.transition='background .4s';r.style.background='rgba(59,130,246,0.18)';r.style.boxShadow='inset 3px 0 0 var(--primary)';
+setTimeout(function(){r.style.background=bg;r.style.boxShadow=bs;},2200);
+},150);
+}
+window.billJumpTo=billJumpTo;
+// Pay from the calendar popup (uses its own date input id).
+function billPayFromCal(fullKey,amount,dueISO,typ,card,autoPay,uu,up,per){
+var di=document.getElementById('calpd');var pd=di&&di.value;
+if(!/^\d{4}-\d{2}-\d{2}$/.test(pd||'')){alert('\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48\u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19 (Pick the payment date first)');return;}
+var tmp=document.createElement('input');tmp.type='hidden';tmp.id='brpd_'+fullKey.replace(/[^a-zA-Z0-9]/g,'_');tmp.value=pd;
+var old=document.getElementById(tmp.id);if(old)old.id=tmp.id+'_x';
+document.body.appendChild(tmp);
+try{markRowPaid(fullKey,amount,dueISO,typ,card,autoPay,uu,up,per);}finally{tmp.remove();if(old)old.id=tmp.id;}
+if(typeof dashCalClosePop==='function')dashCalClosePop();
+try{if(typeof renderDashCalendar==='function')renderDashCalendar();}catch(e){}
+}
+window.billPayFromCal=billPayFromCal;

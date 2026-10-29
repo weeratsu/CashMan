@@ -607,7 +607,22 @@ body+='<tr><td style="color:var(--text3);padding:3px 0">Payment</td><td style="t
 body+='</table>';
 }
 // Open the Bills Reminder page (mirrors the To-Do task button) so the user can act on this bill.
-body+='<div style="margin-top:12px;text-align:right"><button class="btn btn-ghost" style="font-size:11px" onclick="dashCalClosePop();var b=document.querySelector(\'.nav-tab[data-tab=&quot;billreminder&quot;]\');if(b)b.click();">Open Bills Reminder \u2192</button></div>';
+var _q=function(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'");};
+var _fk=o.fullKey||'';var _bPaid=_calIsPaidG(o);
+var _isStmt=(o.kind==='Card Statement');var _canPay=!_bPaid&&!(o.auto_pay&&!o._income)&&_fk;
+var _per=(typeof _rowPer==='function')?_rowPer(o):'';
+var _due=(typeof _billISO==='function')?_billISO(o.orig_due||o.due):'';
+var _t=new Date();var _tISO=_t.getFullYear()+'-'+String(_t.getMonth()+1).padStart(2,'0')+'-'+String(_t.getDate()).padStart(2,'0');
+body+='<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center">';
+if(_bPaid){body+=_calPill('\u2713 '+(o._income?'Received':'Paid')+(o.paid_date?' '+fmtDate(o.paid_date):''),'#15803d','rgba(22,163,74,.14)');}
+else if(_canPay){
+ body+='<input type="date" id="calpd" class="inp" value="'+_tISO+'" style="font-size:11px;width:130px" title="'+(o._income?'Received date':'Payment date')+'">';
+ body+='<button class="btn" style="font-size:11px;background:var(--good,#16a34a);color:#fff;border-color:var(--good,#16a34a)" onclick="billPayFromCal(\''+_q(_fk)+'\','+(o.amount||0)+',\''+_due+'\',\''+_q(o.type)+'\',\''+_q(o.card)+'\','+(o.auto_pay?'true':'false')+',\''+_q(o._utilUtility)+'\',\''+_q(o._utilPeriod)+'\',\''+_q(o.card_period)+'\')"><i class="fa-solid fa-'+(o._income?'hand-holding-dollar':'check')+'"></i> '+(o._income?'Received':'Pay')+'</button>';
+}else if(o.auto_pay){body+=_calPill('\ud83e\udd16 Auto','#6d28d9','rgba(124,58,237,.12)');}
+if(!_isStmt&&!o._income&&o.key&&/^\d{4}-\d{2}$/.test(_per)&&typeof occEditOverride==='function'){
+ body+='<button class="btn btn-ghost" style="font-size:11px" onclick="dashCalClosePop();occEditOverride(\''+_q(o.key)+'\',\''+_per+'\',\''+_q(_fk)+'\',\''+_q(o.card)+'\','+(o.amount||0)+',\''+_due+'\')"><i class="fa-solid fa-pen"></i> Edit</button>';
+}
+body+='<button class="btn btn-ghost" style="font-size:11px" onclick="dashCalClosePop();billJumpTo(\''+_q(_fk)+'\')">Open Bills Reminder \u2192</button></div>';
 }
 var ov=document.createElement('div');
 ov.id='dashcal-pop';
