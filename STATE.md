@@ -335,3 +335,13 @@ setCardBillExtra เขียน key ผ่าน `cardExtraKey` (resolve ชื
 - **ปุ่ม/anchor ที่ render ซ้ำโครงเดียวกัน (Monthly vs Yearly detail row)** — replace แบบ literal อาจไปโดนตัวแรก (Monthly) แทนที่จะเป็นที่ตั้งใจ (Yearly). ยืนยันด้วยการเช็คว่า match อยู่ใน render fn ไหน (offset เทียบ renderMonthly/renderYearly) ก่อน deploy
 - **card ref เป็น id (c<N>) ทั่วทั้ง data แล้ว** — ทุก `.find(x=>x.name===ref)` ต้องเป็น `x.id===ref||x.name===ref`. simulation.js ยังหลงเหลือ (S6 ของ refactor) — แก้ไปวันนี้
 - **SIM object ไม่ expose `events`** (อยู่ใน closure ของ simulate) — อ่านจาก Console ไม่ได้ ต้องวิเคราะห์จากโค้ด
+
+## 🔒 UI STANDARD (user-locked Oct 30 2026) — ALL pages, incl. any NEW page
+- **Edit:** table rows are READ-ONLY text. ✏️ Edit button at row end → popup (all fields + detail fields) → **Save**. No inline edit, no autosave, no separate Save button on the page.
+- **Exceptions (click directly in row):** select checkbox, Auto checkbox, ✓ Done / Pay / Reopen buttons, ▶ toggle, ✕ delete (always confirm).
+- **Add:** `+ Add` button top-right of the card → same-style popup → Save → highlight the new row.
+- **Detail:** solid ▶ at the FRONT of the row (rotates to ▼). Expands to bordered grid boxes (label on top) + **Remarks**.
+- **Tables:** every column sortable (by display name, not id); ONE search box; filter dropdowns store ids; table in its own horizontal scroll box (`.rec-scroll`).
+- **Popups:** drag-select ending outside must NOT close (global guard in index.html); Enter = Save, Esc = Cancel.
+- **Rollout status:** Recurring (Monthly+Yearly) ✅ v352 · Planned ✅ v353 · Installments ⏳ · To-Do ⏳ · others ⏳
+- Recurring impl: `_recRO(kind)` converts rendered inputs → text after render, caches original row HTML; `recEditOpen` rebuilds those inputs inside the popup (save handlers stripped) so `readAll()` + Save writes them.

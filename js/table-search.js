@@ -50,7 +50,12 @@
    var anchor=(tbl.parentNode&&tbl.parentNode.classList&&tbl.parentNode.classList.contains('tbl-fit'))?tbl.parentNode:tbl;
    var prev=anchor.previousElementSibling;
    if(prev&&prev.classList&&prev.classList.contains('ts-bar')&&prev.getAttribute('data-k')===key) return prev;
-   var b=document.createElement('div'); b.className='ts-bar'; b.setAttribute('data-k',key);
+   // v2: one bar per table. A table later wrapped (e.g. table-fit) or re-keyed left a stale bar behind
+   // -> remove any older bars bound to this table / key before creating a new one.
+   var olds=document.querySelectorAll('.ts-bar');for(var oi=0;oi<olds.length;oi++){var ob=olds[oi];
+     if(ob.__tbl===tbl||ob.getAttribute('data-k')===key){ if(prev===ob) { ob.parentNode.insertBefore(ob,anchor); return ob; } ob.parentNode&&ob.parentNode.removeChild(ob);} }
+   var p2=(tbl.previousElementSibling);if(p2&&p2!==anchor&&p2.classList&&p2.classList.contains('ts-bar'))p2.parentNode.removeChild(p2);
+   var b=document.createElement('div'); b.className='ts-bar'; b.setAttribute('data-k',key); b.__tbl=tbl;
    b.innerHTML='<i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="ค้นหาในตารางนี้"><button class="ts-x" title="ล้าง">\u00d7</button><span class="ts-n"></span>';
    anchor.parentNode.insertBefore(b,anchor);
    var inp=b.querySelector('input');

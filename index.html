@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-30 20:10";
+window.APP_VERSION="2026-10-30 21:35";
+// v-popdrag: a text-select drag that starts INSIDE a popup and ends on the dark backdrop fires a 'click' on the backdrop -> popup closed. Only close when the press also started on the backdrop.
+(function(){var md=null;document.addEventListener('mousedown',function(e){md=e.target;},true);document.addEventListener('click',function(e){var t=e.target;if(md&&md!==t&&t&&t.contains&&t.contains(md)){try{if(getComputedStyle(t).position==='fixed'){e.stopImmediatePropagation();e.stopPropagation();}}catch(_){}}},true);})();
 window.addEventListener("error",function(e){
 try{
 // Ignore opaque cross-origin CDN errors (no filename/lineno) — harmless noise
@@ -458,8 +460,9 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <div class="filterbar flex gap-2 flex-wrap mb-3">
 <select class="sel" id="flt-m-type" onchange="filterMonthly()"><option value="">All Types</option></select>
 <select class="sel" id="flt-m-card" onchange="filterMonthly()"><option value="">All Cards</option></select>
+<select class="sel" id="flt-m-status" onchange="filterMonthly()"><option value="">All Status</option></select>
 </div>
-<table class="tbl"><thead><tr id="monthly-hdr"></tr></thead><tbody id="monthly-body"></tbody></table>
+<div class="tbl-fit rec-scroll" style="overflow-x:auto;max-width:100%"><table class="tbl"><thead><tr id="monthly-hdr"></tr></thead><tbody id="monthly-body"></tbody></table></div>
 
 <div id="monthly-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedMonthly()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="m-sel-count">0</span>)</button></div>
 <div style="display:flex;gap:5px;margin-top:6px">
@@ -472,9 +475,10 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <select class="sel" id="flt-y-type" onchange="filterYearly()"><option value="">All Types</option></select>
 <select class="sel" id="flt-y-mode" onchange="filterYearly()"><option value="">All Modes</option><option value="full">Full</option><option value="installment">Installment</option></select>
 <select class="sel" id="flt-y-card" onchange="filterYearly()"><option value="">All Cards</option></select>
+<select class="sel" id="flt-y-status" onchange="filterYearly()"><option value="">All Status</option></select>
 </div>
 <p class="text-muted mb-3" style="font-size:10px">Set "Installment" mode to split into monthly payments. These appear in the Installments tab too.</p>
-<table class="tbl"><thead><tr id="yearly-hdr"></tr></thead><tbody id="yearly-body"></tbody></table>
+<div class="tbl-fit rec-scroll" style="overflow-x:auto;max-width:100%"><table class="tbl"><thead><tr id="yearly-hdr"></tr></thead><tbody id="yearly-body"></tbody></table></div>
 
 <div id="yearly-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedYearly()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="y-sel-count">0</span>)</button></div>
 <div style="display:flex;gap:5px;margin-top:6px">
@@ -555,7 +559,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <label style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" id="flt-p-showpaid" onchange="filterPlanned()"> Show paid</label>
 <span id="planned-paid-count" style="font-size:9px;color:var(--text3)"></span>
 </div>
-<table class="tbl"><thead><tr id="planned-hdr"></tr></thead><tbody id="planned-body"></tbody></table>
+<div class="tbl-fit rec-scroll" style="overflow-x:auto;max-width:100%"><table class="tbl"><thead><tr id="planned-hdr"></tr></thead><tbody id="planned-body"></tbody></table></div>
 <div id="planned-window-warn"></div>
 
 <div id="planned-bulk" style="display:none;margin-top:6px"><button class="btn" style="font-size:10px;padding:4px 10px;background:var(--error);color:#fff" onclick="deleteSelectedPlanned()"><i class="fa-solid fa-trash"></i> Delete Selected (<span id="pl-sel-count">0</span>)</button></div>
@@ -683,7 +687,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 
 <script src="js/ui-payroll.js?v=255"></script>
 <script src="js/ui-monthlyplan.js?v=14"></script>
-<script src="js/ui-bills.js?v=344"></script>
+<script src="js/ui-bills.js?v=353"></script>
 <script src="js/ui-creditcards.js?v=315"></script>
 
 <script src="js/ui-timeline.js?v=255"></script>
@@ -694,7 +698,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-retirement.js?v=254"></script>
 
 <script src="js/ui-billreminder.js?v=349"></script>
-<script src="js/ui-todos.js?v=315"></script>
+<script src="js/ui-todos.js?v=317"></script>
 <script src="js/ui-wishlist.js?v=255"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
@@ -714,7 +718,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/app.js?v=295"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
 <script src="../WRHub/shared/table-fit.js?v=3" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=3';document.body.appendChild(s);"></script>
-<script src="js/table-search.js?v=1"></script>
+<script src="js/table-search.js?v=2"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>

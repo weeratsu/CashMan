@@ -334,9 +334,82 @@ el.innerHTML=h;
 }
 
 var _mExpanded={};
+// v347: keep the expanded detail grid inside the visible table area (table may scroll sideways) — like To-Do.
+function _recFitDet(){try{document.querySelectorAll('.rec-det').forEach(function(d){
+ var t=d.closest('table');if(!t)return;var p=t.parentNode;
+ // walk up to the nearest element that actually limits width (scroll wrapper / card)
+ var lim=(t.closest&&t.closest('.rec-scroll'))||p;while(lim&&lim!==document.body&&!(lim.classList&&lim.classList.contains('rec-scroll'))){var cs=getComputedStyle(lim);if(/auto|scroll|hidden/.test(cs.overflowX)||lim.classList.contains('card'))break;lim=lim.parentNode;}
+ var vw=Math.min((lim&&lim.clientWidth)||window.innerWidth,document.documentElement.clientWidth||window.innerWidth);
+ var td=d.parentNode,off=0;try{off=Math.max(0,td.getBoundingClientRect().left-(lim?lim.getBoundingClientRect().left:0)+((lim&&lim.scrollLeft)||0));}catch(e){}
+ d.style.width=Math.max(240,vw-off-24)+'px';});}catch(e){}}
+window.addEventListener('resize',function(){_recFitDet();});
+try{if(window.ResizeObserver){var _ro=new ResizeObserver(function(){_recFitDet();});setTimeout(function(){['monthly-body','yearly-body'].forEach(function(id){var e=document.getElementById(id);if(e&&e.closest('.card'))_ro.observe(e.closest('.card'));});},500);}}catch(e){}
+// v349: Account column (destination account from Setup > Bank & Account) for Recurring / Planned.
+function _acctOptsSel(sel){var a=(D.accounts||[]).slice().map(function(x){var bn=(x.bank&&typeof bankName==='function')?bankName(x.bank):(x.bank||'');return {id:x.id,l:(bn?bn+' \u00b7 ':'')+(x.name||'')};}).sort(function(p,q){return p.l.localeCompare(q.l);});
+return '<option value="">\u2014</option>'+a.map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===sel?' selected':'')+'>'+esc(x.l)+'</option>';}).join('');}
+function _acctLbl(id){var x=(D.accounts||[]).find(function(a){return a.id===id;});if(!x)return '';var bn=(x.bank&&typeof bankName==='function')?bankName(x.bank):(x.bank||'');return (bn?bn+' \u00b7 ':'')+(x.name||'');}
+// v352 (UI standard, user Oct 30 2026): rows are READ-ONLY; edit via ✏️ -> popup -> Save. Exceptions kept
+// clickable in the row: select checkbox, Auto checkbox, ▶ toggle, delete.
+var _recCache={monthly:{},yearly:{},planned:{}};
+function _roize(root){
+ root.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.type==='checkbox')return;
+  var h=el.parentElement,hid=false;while(h&&h!==root){if(h.style&&h.style.display==='none'){hid=true;break;}h=h.parentElement;}
+  if(hid){el.remove();return;}
+  var txt=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):(el.value||'');
+  if(el.type==='date'&&txt&&typeof fmtDate==='function')txt=fmtDate(txt);
+  var s=document.createElement('span');s.textContent=txt||'\u2014';s.style.cssText='font-size:11px;white-space:pre-wrap;'+(el.style.color?'color:'+el.style.color+';':'')+(el.style.fontWeight?'font-weight:'+el.style.fontWeight+';':'');
+  el.parentNode.replaceChild(s,el);});
+}
+function _recRO(kind){try{
+ var body=document.getElementById(kind+'-body');if(!body||!body.querySelectorAll)return;
+ var p=kind==='monthly'?'m':(kind==='yearly'?'y':'pl'),ra=kind==='monthly'?'data-mrow':(kind==='yearly'?'data-yrow':'data-plrow'),C=_recCache[kind]={};
+ body.querySelectorAll('tr.'+p+'-main').forEach(function(tr){
+  var i=tr.getAttribute(ra),det=body.querySelector('tr.'+p+'-detail['+ra+'="'+i+'"]');
+  C[i]={main:tr.innerHTML,det:det?det.innerHTML:''};
+  _roize(tr);if(det)_roize(det);
+  var last=tr.lastElementChild;if(last)last.insertAdjacentHTML('afterbegin','<button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="recEditOpen(\''+kind+'\','+i+')"><i class="fa-solid fa-pen"></i></button>');
+  last&&(last.style.whiteSpace='nowrap');
+ });}catch(e){console.error('_recRO',e);}}
+function _noSaveHandlers(h){return h.replace(/ onchange="([^"]*)"/g,function(m,b){return /saveD|readAll/.test(b)?'':m;});}
+function recEditOpen(kind,i){
+ var c=(_recCache[kind]||{})[i];if(!c)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:D.planned),it=arr[i];if(!it)return;
+ var hdr=document.getElementById(kind+'-hdr'),heads=hdr?Array.prototype.map.call(hdr.children,function(th){return (th.textContent||'').replace(/[\u25b2\u25bc]/g,'').trim();}):[];
+ var t=document.createElement('table');t.innerHTML='<tbody><tr>'+_noSaveHandlers(c.main)+'</tr></tbody>';
+ var tds=t.querySelectorAll('td'),boxes='';
+ var BOX='background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0',LBL='font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px';
+ for(var k=2;k<tds.length-1;k++){boxes+='<div style="'+BOX+'"><div style="'+LBL+'">'+(heads[k]||'')+'</div>'+tds[k].innerHTML+'</div>';}
+ var dt=document.createElement('table');dt.innerHTML='<tbody><tr>'+_noSaveHandlers(c.det)+'</tr></tbody>';
+ var dtd=dt.querySelectorAll('td'),detH=dtd.length?dtd[dtd.length-1].innerHTML:'';
+ var ov=document.getElementById('rec-edit-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='rec-edit-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('click',function(e){if(e.target===ov)recEditClose();});
+ ov.innerHTML='<style>#rec-edit-ov .sel,#rec-edit-ov input:not([type=checkbox]),#rec-edit-ov textarea{width:100%!important;max-width:none!important;box-sizing:border-box}#rec-edit-ov .rec-det{width:auto!important;position:static!important}</style>'+
+  '<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(760px,96vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-pen"></i> Edit '+kind+' \u00b7 '+esc(it.name||'')+'</h3>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;font-size:11px;margin-bottom:10px">'+boxes+'</div>'+
+  '<div class="'+(kind==='monthly'?'m':(kind==='yearly'?'y':'pl'))+'-detail">'+detH+'</div>'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="recEditClose()">Cancel</button><button class="btn btn-primary" onclick="recEditSave(\''+kind+'\','+i+')"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('keydown',function(e){if(e.key==='Escape')recEditClose();else if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();recEditSave(kind,i);}});
+ setTimeout(function(){var f=ov.querySelector('input:not([type=checkbox])');if(f)f.focus();},30);
+}
+function recEditClose(){var ov=document.getElementById('rec-edit-ov');if(ov)ov.remove();}
+function recEditSave(kind,i){
+ var ov=document.getElementById('rec-edit-ov');if(!ov)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:D.planned);
+ var cb=ov.querySelector('input[type=checkbox]:not(.m-chk):not(.y-chk):not(.pl-chk)');if(cb&&arr[i])arr[i].auto_pay=cb.checked;
+ readAll();saveD();recEditClose();
+ if(kind==='monthly'){renderMonthly();try{filterMonthly();}catch(e){}}else if(kind==='yearly'){renderYearly();try{filterYearly();}catch(e){}}else{try{simulate();}catch(e){}renderPlanned();try{filterPlanned();}catch(e){}}
+ try{if(typeof renderBillReminder==='function')renderBillReminder();}catch(e){}try{if(typeof simulate==='function')simulate();}catch(e){}
+ var r=document.querySelector('#'+kind+'-body tr[data-'+(kind==='monthly'?'mrow':(kind==='yearly'?'yrow':'plrow'))+'="'+i+'"]');if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}
+ if(typeof toast==='function')toast('\u2705 Saved');
+}
+window.recEditOpen=recEditOpen;window.recEditClose=recEditClose;window.recEditSave=recEditSave;
 function mToggle(i){_mExpanded[i]=!_mExpanded[i];renderMonthly();if(typeof filterMonthly==='function')try{filterMonthly()}catch(e){}}
 function renderMonthly(){
-document.getElementById('monthly-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllMonthly(this.checked)"></th><th style="width:20px"></th>'+sHdr('monthly','name','Name')+'<th>I/E</th>'+sHdr('monthly','type','Type')+sHdr('monthly','amount','Amount')+sHdr('monthly','billing_day','Bill Day')+'<th>Pay By</th><th title="Auto-pay / auto-deduct vs manual">Auto</th><th>Status</th><th></th>';
+document.getElementById('monthly-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllMonthly(this.checked)"></th><th style="width:20px"></th>'+sHdr('monthly','name','Name')+sHdr('monthly','direction','I/E')+sHdr('monthly','type','Type')+sHdr('monthly','amount','Amount')+sHdr('monthly','billing_day','Bill Day')+sHdr('monthly','card','Pay By')+sHdr('monthly','account','Account')+sHdr('monthly','auto_pay','Auto')+sHdr('monthly','status','Status')+'<th></th>';
 document.getElementById('monthly-body').innerHTML=D.monthly.map(function(m,i){var ep2=effPayment(m),ed=ep2.day,sh=m.card!=='Cash/Direct'&&(ed!==m.billing_day||ep2.monthShift>0),ms=ep2.monthShift;
 var dirCls=m.direction==='income'?'color:var(--success);font-weight:600':'';
 var st=m.status||'Active';var stStyle=st==='Hold'?'color:var(--warning)':st==='Cancelled'?'color:var(--error);text-decoration:line-through':'color:var(--success)';
@@ -352,29 +425,29 @@ dlHtml+='<input type="number" class="inp inp-num m-dldd" min="1" max="31" value=
 var effTxt=(sh?'<span class="shifted">'+ord(ed)+(ms>0?' +1mo':'')+'</span>':'<span class="orig">'+ord(ed)+'</span>');
 // main row
 var mainRow='<tr class="m-main" data-mrow="'+i+'" style="'+(m.direction==='income'?'background:rgba(16,185,129,0.05)':'')+rowOpac+'"><td><input type="checkbox" class="m-chk" data-idx="'+i+'" onchange="updateMonthlyBulk()"></td>'+
-'<td><span style="cursor:pointer;user-select:none;color:var(--text3)" onclick="mToggle('+i+')" title="Show timing / period settings">'+(open?'▼':'▶')+'</span></td>'+
+'<td><span style="display:inline-block;cursor:pointer;user-select:none;font-size:10px;color:var(--text3);transition:transform .15s;transform:rotate('+(open?'90':'0')+'deg)" onclick="mToggle('+i+')" title="Show details">\u25b6</span></td>'+
 '<td><input class="inp-inline" value="'+esc(m.name)+'" data-mi="'+i+'" data-f="name"></td>'+
 '<td><select class="sel" style="'+dirCls+'" data-mi="'+i+'" data-f="direction">'+dirOpts(m.direction)+'</select></td>'+
 '<td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(m.type)+'<select class="sel" data-mi="'+i+'" data-f="type">'+tOpts(m.type)+'</select></span></td>'+
 '<td class="r"><input class="inp inp-num" type="text" value="'+fmt(m.amount)+'" style="width:90px;padding:2px 4px;font-size:11px" data-mi="'+i+'" data-f="amount" onfocus="var v=parseFloat(this.value.replace(/,/g,\'\'));this.value=v||\'\';" onblur="this.value=(parseFloat(this.value.replace(/,/g,\'\'))||0).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2})"></td>'+'<td class="r"><input type="number" class="inp inp-num" value="'+m.billing_day+'" min="1" max="31" style="width:46px;font-size:11px" data-mi="'+i+'" data-f="billing_day"></td>'+
-'<td><select class="sel" data-mi="'+i+'" data-f="card">'+cOpts(m.card)+'</select></td>'+'<td class="r"><input type="checkbox" '+(m.auto_pay?'checked':'')+' title="'+(m.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.monthly['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
+'<td><select class="sel" data-mi="'+i+'" data-f="card">'+cOpts(m.card)+'</select></td>'+'<td><select class="sel" style="font-size:10px;max-width:150px" data-mi="'+i+'" data-f="account" onchange="readAll();saveD();" title="Transfer to account">'+_acctOptsSel(m.account)+'</select></td>'+'<td class="r"><input type="checkbox" '+(m.auto_pay?'checked':'')+' title="'+(m.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.monthly['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
 '<td><select class="sel" style="font-size:9px;'+stStyle+'" data-mi="'+i+'" data-f="status"><option value="Active"'+(st==='Active'?' selected':'')+' style="color:var(--success)">Active</option><option value="Hold"'+(st==='Hold'?' selected':'')+' style="color:var(--warning)">Hold</option><option value="Cancelled"'+(st==='Cancelled'?' selected':'')+' style="color:var(--error)">Cancelled</option></select></td>'+
-'<td><button class="del-btn" onclick="readAll();D.monthly.splice('+i+',1);renderMonthly()"><i class="fa-solid fa-trash"></i></button></td></tr>';
+'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.monthly.splice('+i+',1);renderMonthly()"><i class="fa-solid fa-trash"></i></button></td></tr>';
 // detail row (timing/period settings) — spans all columns, hidden unless expanded
-var detail='<tr class="m-detail" data-mrow="'+i+'" style="'+(open?'':'display:none;')+(m.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+rowOpac+'"><td></td><td></td><td colspan="9" style="padding:8px 10px">'+
-'<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;font-size:10px">'+
+var detail='<tr class="m-detail" data-mrow="'+i+'" style="'+(open?'':'display:none;')+(m.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+rowOpac+'"><td></td><td></td><td colspan="10" style="padding:8px 10px">'+
+'<div class="rec-det" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:10px;position:sticky;left:8px;box-sizing:border-box;max-width:100%">'+
 
-'<div><div style="color:var(--text3);margin-bottom:2px">Effective pay</div><div style="padding:3px 0">'+effTxt+'</div></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Deadline</div><div style="display:flex;align-items:center">'+dlHtml+'</div></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Starts</div><div style="display:flex;align-items:center">'+startHtml+'</div></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px" title="\u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49 (arrears)=\u0e1a\u0e31\u0e15\u0e23/\u0e04\u0e48\u0e32\u0e44\u0e1f/\u0e04\u0e48\u0e32\u0e19\u0e49\u0e33 \u00b7 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49 (advance)=Netflix/iCloud">Billing</div>'+'<select class="sel" style="font-size:9px;width:118px" data-mi="'+i+'" data-f="billing_mode" onchange="readAll();D.monthly['+i+'].billing_mode=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="advance"'+((m.billing_mode==='advance')?' selected':'')+'>\u2192 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49</option><option value="arrears"'+((m.billing_mode==='advance')?'':' selected')+'>\u2190 \u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49</option></select></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Period</div>'+'<select class="sel" style="font-size:9px;width:118px" data-mi="'+i+'" data-f="period_rule" onchange="readAll();D.monthly['+i+'].period_rule=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="prev"'+((m.period_rule==='prev')?' selected':'')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same"'+((m.period_rule==='prev')?'':' selected')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option></select></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Ends</div><div style="display:flex;align-items:center">'+endHtml+'</div></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px" title="Link this recurring bill to a utility so months with a real UtilityLog bill skip this forecast (no double-count). Saves automatically.">Utility link</div><div style="display:flex;align-items:center"><select class="sel" style="font-size:9px;width:110px" data-mi="'+i+'" data-f="util_link" onchange="D.monthly['+i+'].util_link=this.value;saveD();if(typeof simulate===\'function\')simulate();if(typeof toast===\'function\')toast(\'\\u2705 Saved\')"><option value=""'+(!m.util_link?' selected':'')+'>\u2014 None</option><option value="electric"'+(m.util_link==='electric'?' selected':'')+'>\u26a1 Electricity</option><option value="water"'+(m.util_link==='water'?' selected':'')+'>\ud83d\udca7 Water</option></select></div></div>'+
-'<div style="margin-top:4px"><div style="color:var(--text3);margin-bottom:2px" title="Link this recurring bill to a credit card so months with a real statement (from card_bills) skip this forecast (no double-count). Saves automatically.">Card link</div><div style="display:flex;align-items:center"><select class="sel" style="font-size:9px;width:110px" data-mi="'+i+'" data-f="card_link" onchange="D.monthly['+i+'].card_link=this.value;saveD();if(typeof simulate===\'function\')simulate();if(typeof toast===\'function\')toast(\'\\u2705 Saved\')"><option value=""'+(!m.card_link?' selected':'')+'>\u2014 None</option>'+((D.cards||[]).map(function(_c){return '<option value="'+esc(_c.name)+'"'+(m.card_link===_c.name?' selected':'')+'>\ud83d\udcb3 '+esc(_c.name)+'</option>';}).join(''))+'</select></div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Effective pay</div><div style="padding:3px 0">'+effTxt+'</div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Deadline</div><div style="display:flex;align-items:center">'+dlHtml+'</div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Starts</div><div style="display:flex;align-items:center">'+startHtml+'</div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px" title="\u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49 (arrears)=\u0e1a\u0e31\u0e15\u0e23/\u0e04\u0e48\u0e32\u0e44\u0e1f/\u0e04\u0e48\u0e32\u0e19\u0e49\u0e33 \u00b7 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49 (advance)=Netflix/iCloud">Billing</div>'+'<select class="sel" style="font-size:9px;width:118px" data-mi="'+i+'" data-f="billing_mode" onchange="readAll();D.monthly['+i+'].billing_mode=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="advance"'+((m.billing_mode==='advance')?' selected':'')+'>\u2192 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49</option><option value="arrears"'+((m.billing_mode==='advance')?'':' selected')+'>\u2190 \u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49</option></select></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Period</div>'+'<select class="sel" style="font-size:9px;width:118px" data-mi="'+i+'" data-f="period_rule" onchange="readAll();D.monthly['+i+'].period_rule=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="prev"'+((m.period_rule==='prev')?' selected':'')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same"'+((m.period_rule==='prev')?'':' selected')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option></select></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Ends</div><div style="display:flex;align-items:center">'+endHtml+'</div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px" title="Link this recurring bill to a utility so months with a real UtilityLog bill skip this forecast (no double-count). Saves automatically.">Utility link</div><div style="display:flex;align-items:center"><select class="sel" style="font-size:9px;width:110px" data-mi="'+i+'" data-f="util_link" onchange="D.monthly['+i+'].util_link=this.value;saveD();if(typeof simulate===\'function\')simulate();if(typeof toast===\'function\')toast(\'\\u2705 Saved\')"><option value=""'+(!m.util_link?' selected':'')+'>\u2014 None</option><option value="electric"'+(m.util_link==='electric'?' selected':'')+'>\u26a1 Electricity</option><option value="water"'+(m.util_link==='water'?' selected':'')+'>\ud83d\udca7 Water</option></select></div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px" title="Link this recurring bill to a credit card so months with a real statement (from card_bills) skip this forecast (no double-count). Saves automatically.">Card link</div><div style="display:flex;align-items:center"><select class="sel" style="font-size:9px;width:110px" data-mi="'+i+'" data-f="card_link" onchange="D.monthly['+i+'].card_link=this.value;saveD();if(typeof simulate===\'function\')simulate();if(typeof toast===\'function\')toast(\'\\u2705 Saved\')"><option value=""'+(!m.card_link?' selected':'')+'>\u2014 None</option>'+((D.cards||[]).map(function(_c){return '<option value="'+esc(_c.name)+'"'+(m.card_link===_c.name?' selected':'')+'>\ud83d\udcb3 '+esc(_c.name)+'</option>';}).join(''))+'</select></div></div>'+
 
-'</div></td></tr>';
-return mainRow+detail}).join('')}
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0;grid-column:1/-1"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Remarks</div><textarea class="inp" rows="2" placeholder="\u0e42\u0e19\u0e49\u0e15\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21" style="width:100%;font-size:11px;resize:vertical;box-sizing:border-box" data-mi="'+i+'" data-f="remarks" onchange="D.monthly['+i+'].remarks=this.value;saveD();">'+esc(m.remarks||'')+'</textarea></div>'+'</div></td></tr>';
+return mainRow+detail}).join('');_recFitDet();_recRO('monthly');}
 
 /* Add Monthly / Add Yearly open a popup form (same pattern as To-Do / Planned): the item is added
    only on Save, then the page scrolls to the new row and outlines it. Advanced timing (start/end,
@@ -402,7 +475,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Billing day *','<input id="ra-day" type="number" min="1" max="31" class="inp inp-num" value="1">')
  +(Y?row('Month','<span>'+monthSel+'</span>'):'')
  +'</div>'
- +row('Card','<select id="ra-card" class="sel">'+cOpts('Cash/Direct')+'</select>')
+ +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+row('Card','<select id="ra-card" class="sel">'+cOpts('Cash/Direct')+'</select>')+row('Account','<select id="ra-acct" class="sel">'+_acctOptsSel('')+'</select>')+'</div>'
  +(Y?row('Pay mode','<div style="display:flex;gap:8px;align-items:center"><select id="ra-pay" class="sel" onchange="document.getElementById(\'ra-perwrap\').style.visibility=this.value===\'installment\'?\'visible\':\'hidden\'"><option value="full">Full</option><option value="installment">Installment</option></select><span id="ra-perwrap" style="visibility:hidden;font-size:10px;color:var(--text3)"><input id="ra-per" type="number" min="1" max="60" value="10" class="inp inp-num" style="width:56px"> periods</span></div>'):'')
  +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="ra-auto"> Auto-charged (auto-pay)</label>'
  +'</div>'
@@ -422,7 +495,7 @@ var name=g('ra-name'); if(!name){err('Please enter a name','ra-name');return;}
 var amt=parseFloat(g('ra-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amount greater than 0','ra-amt');return;}
 var day=parseInt(g('ra-day'),10); if(!(day>=1&&day<=31)){err('Billing day must be 1-31','ra-day');return;}
 var ae=document.getElementById('ra-auto'), auto=!!(ae&&ae.checked);
-var base={name:name,type:g('ra-type')||D.types[0]||'Other',amount:amt,billing_day:day,card:g('ra-card')||'Cash/Direct',
+var base={name:name,type:g('ra-type')||D.types[0]||'Other',amount:amt,billing_day:day,card:g('ra-card')||'Cash/Direct',account:g('ra-acct'),
  direction:g('ra-dir')||'expense',status:'Active',start_mode:'forever',deadline_mode:'custom',deadline_day:'',auto_pay:auto};
 var list,idx,sel;
 if(Y){
@@ -451,7 +524,7 @@ function deleteSelectedMonthly(){var idxs=[];document.querySelectorAll('.m-chk:c
 var _yExpanded={};
 function yToggle(i){_yExpanded[i]=!_yExpanded[i];renderYearly();if(typeof filterYearly==='function')try{filterYearly()}catch(e){}}
 function renderYearly(){
-document.getElementById('yearly-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllYearly(this.checked)"></th><th style="width:20px"></th>'+sHdr('yearly','name','Name')+sHdr('yearly','direction','I/E')+sHdr('yearly','type','Type')+sHdr('yearly','amount','Amount')+sHdr('yearly','billing_day','Day')+sHdr('yearly','month','Month')+sHdr('yearly','card','Card')+'<th title="Auto-pay / auto-deduct vs manual">Auto</th><th>Status</th><th></th>';
+document.getElementById('yearly-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllYearly(this.checked)"></th><th style="width:20px"></th>'+sHdr('yearly','name','Name')+sHdr('yearly','direction','I/E')+sHdr('yearly','type','Type')+sHdr('yearly','amount','Amount')+sHdr('yearly','billing_day','Day')+sHdr('yearly','month','Month')+sHdr('yearly','card','Card')+sHdr('yearly','account','Account')+sHdr('yearly','auto_pay','Auto')+sHdr('yearly','status','Status')+'<th></th>';
 document.getElementById('yearly-body').innerHTML=D.yearly.map(function(y,i){
 var yDirCls=y.direction==='income'?'color:var(--success);font-weight:600':'';
 var yst=y.status||'Active';var ystStyle=yst==='Hold'?'color:var(--warning)':yst==='Cancelled'?'color:var(--error);text-decoration:line-through':'color:var(--success)';
@@ -465,29 +538,29 @@ var periodsHtml=(y.pay_mode==='installment'?'<input type="number" class="inp inp
 var payModeHtml='<select class="sel" data-yi="'+i+'" data-f="pay_mode" onchange="readAll();if(this.value===\'full\')D.yearly['+i+'].inst_periods=1;saveD();renderYearly();filterYearly()"><option value="full"'+(y.pay_mode==='full'?' selected':'')+'>Full</option><option value="installment"'+(y.pay_mode==='installment'?' selected':'')+'>Installment</option></select>';
 // main row
 var mainRow='<tr class="y-main" data-yrow="'+i+'" style="'+(y.direction==='income'?'background:rgba(16,185,129,0.05)':'')+yRowOpac+'"><td><input type="checkbox" class="y-chk" data-idx="'+i+'" onchange="updateYearlyBulk()"></td>'+
-'<td><span style="cursor:pointer;user-select:none;color:var(--text3)" onclick="yToggle('+i+')" title="Show pay mode / periods / deadline / start settings">'+(open?'▼':'▶')+'</span></td>'+
+'<td><span style="display:inline-block;cursor:pointer;user-select:none;font-size:10px;color:var(--text3);transition:transform .15s;transform:rotate('+(open?'90':'0')+'deg)" onclick="yToggle('+i+')" title="Show details">\u25b6</span></td>'+
 '<td><input class="inp-inline" value="'+esc(y.name)+'" data-yi="'+i+'" data-f="name"></td>'+
 '<td><select class="sel" style="'+yDirCls+'" data-yi="'+i+'" data-f="direction">'+dirOpts(y.direction)+'</select></td>'+
 '<td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(y.type)+'<select class="sel" data-yi="'+i+'" data-f="type">'+tOpts(y.type)+'</select></span></td>'+
 '<td class="r"><input class="inp inp-num" type="text" value="'+fmt(y.amount)+'" style="width:90px;padding:2px 4px;font-size:11px" data-yi="'+i+'" data-f="amount" onfocus="var v=parseFloat(this.value.replace(/,/g,\'\'));this.value=v||\'\';" onblur="this.value=(parseFloat(this.value.replace(/,/g,\'\'))||0).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2})"></td>'+
 '<td class="r"><input type="number" class="inp inp-num" value="'+y.billing_day+'" min="1" max="31" style="width:46px;font-size:11px" data-yi="'+i+'" data-f="billing_day"></td>'+
 '<td><select class="sel" style="width:56px;font-size:10px" data-yi="'+i+'" data-f="month">'+MO.map(function(mn,mi){return '<option value="'+(mi+1)+'"'+(y.month===mi+1?' selected':'')+'>'+mn+'</option>'}).join('')+'</select></td>'+
-'<td><select class="sel" data-yi="'+i+'" data-f="card">'+cOpts(y.card)+'</select></td>'+
+'<td><select class="sel" data-yi="'+i+'" data-f="card">'+cOpts(y.card)+'</select></td>'+'<td><select class="sel" style="font-size:10px;max-width:150px" data-yi="'+i+'" data-f="account" onchange="readAll();saveD();" title="Transfer to account">'+_acctOptsSel(y.account)+'</select></td>'+
 '<td class="r"><input type="checkbox" '+(y.auto_pay?'checked':'')+' title="'+(y.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.yearly['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
 '<td><select class="sel" style="font-size:9px;'+ystStyle+'" data-yi="'+i+'" data-f="status"><option value="Active"'+(yst==='Active'?' selected':'')+' style="color:var(--success)">Active</option><option value="Hold"'+(yst==='Hold'?' selected':'')+' style="color:var(--warning)">Hold</option><option value="Cancelled"'+(yst==='Cancelled'?' selected':'')+' style="color:var(--error)">Cancelled</option></select></td>'+
-'<td><button class="del-btn" onclick="readAll();D.yearly.splice('+i+',1);renderYearly()"><i class="fa-solid fa-trash"></i></button></td></tr>';
+'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.yearly.splice('+i+',1);renderYearly()"><i class="fa-solid fa-trash"></i></button></td></tr>';
 // detail row
-var detail='<tr class="y-detail" data-yrow="'+i+'" style="'+(open?'':'display:none;')+(y.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+yRowOpac+'"><td></td><td></td><td colspan="9" style="padding:8px 10px">'+
-'<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;font-size:10px">'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Pay Mode</div>'+payModeHtml+'</div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Periods</div>'+periodsHtml+'</div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Deadline</div><div style="display:flex;align-items:center">'+dlHtml+'</div></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Starts</div><div style="display:flex;align-items:center">'+startHtml+'</div></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px" title="\u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49 (arrears) \u00b7 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49 (advance)">Billing</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="billing_mode" onchange="readAll();D.yearly['+i+'].billing_mode=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="advance"'+((y.billing_mode==='advance')?' selected':'')+'>\u2192 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49</option><option value="arrears"'+((y.billing_mode==='advance')?'':' selected')+'>\u2190 \u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49</option></select></div>'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Period</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="period_rule" onchange="readAll();D.yearly['+i+'].period_rule=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="prev"'+((y.period_rule==='prev')?' selected':'')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same"'+((y.period_rule==='prev')?'':' selected')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option></select></div>'+
-'<div style="align-self:flex-end"><button class="btn btn-primary" style="font-size:10px;padding:4px 10px" onclick="yMaterialize('+i+')" title="สร้างรายการจริงจากรายการนี้ (installment ถ้าตั้งผ่อน / planned ถ้าจ่ายทีเดียว) — แก้/ลบได้">\u2795 สร้างรายการจริง</button></div>'+
-'</div></td></tr>';
-return mainRow+detail}).join('')}
+var detail='<tr class="y-detail" data-yrow="'+i+'" style="'+(open?'':'display:none;')+(y.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+yRowOpac+'"><td></td><td></td><td colspan="10" style="padding:8px 10px">'+
+'<div class="rec-det" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:10px;position:sticky;left:8px;box-sizing:border-box;max-width:100%">'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Pay Mode</div>'+payModeHtml+'</div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Periods</div>'+periodsHtml+'</div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Deadline</div><div style="display:flex;align-items:center">'+dlHtml+'</div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Starts</div><div style="display:flex;align-items:center">'+startHtml+'</div></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px" title="\u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49 (arrears) \u00b7 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49 (advance)">Billing</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="billing_mode" onchange="readAll();D.yearly['+i+'].billing_mode=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="advance"'+((y.billing_mode==='advance')?' selected':'')+'>\u2192 \u0e08\u0e48\u0e32\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e43\u0e0a\u0e49</option><option value="arrears"'+((y.billing_mode==='advance')?'':' selected')+'>\u2190 \u0e08\u0e48\u0e32\u0e22\u0e2b\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49</option></select></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Period</div>'+'<select class="sel" style="font-size:9px;width:118px" data-yi="'+i+'" data-f="period_rule" onchange="readAll();D.yearly['+i+'].period_rule=this.value;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}if(typeof simulate===\'function\')try{simulate()}catch(e){}"><option value="prev"'+((y.period_rule==='prev')?' selected':'')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e01\u0e48\u0e2d\u0e19 statement (prev)</option><option value="same"'+((y.period_rule==='prev')?'':' selected')+'>\u0e40\u0e14\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a statement (same)</option></select></div>'+
+'<div style="align-self:center"><button class="btn btn-primary" style="font-size:10px;padding:4px 10px" onclick="yMaterialize('+i+')" title="สร้างรายการจริงจากรายการนี้ (installment ถ้าตั้งผ่อน / planned ถ้าจ่ายทีเดียว) — แก้/ลบได้">\u2795 สร้างรายการจริง</button></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0;grid-column:1/-1"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Remarks</div><textarea class="inp" rows="2" placeholder="\u0e42\u0e19\u0e49\u0e15\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21" style="width:100%;font-size:11px;resize:vertical;box-sizing:border-box" data-yi="'+i+'" data-f="remarks" onchange="D.yearly['+i+'].remarks=this.value;saveD();">'+esc(y.remarks||'')+'</textarea></div>'+'</div></td></tr>';
+return mainRow+detail}).join('');_recFitDet();_recRO('yearly');}
 
 function addYearly(){_recAddOpen('yearly');}
 
@@ -961,27 +1034,28 @@ function _planStatusBadge(p){
 }
 function renderPlanned(){
 if(!D||!D.planned)return;
-document.getElementById('planned-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllPlanned(this.checked)"></th><th style="width:20px"></th>'+pSH('name','Name')+'<th>I/E</th>'+pSH('type','Type')+pSH('amount','Amount')+pSH('date','Date')+pSH('card','Card')+'<th>Status</th><th title="Auto-pay / auto-deduct vs manual">Auto</th><th></th>';
+document.getElementById('planned-hdr').innerHTML='<th style="width:24px"><input type="checkbox" onchange="toggleAllPlanned(this.checked)"></th><th style="width:20px"></th>'+pSH('name','Name')+'<th>I/E</th>'+pSH('type','Type')+pSH('amount','Amount')+pSH('date','Date')+pSH('card','Card')+pSH('account','Account')+'<th>Status</th><th title="Auto-pay / auto-deduct vs manual">Auto</th><th></th>';
 document.getElementById('planned-body').innerHTML=D.planned.map(function(p,i){
 var dirCls=p.direction==='income'?'color:var(--success);font-weight:600':'';
 var open=!!_plExpanded[i];
 var mainRow='<tr class="pl-main" data-plrow="'+i+'" style="'+(p.direction==='income'?'background:rgba(16,185,129,0.05)':'')+'"><td><input type="checkbox" class="pl-chk" data-idx="'+i+'" onchange="updatePlannedBulk()"></td>'+
-'<td><span style="cursor:pointer;user-select:none;color:var(--text3)" onclick="plToggle('+i+')" title="Show owner / notes">'+(open?'▼':'▶')+'</span></td>'+
+'<td><span style="display:inline-block;cursor:pointer;user-select:none;font-size:10px;color:var(--text3);transition:transform .15s;transform:rotate('+(open?'90':'0')+'deg)" onclick="plToggle('+i+')" title="Show details">\u25b6</span></td>'+
 '<td><input class="inp-inline" value="'+esc(p.name)+'" data-pli="'+i+'" data-f="name" onchange="readAll();saveD()"></td>'+
 '<td><select class="sel" style="'+dirCls+'" data-pli="'+i+'" data-f="direction" onchange="readAll();saveD();simulate();renderAllTabs()">'+dirOpts(p.direction)+'</select></td>'+
 '<td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(p.type)+'<select class="sel" data-pli="'+i+'" data-f="type" onchange="readAll();saveD()">'+tOpts(p.type)+'</select></span></td>'+
 '<td class="r"><input class="inp inp-num" type="text" value="'+fmt(p.amount)+'" style="width:90px;padding:2px 4px;font-size:11px" data-pli="'+i+'" data-f="amount" onfocus="var v=parseFloat(this.value.replace(/,/g,\'\'));this.value=v||\'\';" onblur="this.value=(parseFloat(this.value.replace(/,/g,\'\'))||0).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2});readAll();saveD();simulate();renderAllTabs()"></td>'+
 '<td><input type="date" class="inp" value="'+(p.date||'')+'" style="width:120px;font-size:10px" data-pli="'+i+'" data-f="date" onchange="readAll();saveD();simulate();renderAllTabs()"></td>'+
-'<td><select class="sel" data-pli="'+i+'" data-f="card" onchange="readAll();saveD();simulate();renderAllTabs()">'+cOpts(p.card)+'</select></td>'+
+'<td><select class="sel" data-pli="'+i+'" data-f="card" onchange="readAll();saveD();simulate();renderAllTabs()">'+cOpts(p.card)+'</select></td>'+'<td><select class="sel" style="font-size:10px;max-width:150px" data-pli="'+i+'" data-f="account" onchange="readAll();saveD();" title="Transfer to account">'+_acctOptsSel(p.account)+'</select></td>'+
 '<td class="r">'+_planStatusBadge(p)+'</td>'+
 '<td class="r"><input type="checkbox" '+(p.auto_pay?'checked':'')+' title="'+(p.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.planned['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
-'<td><button class="del-btn" onclick="readAll();D.planned.splice('+i+',1);renderPlanned();filterPlanned()"><i class="fa-solid fa-trash"></i></button></td></tr>';
-var detail='<tr class="pl-detail" data-plrow="'+i+'" style="'+(open?'':'display:none;')+(p.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+'"><td></td><td></td><td colspan="9" style="padding:8px 10px">'+
-'<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;font-size:10px">'+
-'<div><div style="color:var(--text3);margin-bottom:2px">Own By</div><select class="sel" data-pli="'+i+'" data-f="own_by" onchange="readAll();saveD()">'+oOpts(p.own_by)+'</select></div>'+
-'<div style="flex:1;min-width:200px"><div style="color:var(--text3);margin-bottom:2px">Notes</div><input class="inp" value="'+esc(p.notes||'')+'" data-pli="'+i+'" data-f="notes" style="font-size:10px;width:100%" onchange="readAll();saveD()"></div>'+
+'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.planned.splice('+i+',1);renderPlanned();filterPlanned()"><i class="fa-solid fa-trash"></i></button></td></tr>';
+var detail='<tr class="pl-detail" data-plrow="'+i+'" style="'+(open?'':'display:none;')+(p.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+'"><td></td><td></td><td colspan="10" style="padding:8px 10px">'+
+'<div class="rec-det" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:10px;position:sticky;left:8px;box-sizing:border-box;max-width:100%">'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Own By</div><select class="sel" data-pli="'+i+'" data-f="own_by" onchange="readAll();saveD()">'+oOpts(p.own_by)+'</select></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0;grid-column:span 2"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Notes</div><input class="inp" value="'+esc(p.notes||'')+'" data-pli="'+i+'" data-f="notes" style="font-size:10px;width:100%" onchange="readAll();saveD()"></div>'+
+'<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0;grid-column:1/-1"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Remarks</div><textarea class="inp" rows="2" style="width:100%;font-size:11px;resize:vertical;box-sizing:border-box" data-pli="'+i+'" data-f="remarks" onchange="D.planned['+i+'].remarks=this.value;saveD();">'+esc(p.remarks||'')+'</textarea></div>'+
 '</div></td></tr>';
-return mainRow+detail}).join('');
+return mainRow+detail}).join('');_recFitDet();_recRO('planned');
 // Warn about planned items whose date falls outside the simulation window (they won't appear on the Timeline)
 var _pw=document.getElementById('planned-window-warn');
 if(_pw){
@@ -1025,6 +1099,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Card','<select id="pa-card" class="sel">'+cOpts('Cash/Direct')+'</select>')
  +row('Own By','<select id="pa-own" class="sel">'+oOpts('Me')+'</select>')
  +'</div>'
+ +row('Account','<select id="pa-acct" class="sel" style="width:100%">'+_acctOptsSel('')+'</select>')
  +row('Notes','<input id="pa-notes" class="inp" style="width:100%">')
  +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="pa-auto"> Auto-charged (auto-pay)</label>'
  +'</div>'
@@ -1043,7 +1118,7 @@ var name=g('pa-name'); if(!name){err('Please enter a name','pa-name');return;}
 var amt=parseFloat(g('pa-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amount greater than 0','pa-amt');return;}
 var date=g('pa-date'); if(!date){err('Pick a date (items without a date are skipped by the Timeline)','pa-date');return;}
 var ae=document.getElementById('pa-auto');
-D.planned.push({name:name,type:g('pa-type')||D.types[0]||'Other',amount:amt,date:date,card:g('pa-card')||'Cash/Direct',
+D.planned.push({name:name,type:g('pa-type')||D.types[0]||'Other',amount:amt,date:date,card:g('pa-card')||'Cash/Direct',account:g('pa-acct'),
  direction:g('pa-dir')||'expense',own_by:g('pa-own')||'me',notes:g('pa-notes'),auto_pay:!!(ae&&ae.checked)});
 _plNewIdx=D.planned.length-1;
 saveD();plAddClose();
@@ -1064,6 +1139,7 @@ var st=plannedSortState;if(st.col===col)st.asc=!st.asc;else{st.col=col;st.asc=tr
 D.planned.sort(function(a,b){
 var va=a[col],vb=b[col];
 // card column: sort by DISPLAY name (resolve id->name) so cards group by their label, not raw id.
+if(col==='account'){va=_acctLbl(va);vb=_acctLbl(vb);}
 if(col==='card'){ va=(typeof window.cardDisplayName==='function'?window.cardDisplayName(va):va)||va||''; vb=(typeof window.cardDisplayName==='function'?window.cardDisplayName(vb):vb)||vb||''; }
 if(typeof va==='number'&&typeof vb==='number')return st.asc?va-vb:vb-va;
 va=String(va||'').toLowerCase();vb=String(vb||'').toLowerCase();
@@ -1389,7 +1465,8 @@ if(st.col===col)st.asc=!st.asc;else{st.col=col;st.asc=true}
 var arr=table==='monthly'?D.monthly:table==='yearly'?D.yearly:D.payroll;
 arr.sort(function(a,b){var va,vb;
 if(table==='yearly'&&(col==='billing_day'||col==='month')){va=(a.month||0)*100+(a.billing_day||0);vb=(b.month||0)*100+(b.billing_day||0);return st.asc?va-vb:vb-va}
-va=a[col];vb=b[col];
+var _sv=function(r){var v=r[col];if(col==='type')return (typeof typeName==='function'?typeName(v):v)||'';if(col==='card')return (v==='Cash/Direct'||!v)?'Cash/Direct':((typeof cardDisplayName==='function'&&cardDisplayName(v))||v);if(col==='auto_pay')return v?1:0;if(col==='status')return v||'Active';if(col==='direction')return v||'expense';if(col==='account')return _acctLbl(v);return v;};
+va=_sv(a);vb=_sv(b);
 if(typeof va==='number'&&typeof vb==='number')return st.asc?va-vb:vb-va;
 va=String(va||'').toLowerCase();vb=String(vb||'').toLowerCase();
 return st.asc?va.localeCompare(vb):vb.localeCompare(va)});
@@ -1406,10 +1483,11 @@ return '<th style="cursor:pointer" onclick="readAll();sortTable(\''+table+'\',\'
 
 
 function populateFilters(){
-var tOpts=sTypes().map(function(t){return '<option>'+esc(t)+'</option>'}).join('');
-var cOpts2=sCards().map(function(c){return '<option>'+esc(c.name)+'</option>'}).join('');
-['flt-m-type','flt-y-type','flt-i-type'].forEach(function(id){var el=document.getElementById(id);if(el){var v=el.value;el.innerHTML='<option value="">All Types</option>'+tOpts;el.value=v}});
-['flt-m-card','flt-y-card','flt-i-card'].forEach(function(id){var el=document.getElementById(id);if(el){var v=el.value;el.innerHTML='<option value="">All Cards</option><option value="Cash/Direct">Cash/Direct</option>'+cOpts2;el.value=v}});
+var tOpts=sTypes().map(function(t){var _id=(t&&typeof t==='object')?t.id:t,_nm=(t&&typeof t==='object')?t.name:t;return '<option value="'+esc(_id)+'">'+esc(_nm)+'</option>'}).join('');
+var cOpts2=sCards().map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');
+['flt-m-type','flt-y-type','flt-i-type'].forEach(function(id){var el=document.getElementById(id);if(el){var v=el.value;el.innerHTML='<option value="">All Types</option>'+tOpts;el.value=v;if(el.value!==v)el.value='';}});
+['flt-m-card','flt-y-card','flt-i-card'].forEach(function(id){var el=document.getElementById(id);if(el){var v=el.value;el.innerHTML='<option value="">All Cards</option><option value="Cash/Direct">Cash/Direct</option>'+cOpts2;el.value=v;if(el.value!==v)el.value='';}});
+['flt-m-status','flt-y-status'].forEach(function(id){var el=document.getElementById(id);if(el){var v=el.value;el.innerHTML='<option value="">All Status</option><option>Active</option><option>Hold</option><option>Cancelled</option>';el.value=v;}});
 var sOpts=STATUSES.map(function(s){return '<option>'+s+'</option>'}).join('');
 var el=document.getElementById('flt-i-status');if(el){var v=el.value;el.innerHTML='<option value="">All Status</option>'+sOpts;el.value=v}
 var el2=document.getElementById('flt-i-source');if(el2){var v=el2.value;el2.innerHTML='<option value="">All Sources</option><option>Manual</option><option>Yearly</option>';el2.value=v}
@@ -1420,7 +1498,7 @@ function filterMonthly(){var ft=document.getElementById('flt-m-type').value,fc=d
 document.querySelectorAll('#monthly-body tr').forEach(function(tr){
 var mi=tr.getAttribute('data-mrow');if(mi===null){tr.style.display='';return}
 mi=+mi;if(!D.monthly[mi]){tr.style.display='';return}
-var show=true;if(ft&&D.monthly[mi].type!==ft)show=false;if(fc&&D.monthly[mi].card!==fc)show=false;
+var show=true;var _r=D.monthly[mi];var _tid=(typeof typeId==='function')?typeId(_r.type):_r.type;if(ft&&_tid!==ft&&_r.type!==ft)show=false;var _cid=(_r.card==='Cash/Direct'||!_r.card)?'Cash/Direct':((typeof window.cardResolve==='function'&&(window.cardResolve(_r.card)||{}).id)||_r.card);if(fc&&_cid!==fc&&_r.card!==fc)show=false;var _fs=(document.getElementById('flt-m-status')||{}).value||'';if(_fs&&(_r.status||'Active')!==_fs)show=false;
 var isDetail=tr.classList.contains('m-detail');
 // main row shows when filter passes; detail row shows only when filter passes AND it is expanded
 tr.style.display=(show&&(!isDetail||_mExpanded[mi]))?'':'none';})}
@@ -1430,7 +1508,7 @@ function filterYearly(){var ft=document.getElementById('flt-y-type').value,fm=do
 document.querySelectorAll('#yearly-body tr').forEach(function(tr){
 var yi=tr.getAttribute('data-yrow');if(yi===null){tr.style.display='';return}
 yi=+yi;if(!D.yearly[yi]){tr.style.display='';return}
-var show=true;if(ft&&D.yearly[yi].type!==ft)show=false;if(fm&&D.yearly[yi].pay_mode!==fm)show=false;if(fc&&D.yearly[yi].card!==fc)show=false;
+var show=true;var _r=D.yearly[yi];var _tid=(typeof typeId==='function')?typeId(_r.type):_r.type;if(ft&&_tid!==ft&&_r.type!==ft)show=false;if(fm&&D.yearly[yi].pay_mode!==fm)show=false;var _cid=(_r.card==='Cash/Direct'||!_r.card)?'Cash/Direct':((typeof window.cardResolve==='function'&&(window.cardResolve(_r.card)||{}).id)||_r.card);if(fc&&_cid!==fc&&_r.card!==fc)show=false;var _fs=(document.getElementById('flt-y-status')||{}).value||'';if(_fs&&(_r.status||'Active')!==_fs)show=false;
 var isDetail=tr.classList.contains('y-detail');
 tr.style.display=(show&&(!isDetail||_yExpanded[yi]))?'':'none';})}
 
