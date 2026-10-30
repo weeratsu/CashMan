@@ -61,10 +61,11 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Priority','<select id="ta-pri" class="sel"><option value="1">\ud83d\udd34 High</option><option value="2" selected>\ud83d\udfe1 Normal</option><option value="3">\ud83d\udfe3 Low</option></select>')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
- +row('Deadline','<select id="ta-mode" class="sel" onchange="document.getElementById(\'ta-datewrap\').style.visibility=this.value===\'date\'?\'visible\':\'hidden\'"><option value="none">None</option><option value="date">Date</option><option value="asap">ASAP</option></select>')
- +'<div id="ta-datewrap" style="visibility:hidden">'+row('Date','<input id="ta-date" type="date" class="inp">')+'</div>'
+ +row('Due','<select id="ta-mode" class="sel" onchange="document.getElementById(\'ta-datewrap\').style.visibility=this.value===\'date\'?\'visible\':\'hidden\'"><option value="none">None</option><option value="date">Date</option><option value="asap">ASAP</option></select>')
+ +'<div id="ta-datewrap" style="visibility:hidden">'+row('Due date','<input id="ta-date" type="date" class="inp">')+'</div>'
  +row('Time','<input id="ta-time" type="time" class="inp">')
  +'</div>'
+ +row('Deadline (optional)','<input id="ta-dl" type="date" class="inp" title="Last day it must be done \u2014 shows as a bar in the calendar">')
  +row('Repeat','<select id="ta-recur" class="sel"><option value="none">once</option><option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option><option value="yearly">yearly</option></select>')
  +'</div>'
  +'<div id="ta-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
@@ -84,7 +85,7 @@ if(mode==='date'&&!due){var er2=document.getElementById('ta-err');if(er2)er2.tex
 var recur=g('ta-recur')||'none';
 var d0=due?new Date(due+'T00:00:00'):new Date();
 var t={id:_todoId(),title:title,note:g('ta-note'),
- deadline_mode:mode,due_date:mode==='date'?due:'',due_time:g('ta-time'),
+ deadline_mode:mode,due_date:mode==='date'?due:'',due_time:g('ta-time'),deadline_date:(mode==='date'&&g('ta-dl')&&g('ta-dl')>due)?g('ta-dl'):'',
  recur:recur,recur_every:1,recur_dow:d0.getDay(),recur_dom:d0.getDate(),recur_month:d0.getMonth()+1,recur_until:'',
  category:g('ta-cat')||((D.todo_cats&&D.todo_cats[0])||'Other'),priority:parseInt(g('ta-pri'))||2,
  done:false,done_date:'',link_type:'',link_ref:''};
@@ -341,7 +342,7 @@ function _todoRank(t,today){
 if(t.done)return 9;
 if(t.deadline_mode==='asap')return 0;// ASAP on top — act now, no specific date
 if(t.deadline_mode!=='date'||!t.due_date)return 5;
-var diff=Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000);
+var diff=Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000);if(diff<0&&t.deadline_date&&new Date(t.deadline_date+'T00:00:00')>=today)diff=0;
 if(diff<0)return 1;if(diff===0)return 2;if(diff<=7)return 3;return 4;
 }
 // Effective due timestamp for within-band date ordering (ASAP/none sort last within their band).
@@ -352,7 +353,7 @@ function _todoDueMs(t){if(t.deadline_mode==='date'&&t.due_date){return new Date(
 function _todoRankUP(t,today){
   if(t.done)return 9;
   if(t.deadline_mode==='date'&&t.due_date){
-    var diff=Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000);
+    var diff=Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000);if(diff<0&&t.deadline_date&&new Date(t.deadline_date+'T00:00:00')>=today)diff=0;
     if(diff<0)return 0;           // Overdue first
     if(t.deadline_mode==='asap')return 1;
     if(diff===0)return 2;if(diff<=7)return 3;return 4;
@@ -366,7 +367,7 @@ if(t.done&&t.cancelled)return '<span style="color:var(--text3);font-style:italic
 if(t.done)return '<span style="color:var(--success)">\u2705 Done'+(t.done_date?' '+fmtDate(t.done_date):'')+'</span>';
 if(t.deadline_mode==='asap')return '<span style="color:var(--error);font-weight:700">\u2757 ASAP</span>';
 if(t.deadline_mode!=='date'||!t.due_date)return '<span style="color:var(--text3)">\u2014 no deadline</span>';
-var diff=Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000);
+var diff=Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000);if(diff<0&&t.deadline_date&&new Date(t.deadline_date+'T00:00:00')>=today)return '<span style="color:var(--warning);font-weight:600">\u23f3 by '+fmtDate(t.deadline_date)+'</span>';
 if(diff<0)return '<span style="color:var(--error);font-weight:600">\u26a0\ufe0f Overdue '+(-diff)+'d</span>';
 if(diff===0)return '<span style="color:#dc2626;font-weight:700">\ud83d\udccc Due today</span>';
 if(diff<=7)return '<span style="color:var(--warning);font-weight:600">\ud83d\udd14 Due in '+diff+'d</span>';
@@ -498,7 +499,7 @@ if(_todoFrozen){
 }
 
 var openCount=D.todos.filter(function(t){return !t.done;}).length;
-var overdue=D.todos.filter(function(t){return !t.done&&t.deadline_mode==='date'&&t.due_date&&(new Date(t.due_date+'T00:00:00')<today);}).length;
+var overdue=D.todos.filter(function(t){return !t.done&&t.deadline_mode==='date'&&t.due_date&&(new Date((t.deadline_date||t.due_date)+'T00:00:00')<today);}).length;
 // Summary-card band counts (reuse _todoRank: 0 asap,1 overdue,2 today,3 soon)
 var _sumAsap=0,_sumToday=0,_sumSoon=0;
 D.todos.forEach(function(t){if(t.done)return;var rk=_todoRank(t,today);if(rk===0)_sumAsap++;else if(rk===2)_sumToday++;else if(rk===3)_sumSoon++;});
@@ -574,7 +575,7 @@ el.innerHTML=h;return;
 var _ar=function(col){return _todoSort===col?(_todoAsc?' \u25b2':' \u25bc'):'';};
 if(_todoFrozen){h+='<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);background:var(--primary-bg,rgba(79,70,229,.08));border-radius:6px;padding:5px 10px;margin:6px 0"><i class="fa-solid fa-lock"></i> Order paused while you edit (edited rows outlined)<span style="flex:1"></span><button class="btn btn-primary" style="font-size:10px;padding:3px 10px" onclick="todoResort()"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort now</button></div>';}
 h+='<div class="todo-fit"><table class="tbl todo-tbl" style="font-size:11px;width:100%"><thead><tr>'+
-'<th style="text-align:left"><span style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</span></th>'+'<th style="cursor:pointer;white-space:nowrap" onclick="setTodoSort(\'category\')">Category'+_ar('category')+'</th>'+'<th style="cursor:pointer;white-space:nowrap" onclick="setTodoSort(\'priority\')">Priority'+_ar('priority')+'</th>'+'<th style="white-space:nowrap">Deadline</th>'+
+'<th style="text-align:left"><span style="cursor:pointer" onclick="setTodoSort(\'name\')">Task'+_ar('name')+'</span></th>'+'<th style="cursor:pointer;white-space:nowrap" onclick="setTodoSort(\'category\')">Category'+_ar('category')+'</th>'+'<th style="cursor:pointer;white-space:nowrap" onclick="setTodoSort(\'priority\')">Priority'+_ar('priority')+'</th>'+'<th style="white-space:nowrap">Due</th>'+
 '<th class="todo-st" style="cursor:pointer;width:150px" onclick="setTodoSort(\'urgency\')">Status'+_ar('urgency')+'</th>'+
 '<th style="width:40px"></th></tr></thead><tbody>';
 
@@ -582,14 +583,15 @@ var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 items.forEach(function(t){
-var overdueRow=!t.done&&t.deadline_mode==='date'&&t.due_date&&(new Date(t.due_date+'T00:00:00')<today);
+var overdueRow=!t.done&&t.deadline_mode==='date'&&t.due_date&&(new Date((t.deadline_date||t.due_date)+'T00:00:00')<today);
 var dueToday=!t.done&&t.deadline_mode==='date'&&t.due_date&&(Math.round((new Date(t.due_date+'T00:00:00')-today)/86400000)===0);
 var rowStyle=t.done?'opacity:.55;':(overdueRow?'background:rgba(220,38,38,0.06);box-shadow:inset 3px 0 0 var(--error)':(dueToday?'background:rgba(245,158,11,0.08);box-shadow:inset 3px 0 0 var(--warning)':((t.deadline_mode==='asap')?'background:rgba(220,38,38,0.06);box-shadow:inset 3px 0 0 var(--error)':'')));
 
 // Deadline editor cell — mode dropdown + conditional date/time or recurrence day pickers.
 var dlCell='<select class="sel" data-tid="'+t.id+'" data-tf="deadline_mode" onchange="todoSaveField(\''+t.id+'\',\'deadline_mode\',this)" style="font-size:10px"><option value="none"'+(t.deadline_mode==='none'?' selected':'')+'>None</option><option value="date"'+(t.deadline_mode==='date'?' selected':'')+'>Date</option><option value="asap"'+(t.deadline_mode==='asap'?' selected':'')+'>ASAP</option></select>';
 if(t.deadline_mode==='date'){
-dlCell+=' <input type="date" class="inp-inline" value="'+esc(t.due_date||'')+'" data-tid="'+t.id+'" data-tf="due_date" onchange="todoSaveField(\''+t.id+'\',\'due_date\',this)" style="width:130px" title="Deadline date">';
+dlCell+=' <input type="date" class="inp-inline" value="'+esc(t.due_date||'')+'" data-tid="'+t.id+'" data-tf="due_date" onchange="todoSaveField(\''+t.id+'\',\'due_date\',this)" style="width:130px" title="Due / start date">';
+dlCell+=' <span style="font-size:9px;color:var(--text3)">\u2192 \u23f0</span><input type="date" class="inp-inline" value="'+esc(t.deadline_date||'')+'" data-tid="'+t.id+'" data-tf="deadline_date" onchange="todoSaveField(\''+t.id+'\',\'deadline_date\',this)" style="width:130px" title="Deadline (optional) \u2014 last day; calendar shows a bar from due to here">';
 }
 // Time can be set for ANY deadline mode (e.g. recurring 'every day at 09:00', or an ASAP-by time).
 dlCell+=' <input type="time" class="inp-inline" value="'+esc(t.due_time||'')+'" data-tid="'+t.id+'" data-tf="due_time" onchange="todoSaveField(\''+t.id+'\',\'due_time\',this)" style="width:74px" title="Optional time">';
@@ -618,7 +620,7 @@ h+='<tr class="todo-r1" data-row="'+t.id+'" style="'+_rs+'">'+
 '<tr class="todo-r2" style="'+_rs+'"><td>'+
 // Calm summary line (Oct 9 2026): readable chips; tap ✎ to open the full editors (kept below, hidden).
 '<div class="todo-sum" onclick="todoEditToggle(\''+t.id+'\')" title="แตะเพื่อแก้ไข" style="cursor:pointer;display:flex;align-items:center;gap:6px">'+'<i class="fa-solid fa-chevron-right todo-caret" id="tcar_'+t.id+'" style="font-size:9px;color:var(--text3);transition:transform .15s;transform:rotate('+(_todoEditOpen[t.id]?'90':'0')+'deg)"></i>'+'<span>'+_todoSummary(t,MON,DOW)+'</span></div>'+
-'<div class="todo-meta" id="tedit_'+t.id+'" style="display:'+(_todoEditOpen[t.id]?'grid':'none')+';grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;background:var(--bg3,rgba(0,0,0,0.015));border:1px dashed var(--border);border-radius:10px;padding:10px;margin-top:4px">'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e2b\u0e21\u0e27\u0e14 \u00b7 CATEGORY</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="category" onchange="todoSaveField(\''+t.id+'\',\'category\',this)" style="font-size:11px;width:100%">'+catOpts(t.category)+'</select>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e04\u0e27\u0e32\u0e21\u0e2a\u0e33\u0e04\u0e31\u0e0d \u00b7 PRIORITY</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="priority" onchange="todoSaveField(\''+t.id+'\',\'priority\',this)" style="font-size:11px;width:100%"><option value="1"'+(t.priority===1?' selected':'')+'>\ud83d\udd34 High</option><option value="2"'+((t.priority||2)===2?' selected':'')+'>\ud83d\udfe1 Normal</option><option value="3"'+(t.priority===3?' selected':'')+'>\u26aa Low</option></select>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07 \u00b7 DEADLINE</span>'+'<div class="todo-dl" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+dlCell+'</div>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e17\u0e33\u0e0b\u0e49\u0e33 \u00b7 REPEAT</span>'+'<div class="todo-dl" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+recCell+'</div>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e25\u0e34\u0e07\u0e01\u0e4c \u00b7 LINK</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="link" onchange="todoSaveLink(\''+t.id+'\',this)" style="font-size:10px;width:100%">'+_todoLinkOptions(t)+'</select>'+'</div>'+'</div></td></tr>';
+'<div class="todo-meta" id="tedit_'+t.id+'" style="display:'+(_todoEditOpen[t.id]?'grid':'none')+';grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;background:var(--bg3,rgba(0,0,0,0.015));border:1px dashed var(--border);border-radius:10px;padding:10px;margin-top:4px">'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e2b\u0e21\u0e27\u0e14 \u00b7 CATEGORY</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="category" onchange="todoSaveField(\''+t.id+'\',\'category\',this)" style="font-size:11px;width:100%">'+catOpts(t.category)+'</select>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e04\u0e27\u0e32\u0e21\u0e2a\u0e33\u0e04\u0e31\u0e0d \u00b7 PRIORITY</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="priority" onchange="todoSaveField(\''+t.id+'\',\'priority\',this)" style="font-size:11px;width:100%"><option value="1"'+(t.priority===1?' selected':'')+'>\ud83d\udd34 High</option><option value="2"'+((t.priority||2)===2?' selected':'')+'>\ud83d\udfe1 Normal</option><option value="3"'+(t.priority===3?' selected':'')+'>\u26aa Low</option></select>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e40\u0e23\u0e34\u0e48\u0e21 / \u0e01\u0e33\u0e2b\u0e19\u0e14 \u00b7 DUE \u2192 DEADLINE</span>'+'<div class="todo-dl" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+dlCell+'</div>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e17\u0e33\u0e0b\u0e49\u0e33 \u00b7 REPEAT</span>'+'<div class="todo-dl" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+recCell+'</div>'+'</div>'+'<div style="display:flex;flex-direction:column;gap:3px;background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">\u0e25\u0e34\u0e07\u0e01\u0e4c \u00b7 LINK</span>'+'<select class="sel" data-tid="'+t.id+'" data-tf="link" onchange="todoSaveLink(\''+t.id+'\',this)" style="font-size:10px;width:100%">'+_todoLinkOptions(t)+'</select>'+'</div>'+'</div></td></tr>';
 });
 h+='</tbody></table></div>';
 
