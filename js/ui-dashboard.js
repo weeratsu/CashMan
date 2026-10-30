@@ -268,7 +268,9 @@ var _nextY=(m===11?y+1:y),_nextM=(m===11?0:m+1);
 var extra=[];occ.forEach(function(s){if(s.kind!=='Card Statement'||!Array.isArray(s.children))return;
 s.children.forEach(function(ch){var dd=ch.orig_due||ch.due;if(!(dd instanceof Date))return;var k=(ch.key||ch.name)+'|'+dd.toDateString();if(seen[k])return;seen[k]=1;
 var c=Object.assign({},ch,{_surfaced:true,_inStmtCard:s.card,_calFromStmt:true});
-if(ch._paidFold||ch.paid||(ch.auto_pay&&s.paid)||s.paid)c.paid=true;
+var _t0=new Date();_t0.setHours(0,0,0,0);var _isIA=(ch.kind==='Installment'||String(ch.key||'').indexOf('I|')===0||ch.auto_pay);
+// v306: installments/auto charges are 'paid' only once their cut date has actually arrived.
+if(_isIA?(dd<=_t0&&(ch._paidFold||ch.paid||s.paid)):(ch._paidFold||ch.paid||s.paid))c.paid=true;else{c.paid=false;c._paidFold=false;}
 extra.push(c);});});
 Array.prototype.push.apply(occ,extra);})();
 occ.forEach(function(o){
@@ -297,7 +299,7 @@ else if(st==='due'){var diff=Math.round((d-_calToday)/86400000);if(diff===0)dayS
 });
 // Bill-line HTML (shared by current-month cells and faded adjacent cells). `muted` dims adjacent-month bills.
 // v299: inside each calendar cell, pending (unpaid / not done) items on top, paid / done / cancelled at the bottom.
-function _calIsPaid(o){return !!(o&&(o.paid||(typeof billStatus==='function'&&(function(){var s=billStatus(o,_calToday);return s==='paid'||s==='auto_paid';})())));}
+function _calIsPaid(o){if(!o)return false;var _d=o.orig_due||o.due;if((o.kind==='Installment'||String(o.key||'').indexOf('I|')===0)&&_d instanceof Date&&_d>_calToday)return false;return !!(o.paid||(typeof billStatus==='function'&&(function(){var s=billStatus(o,_calToday);return s==='paid'||s==='auto_paid';})()));}
 function _calCell(bills,tasks,muted){
 var B=bills||[],T=_calTaskSort(tasks),h1='',h2='';
 B.forEach(function(o){if(!_calIsPaid(o))h1+=_calBillLine(o,muted);});
@@ -308,7 +310,7 @@ return h1+h2;
 }
 function _calBillLine(o,muted){
 var auto=o.auto_pay?' <span style="color:var(--text3)" title="auto-pay">\ud83e\udd16</span>':'';
-var _isPaid=(o.paid||(typeof billStatus==='function'&&(function(){var s=billStatus(o,_calToday);return s==='paid'||s==='auto_paid';})()));
+var _isPaid=_calIsPaid(o);
 // Income receivables render green (received or not); expenses red unless auto/paid (grey).
 var col=o._income?'#10b981':((o.auto_pay||_isPaid)?'var(--text3)':'var(--error)');
 var paidMark=_isPaid?' <span style="color:var(--text3)" title="paid">\u2713</span>':'';
