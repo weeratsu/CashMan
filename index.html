@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-31 12:55";
+window.APP_VERSION="2026-10-31 20:50";
 // v-popdrag: a text-select drag that starts INSIDE a popup and ends on the dark backdrop fires a 'click' on the backdrop -> popup closed. Only close when the press also started on the backdrop.
 (function(){var md=null;document.addEventListener('mousedown',function(e){md=e.target;},true);document.addEventListener('click',function(e){var t=e.target;if(md&&md!==t&&t&&t.contains&&t.contains(md)){try{if(getComputedStyle(t).position==='fixed'){e.stopImmediatePropagation();e.stopPropagation();}}catch(_){}}},true);})();
 window.addEventListener("error",function(e){
@@ -293,7 +293,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <button class="nav-tab" data-tab="wishlist" title="Wishlist"><i class="fa-solid fa-star"></i><span>Wishlist</span></button>
 <div class="nav-group">Wealth &amp; Future</div>
 <button class="nav-tab" data-tab="accounts" title="Accounts &amp; Wealth"><i class="fa-solid fa-sack-dollar"></i><span>Accounts &amp; Wealth</span></button>
-<div class="nav-subwrap" data-parent="accounts"><button class="nav-sub" data-tab="accounts" data-sub="acctlist"><span>Accounts</span></button><button class="nav-sub" data-tab="accounts" data-sub="acctbal"><span>Balances</span></button><button class="nav-sub" data-tab="accounts" data-sub="acctfx"><span>FX Rates</span></button></div>
+<div class="nav-subwrap" data-parent="accounts"><button class="nav-sub" data-tab="accounts" data-sub="acctlist"><span>Accounts</span></button><button class="nav-sub" data-tab="accounts" data-sub="acctbal"><span>Balances</span></button><button class="nav-sub" data-tab="accounts" data-sub="acctint"><span>Interest</span></button><button class="nav-sub" data-tab="accounts" data-sub="acctfx"><span>FX Rates</span></button></div>
 <button class="nav-tab" data-tab="assets" title="Assets"><i class="fa-solid fa-piggy-bank"></i><span>Assets</span></button>
 <button class="nav-tab" data-tab="retirement" title="Retirement"><i class="fa-solid fa-umbrella-beach"></i><span>Retirement</span></button>
 <div class="nav-subwrap" data-parent="retirement"><button class="nav-sub" data-tab="retirement" data-sub="setup"><span>Scenario Setup</span></button><button class="nav-sub" data-tab="retirement" data-sub="assets"><span>Pension & Funds</span></button><button class="nav-sub" data-tab="retirement" data-sub="calc"><span>Severance Calculator</span></button><button class="nav-sub" data-tab="retirement" data-sub="summary"><span>Summary</span></button></div>
@@ -340,9 +340,10 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 
 <!-- ===== ACCOUNTS & WEALTH ===== -->
 <div id="tab-accounts" class="tab-content">
-<div class="sub-tabs"><span class="sub-tab active" onclick="swAcct(this,'list')">Accounts</span><span class="sub-tab" onclick="swAcct(this,'bal')">Balances</span><span class="sub-tab" onclick="swAcct(this,'fx')">FX Rates</span></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swAcct(this,'list')">Accounts</span><span class="sub-tab" onclick="swAcct(this,'bal')">Balances</span><span class="sub-tab" onclick="swAcct(this,'int')">Interest</span><span class="sub-tab" onclick="swAcct(this,'fx')">FX Rates</span></div>
 <div id="acct-list" class="sub-panel active"><div id="setup-accounts-host"></div></div>
 <div id="acct-bal" class="sub-panel"><div id="an-balances-body"></div></div>
+<div id="acct-int" class="sub-panel"><div id="acct-int-body"></div></div>
 <div id="acct-fx" class="sub-panel"><div id="setup-fx-body"></div></div>
 </div>
 
@@ -692,9 +693,9 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </script>
 <script src="js/simulation.js?v=290"></script>
 
-<script src="js/ui-setup.js?v=264"></script>
+<script src="js/ui-setup.js?v=270"></script>
 <script src="js/ui-holidays.js?v=5"></script>
-<script src="js/ui-balances.js?v=4"></script>
+<script src="js/ui-balances.js?v=12"></script>
 
 <script src="js/ui-payroll.js?v=258"></script>
 <script src="js/ui-monthlyplan.js?v=16"></script>
@@ -726,10 +727,10 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-cardtxns.js?v=2"></script>
 <script src="js/ui-cardsummary.js?v=17"></script>
 <script src="js/drive-view.js?v=2"></script>
-<script src="js/app.js?v=297"></script>
+<script src="js/app.js?v=298"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
 <script src="../WRHub/shared/table-fit.js?v=3" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=3';document.body.appendChild(s);"></script>
-<script src="js/table-search.js?v=2"></script>
+<script src="js/table-search.js?v=3"></script>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('CDN failed: xlsx.full.min.js')"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js" crossorigin="anonymous" onerror="console.warn('CDN failed: highcharts.js')"></script>

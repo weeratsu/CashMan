@@ -114,5 +114,98 @@ window.renderCurrencyFx=renderCurrencyFx;window.renderBalances=renderBalances;
 
 // Accounts & Wealth module sub-tab switch
 function swAcct(el,tab){document.querySelectorAll('#tab-accounts .sub-panel').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('#tab-accounts .sub-tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');var p=document.getElementById('acct-'+tab);if(p)p.classList.add('active');
- try{if(tab==='list')renderBankAccount();else if(tab==='bal')renderBalances();else if(tab==='fx')renderCurrencyFx();}catch(e){console.error('swAcct',e)}}
+ try{if(tab==='list')renderBankAccount();else if(tab==='bal')renderBalances();else if(tab==='fx')renderCurrencyFx();else if(tab==='int')renderInterest();}catch(e){console.error('swAcct',e)}}
 window.swAcct=swAcct;
+
+// ===== Accounts & Wealth > Interest summary (Oct 31 2026) =====
+var _intF={bank:'',acct:'',kind:'',atype:'',q:'',sort:'int'};
+function _intKind(a){return a.rate_sched?(a.pay_maturity?'maturity':'term'):(a.rate_tiers?'tiered':'flat');}
+function setIntF(k,v){_intF[k]=v;renderInterest();}
+window.setIntF=setIntF;
+function renderInterest(){_balInit();var h=document.getElementById('acct-int-body');if(!h)return;
+ var all=(D.accounts||[]).filter(function(a){return !acctIsLoan(a)&&((a.rate!==''&&a.rate!=null)||a.rate_tiers||a.rate_sched);});
+ var _bn=function(a){return (typeof bankName==='function'?bankName(a.bank):a.bank)||'';};
+ var acc=all.filter(function(a){if(_intF.bank&&a.bank!==_intF.bank)return false;if(_intF.acct&&a.id!==_intF.acct)return false;if(_intF.kind&&_intKind(a)!==_intF.kind)return false;if(_intF.atype&&a.type!==_intF.atype)return false;
+   if(_intF.q){var q=_intF.q.toLowerCase();if(((a.name||'')+' '+_bn(a)+' '+(a.note||'')).toLowerCase().indexOf(q)<0)return false;}return true;});
+ var _iv=function(a){var ti=acctTermInfo(a);if(ti&&a.pay_maturity)return acctTHB(a,ti.total/(ti.term/12),a.balance_date)||0;return acctTHB(a,acctInterest(a,a.balance)||0,a.balance_date)||0;};
+ var _rv=function(a){var e=acctEffRate(a);return e==null?(+a.rate||0):e;};
+ var _bv=function(a){return acctTHB(a,+a.balance||0,a.balance_date)||0;};
+ var SO={int:function(x,y){return _iv(y)-_iv(x);},rate:function(x,y){return _rv(y)-_rv(x);},bal:function(x,y){return _bv(y)-_bv(x);},name:function(x,y){return (x.name||'').localeCompare(y.name||'');},bank:function(x,y){return _bn(x).localeCompare(_bn(y))||(x.name||'').localeCompare(y.name||'');}};
+ var _banks={};all.forEach(function(a){if(a.bank)_banks[a.bank]=_bn(a);});
+ var fbar='<div class="filterbar" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">'+
+  '<input class="inp" style="width:170px;font-size:11px" placeholder="Search account / bank / note" value="'+esc(_intF.q)+'" onchange="setIntF(\'q\',this.value)">'+
+  '<select class="inp sel" style="width:auto;font-size:11px" onchange="setIntF(\'bank\',this.value)"><option value="">All banks</option>'+Object.keys(_banks).sort(function(x,y){return _banks[x].localeCompare(_banks[y]);}).map(function(k){return '<option value="'+k+'"'+(k===_intF.bank?' selected':'')+'>'+esc(_banks[k])+'</option>';}).join('')+'</select>'+
+  '<select class="inp sel" style="width:auto;font-size:11px" onchange="setIntF(\'acct\',this.value)"><option value="">All accounts</option>'+all.filter(function(a){return !_intF.bank||a.bank===_intF.bank;}).slice().sort(SO.name).map(function(a){return '<option value="'+a.id+'"'+(a.id===_intF.acct?' selected':'')+'>'+esc(a.name)+'</option>';}).join('')+'</select>'+
+  (function(){var u={};all.forEach(function(a){if(a.type)u[a.type]=1;});var L=Object.keys(u).map(function(k){return [k,(typeof acctTypeName==='function'?acctTypeName(k):k)||k];}).sort(function(x,y){return x[1].localeCompare(y[1]);});
+   return '<select class="inp sel" style="width:auto;font-size:11px" onchange="setIntF(\'atype\',this.value)"><option value="">All account types</option>'+L.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===_intF.atype?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>';})()+
+  '<select class="inp sel" style="width:auto;font-size:11px" onchange="setIntF(\'kind\',this.value)"><option value="">All rate types</option>'+[['flat','Flat'],['tiered','Tiered'],['term','By month'],['maturity','At maturity']].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===_intF.kind?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+
+  '<select class="inp sel" style="width:auto;font-size:11px" onchange="setIntF(\'sort\',this.value)">'+[['int','Sort: Interest/yr \u2193'],['rate','Sort: Rate \u2193'],['bal','Sort: Balance \u2193'],['bank','Sort: Bank A\u2192Z'],['name','Sort: Account A\u2192Z']].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===_intF.sort?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+
+  ((_intF.bank||_intF.acct||_intF.kind||_intF.atype||_intF.q)?'<button class="btn btn-ghost" style="font-size:11px" onclick="_intF.bank=\'\';_intF.acct=\'\';_intF.kind=\'\';_intF.atype=\'\';_intF.q=\'\';renderInterest()"><i class="fa-solid fa-xmark"></i> Clear</button>':'')+
+  '<span style="font-size:10px;color:var(--text3)">'+acc.length+' / '+all.length+' accounts</span></div>';
+ var totI=0,totB=0,cards='';
+ acc.sort(SO[_intF.sort]||SO.int).forEach(function(a){
+  var sym=curSym(a.currency||'THB'),b=+a.balance||0,T=acctParseTiers(a.rate_tiers),I=acctInterest(a,b)||0,eff=b?I/b*100:(T?T[0].rate:+a.rate);
+  var It=acctTHB(a,I,a.balance_date),Bt=acctTHB(a,b,a.balance_date);if(It!=null){totI+=It;totB+=Bt;}
+  var rows='';
+  if(T){var prev=0;T.forEach(function(t,i){var cap=t.upto-prev,inT=Math.max(0,Math.min(b-prev,cap)),cur=b>prev&&b<=t.upto,full=b>=t.upto;
+    var pct=cap===Infinity?(inT>0?100:0):inT/cap*100;
+    rows+='<tr style="'+(cur?'background:var(--primary-bg,rgba(59,130,246,.08));font-weight:700':'')+'"><td>'+(cur?'\u25b6 ':'')+'Tier '+(i+1)+'</td><td>'+sym+fmt(prev,0)+' \u2013 '+(t.upto===Infinity?'\u221e':sym+fmt(t.upto,0))+'</td><td style="text-align:right;font-family:var(--mono)">'+t.rate.toFixed(2)+'%</td>'+
+     '<td style="min-width:120px"><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+(full?'var(--success)':'var(--primary)')+'"></div></div><div style="font-size:9px;color:var(--text3)">'+sym+fmt(inT)+(cap!==Infinity?' / '+sym+fmt(cap,0)+(cur?' \u00b7 room '+sym+fmt(t.upto-b):''):'')+'</div></td>'+
+     '<td style="text-align:right;font-family:var(--mono)">'+sym+fmt(inT*t.rate/100)+'</td></tr>';prev=t.upto;});}
+  var TI=acctTermInfo(a);
+  if(TI){I=a.pay_maturity?0:(TI.cur?b*TI.cur.rate/100:0);eff=TI.cur?TI.cur.rate:0;It=acctTHB(a,I,a.balance_date);
+    TI.sched.forEach(function(x,i){var cur=TI.cur===x&&!TI.matured,done=TI.month>x.to||TI.matured,mths=x.to-x.from+1,inM=Math.max(0,Math.min(TI.month,x.to)-x.from+1),pct=inM/mths*100;
+     rows+='<tr style="'+(cur?'background:var(--primary-bg,rgba(59,130,246,.08));font-weight:700':'')+'"><td>'+(cur?'\u25b6 ':'')+'Month '+x.from+'\u2013'+x.to+'</td><td>'+mths+' mo</td><td style="text-align:right;font-family:var(--mono)">'+x.rate.toFixed(2)+'%</td>'+
+      '<td style="min-width:120px"><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+(done?'var(--success)':'var(--primary)')+'"></div></div><div style="font-size:9px;color:var(--text3)">'+inM+' / '+mths+' mo</div></td>'+
+      '<td style="text-align:right;font-family:var(--mono)">'+sym+fmt(b*x.rate/100*mths/12)+'</td></tr>';});
+    rows+='<tr style="font-weight:700;background:var(--bg3)"><td colspan="4">'+(a.pay_maturity?'Paid once at maturity ':'Total over term ')+fmtDate(TI.maturity)+(TI.matured?' \u2714 matured':' \u00b7 month '+TI.month+'/'+TI.term)+'</td><td style="text-align:right;font-family:var(--mono)">'+sym+fmt(TI.total)+'</td></tr>'+
+     '<tr><td colspan="4" style="font-size:10px;color:var(--text3)">Accrued so far \u00b7 avg '+TI.avg.toFixed(2)+'% p.a.</td><td style="text-align:right;font-family:var(--mono);font-size:10px">'+sym+fmt(TI.accrued)+'</td></tr>';}
+  else if(!T) rows='<tr><td>Flat</td><td>all balance</td><td style="text-align:right;font-family:var(--mono)">'+(+a.rate).toFixed(2)+'%</td><td></td><td style="text-align:right;font-family:var(--mono)">'+sym+fmt(I)+'</td></tr>';
+  var hint='';if(TI&&a.pay_maturity&&!TI.matured)hint='<div style="font-size:10px;color:var(--text3);margin-top:4px">\u23f3 No interest until '+fmtDate(TI.maturity)+' \u2014 withdrawing early may lose it</div>';if(T&&!TI){var ci=T.findIndex(function(t){return b<=t.upto;});if(ci<0)ci=T.length-1;if(ci>0&&T[ci].rate<T[0].rate)hint='<div style="font-size:10px;color:#d97706;margin-top:4px">\u26a0\ufe0f Balance above '+sym+fmt(T[ci-1].upto,0)+' earns only '+T[ci].rate.toFixed(2)+'% on the extra \u2014 consider moving it to a higher-rate account</div>';}
+  cards+='<div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;align-items:baseline"><h2 style="margin:0">'+esc(a.name)+' <span style="font-size:11px;color:var(--text3);font-weight:400">'+esc((typeof bankName==='function'?bankName(a.bank):a.bank)||'')+(a.rate_date?' \u00b7 since '+fmtDate(a.rate_date):'')+'</span></h2>'+
+   '<div style="font-size:12px">Balance <b>'+sym+fmt(b)+'</b> \u00b7 '+(TI&&a.pay_maturity?'At maturity <b style="color:var(--success)">'+sym+fmt(TI.total)+'</b> on '+fmtDate(TI.maturity):'Rate now <b>'+eff.toFixed(2)+'%</b> \u00b7 \u2248 <b style="color:var(--success)">'+sym+fmt(I)+'/yr</b>')+((a.currency||'THB')!=='THB'&&It!=null?' (\u2248\u0e3f'+fmt(It)+')':'')+'</div></div>'+
+   '<div class="rec-scroll"><table class="tbl" style="font-size:11px;width:100%;margin-top:6px"><thead><tr><th>'+(TI?'Period':'Tier')+'</th><th>'+(TI?'Length':'Range')+'</th><th style="text-align:right">Rate</th><th>Filled</th><th style="text-align:right">Interest/yr</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+hint+(function(){var L=(D.rate_log||[]).filter(function(x){return x.acct===a.id;}).sort(function(x,y){return x.date<y.date?1:-1;});if(!L.length)return '';return '<details style="margin-top:6px;font-size:11px"><summary style="cursor:pointer;color:var(--text3)">Rate history ('+L.length+')</summary><table class="tbl" style="font-size:10px;width:100%;margin-top:4px"><thead><tr><th>Effective</th><th>Rate</th><th>Entered</th></tr></thead><tbody>'+L.map(function(x,i){return '<tr'+(i===0?' style="font-weight:700"':'')+'><td>'+fmtDate(x.date)+(i===0?' (current)':'')+'</td><td style="font-family:var(--mono)">'+(x.tiers?esc(x.tiers):(+x.rate).toFixed(2)+'%')+'</td><td>'+fmtDate(x.entered||'')+'</td></tr>';}).join('')+'</tbody></table></details>';})()+'</div>';});
+ var k='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px">'+
+  '<div class="kpi"><div class="kpi-label">Est. interest / yr</div><div class="kpi-val" style="color:var(--success)">\u0e3f'+fmt(totI)+'</div><div style="font-size:9px;color:var(--text3)">\u2248 \u0e3f'+fmt(totI/12)+'/mo</div></div>'+
+  '<div class="kpi"><div class="kpi-label">Avg. effective rate</div><div class="kpi-val">'+(totB?(totI/totB*100).toFixed(2):'0.00')+'%</div><div style="font-size:9px;color:var(--text3)">weighted by balance</div></div>'+
+  '<div class="kpi"><div class="kpi-label">Accounts with rate</div><div class="kpi-val">'+acc.length+'</div><div style="font-size:9px;color:var(--text3)">'+acc.filter(function(a){return a.rate_tiers;}).length+' tiered</div></div></div>';
+ h.innerHTML=k+_dpCard()+fbar+(cards||'<div class="card" style="text-align:center;color:var(--text3)">No interest rates yet \u2014 set them in Accounts (\u270f\ufe0f)</div>')+'<div style="font-size:10px;color:var(--text3)">Estimate on current balance, before tax. \u25b6 = the tier your balance is in now.</div>';}
+window.renderInterest=renderInterest;
+
+// ===== Deposit planner (Oct 31 2026): greedy fill by highest marginal rate, respecting tiers + Max Target =====
+var _dpAmt='',_dpExcess=true;
+function _dpSegments(a){ // [{rate,cap}] THB capacity from current balance upward
+ if(acctIsLoan(a)||a.rate_sched)return [];if((a.currency||'THB')!=='THB')return [];
+ var b=+a.balance||0,mx=+a.max_amount||Infinity,T=acctParseTiers(a.rate_tiers),segs=[];
+ if(!T){if(a.rate===''||a.rate==null)return [];if(mx>b)segs.push({rate:+a.rate,from:b,to:mx});return segs;}
+ var prev=0;T.forEach(function(t){var lo=Math.max(prev,b),hi=Math.min(t.upto,mx);if(hi>lo)segs.push({rate:t.rate,from:lo,to:hi});prev=t.upto;});return segs;}
+function dpPlan(amount,useExcess){var src=[],pool=+amount||0;
+ if(useExcess)(D.accounts||[]).forEach(function(a){if(acctIsLoan(a)||(a.currency||'THB')!=='THB')return;var mx=+a.max_amount||0,b=+a.balance||0;if(mx&&b>mx){src.push({a:a,amt:b-mx});pool+=b-mx;}});
+ // tiers of one account must fill IN ORDER (can't reach 1.3% at 5M before filling 0.1% up to 1M) -> pick the best NEXT segment each step
+ var Q=[];(D.accounts||[]).forEach(function(a){var s=_dpSegments(a);if(s.length)Q.push({a:a,s:s,i:0});});
+ var steps=[],left=pool,guard=0;
+ while(left>0.005&&guard++<500){var best=null;Q.forEach(function(q){if(q.i>=q.s.length)return;var r=q.s[q.i].rate;if(!best||r>best.s[best.i].rate)best=q;});if(!best)break;
+  var s=best.s[best.i],room=s.to-s.from,put=Math.min(left,room);best.i++;if(put<=0)continue;left-=put;
+  var last=steps[steps.length-1];if(last&&last.a===best.a&&last.rate===s.rate){last.amt+=put;last.to=s.to;last.fill=put>=room-0.005;last.int+=put*s.rate/100;}
+  else steps.push({a:best.a,rate:s.rate,amt:put,fill:put>=room-0.005,to:s.to,int:put*s.rate/100});}
+ return {src:src,pool:pool,steps:steps,left:left,int:steps.reduce(function(t,x){return t+x.int;},0)};}
+function dpSet(k,v){if(k==='amt')_dpAmt=v;else _dpExcess=v;renderInterest();}
+window.dpPlan=dpPlan;window.dpSet=dpSet;
+function _dpCard(){var P=dpPlan(parseFloat(String(_dpAmt).replace(/,/g,''))||0,_dpExcess);
+ var h='<div class="card" style="border-color:var(--primary)"><h2 style="margin-top:0"><i class="fa-solid fa-route"></i> Where to deposit</h2>'+
+ '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><label style="font-size:11px">New money (\u0e3f)</label><input class="inp inp-num" style="width:140px" inputmode="decimal" value="'+esc(String(_dpAmt))+'" placeholder="e.g. 50000" onchange="dpSet(\'amt\',this.value)">'+
+ '<label style="font-size:11px;display:flex;gap:4px;align-items:center;cursor:pointer"><input type="checkbox"'+(_dpExcess?' checked':'')+' onchange="dpSet(\'ex\',this.checked)"> also move money above Max Target</label></div>';
+ if(P.src.length)h+='<div style="font-size:11px;margin-bottom:6px"><b>Step 0 \u2014 take out excess over Max Target:</b> '+P.src.map(function(s){return esc(s.a.name)+' \u0e3f'+fmt(s.amt);}).join(', ')+'</div>';
+ if(!P.pool){h+='<div style="font-size:11px;color:var(--text3)">Enter an amount to see the best allocation.</div></div>';return h;}
+ h+='<div class="rec-scroll"><table class="tbl" style="font-size:11px;width:100%"><thead><tr><th>Step</th><th>Deposit to</th><th style="text-align:right">Amount</th><th style="text-align:right">Rate</th><th>Why stop</th><th style="text-align:right">Interest/yr</th></tr></thead><tbody>'+
+  P.steps.map(function(s,i){var mx=+s.a.max_amount||0,why=!s.fill?'all money placed':(mx&&Math.abs(s.to-mx)<0.01?'reached Max Target \u0e3f'+fmt(mx,0):'tier full at \u0e3f'+fmt(s.to,0)+' \u2192 rate drops');
+   return '<tr><td>'+(i+1)+'</td><td style="font-weight:600">'+esc(s.a.name)+' <span style="font-weight:400;color:var(--text3)">'+esc((typeof bankName==='function'?bankName(s.a.bank):s.a.bank)||'')+'</span></td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(s.amt)+'</td><td style="text-align:right;font-family:var(--mono)">'+s.rate.toFixed(2)+'%</td><td style="font-size:10px;color:var(--text3)">'+why+'</td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(s.int)+'</td></tr>';}).join('')+
+  '<tr style="font-weight:700;background:var(--bg3)"><td colspan="2">Total</td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(P.pool-P.left)+'</td><td style="text-align:right;font-family:var(--mono)">'+((P.pool-P.left)?(P.int/(P.pool-P.left)*100).toFixed(2):'0.00')+'%</td><td></td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(P.int)+'</td></tr></tbody></table></div>'+
+  (P.left>0.005?'<div style="font-size:11px;color:#d97706;margin-top:4px">\u26a0\ufe0f \u0e3f'+fmt(P.left)+' left over \u2014 every account is at its Max Target. Raise a target or add an account.</div>':'')+
+  (function(){var used={};P.steps.forEach(function(s){used[s.a.id]=1;});var minR=P.steps.length?P.steps[P.steps.length-1].rate:0,L=[];
+   (D.accounts||[]).forEach(function(a){if(used[a.id]||acctIsLoan(a))return;var r=a.rate_sched?(function(){var ti=acctTermInfo(a);return ti&&ti.cur?ti.cur.rate:(acctParseSched(a.rate_sched)||[{rate:0}])[0].rate;})():(acctParseTiers(a.rate_tiers)?Math.max.apply(null,acctParseTiers(a.rate_tiers).map(function(t){return t.rate;})):+a.rate||0);
+    if(r<=minR)return;var why=(a.currency||'THB')!=='THB'?'foreign currency ('+(a.currency)+')':a.rate_sched?'fixed-term / by-month account':(+a.max_amount&&(+a.balance||0)>=+a.max_amount)?'already at Max Target \u0e3f'+fmt(+a.max_amount,0):'higher-rate tier already full';L.push({a:a,r:r,why:why});});
+   L.sort(function(x,y){return y.r-x.r;});if(!L.length)return '';
+   return '<div style="font-size:10px;margin-top:6px"><b>Higher-rate accounts not used:</b><ul style="margin:2px 0 0 16px;padding:0">'+L.map(function(x){return '<li>'+esc(x.a.name)+' '+x.r.toFixed(2)+'% \u2014 '+x.why+'</li>';}).join('')+'</ul></div>';})()+
+  '<div style="font-size:9px;color:var(--text3);margin-top:4px">THB accounts only, highest rate first. Skips loans, foreign-currency and by-month/maturity (fixed-term) accounts. Interest is a yearly estimate before tax.</div></div>';
+ return h;}

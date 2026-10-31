@@ -35,7 +35,7 @@ var pc=document.getElementById('tab-'+ptab);if(pc)pc.classList.add('active');
 document.querySelectorAll('.nav-sub').forEach(function(s){s.classList.remove('active')});sub.classList.add('active');
 // trigger the matching top sub-tab to switch the sub-panel + run its render
 var tops=document.querySelectorAll('#tab-'+ptab+' .sub-tab');
-var map={'payroll-setup':0,'monthly-earn':1,'monthly-plan':2,'tax-calc':3,'tax-exempt':4,'recurring':0,'installments':1,'planned':2,'cardbills':3,'utilities':4,'overview':0,'ccsummary':1,'cctxns':2,'ccdata':3,'setup':0,'assets':1,'calc':2,'summary':3,'type':0,'card':1,'acctlist':0,'acctbal':1,'acctfx':2,'profile':0,'bank':1,'holiday':2};
+var map={'payroll-setup':0,'monthly-earn':1,'monthly-plan':2,'tax-calc':3,'tax-exempt':4,'recurring':0,'installments':1,'planned':2,'cardbills':3,'utilities':4,'overview':0,'ccsummary':1,'cctxns':2,'ccdata':3,'setup':0,'assets':1,'calc':2,'summary':3,'type':0,'card':1,'acctlist':0,'acctbal':1,'acctint':2,'acctfx':3,'profile':0,'bank':1,'holiday':2};
 var idx=map[skey];if(tops&&tops[idx])tops[idx].click();
 return;
 }

@@ -41,7 +41,8 @@
    return shown;
  }
  function eligible(tbl){
-   if(tbl.closest('#todos-content')) return false;                 // To-Do has its own search
+   if(tbl.closest('#todos-content')) return false;
+   if(tbl.closest('#acct-int-body')) return false;               // Interest page has its own filters                 // To-Do has its own search
    if(tbl.parentNode&&tbl.parentNode.closest&&tbl.parentNode.closest('td')) return false;   // nested table
    if(tbl.closest('#dashcal-pop,#util-doc-ov,#drive-view-ov,.modal')) return false;         // popups
    var tb=tbl.tBodies&&tbl.tBodies[0]; return !!(tb && groups(tb).length>=MIN_ROWS);
