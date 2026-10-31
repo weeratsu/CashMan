@@ -32,7 +32,7 @@ function _acctBankOpts(sel){var o='<option value="">\u2014 bank \u2014</option>'
 function _acctSorted(){
   var list=(D.accounts||[]).slice();
   var c=_acctSort.col;
-  if(c){list.sort(function(a,b){var x=a[c],y=b[c];if(c==='type'){x=_acctTypeLabel(x);y=_acctTypeLabel(y);}if(c==='bank'){x=(typeof bankName==='function'?bankName(x):x);y=(typeof bankName==='function'?bankName(y):y);}if(c==='balance'){if(typeof acctTHB==='function'){var ax=a.balance===''||a.balance==null?null:acctTHB(a,a.balance,a.balance_date),bx=b.balance===''||b.balance==null?null:acctTHB(b,b.balance,b.balance_date);x=ax==null?'':ax;y=bx==null?'':bx;}var nx=(x===''||x==null)?-1e15:+x,ny=(y===''||y==null)?-1e15:+y;return (nx-ny)*_acctSort.dir;}x=(x||'').toString().toLowerCase();y=(y||'').toString().toLowerCase();return x<y?-1*_acctSort.dir:x>y?1*_acctSort.dir:0;});}
+  if(c){list.sort(function(a,b){var x=a[c],y=b[c];if(c==='type'){x=_acctTypeLabel(x);y=_acctTypeLabel(y);}if(c==='bank'){x=(typeof bankName==='function'?bankName(x):x);y=(typeof bankName==='function'?bankName(y):y);}if(c==='sim'){var sx=a.type==='loan'?0:(a.in_sim!==false?2:1),sy=b.type==='loan'?0:(b.in_sim!==false?2:1);return (sy-sx)*_acctSort.dir||(a.name||'').localeCompare(b.name||'');}if(c==='balance'){if(typeof acctTHB==='function'){var ax=a.balance===''||a.balance==null?null:acctTHB(a,a.balance,a.balance_date),bx=b.balance===''||b.balance==null?null:acctTHB(b,b.balance,b.balance_date);x=ax==null?'':ax;y=bx==null?'':bx;}var nx=(x===''||x==null)?-1e15:+x,ny=(y===''||y==null)?-1e15:+y;return (nx-ny)*_acctSort.dir;}x=(x||'').toString().toLowerCase();y=(y||'').toString().toLowerCase();return x<y?-1*_acctSort.dir:x>y?1*_acctSort.dir:0;});}
   return list;
 }
 function setAcctSort(col){
@@ -54,14 +54,17 @@ function renderBankAccount(){
   var host=document.getElementById('setup-accounts-host');
   if(!host)return;
   if(!Array.isArray(D.accounts))D.accounts=[];
-  var rows=_acctSorted().map(function(a){
+  var _F=window._acctF||(window._acctF={bank:'',type:'',cur:'',sim:''});
+  var _list=_acctSorted().filter(function(a){if(_F.bank&&a.bank!==_F.bank)return false;if(_F.type&&a.type!==_F.type)return false;if(_F.cur&&(a.currency||'THB')!==_F.cur)return false;
+    if(_F.sim==='on'&&!(a.type!=='loan'&&a.in_sim!==false))return false;if(_F.sim==='off'&&(a.type!=='loan'&&a.in_sim!==false))return false;return true;});
+  var rows=_list.map(function(a){
     var hl=_acctTouched[a.id]?';box-shadow:inset 3px 0 0 var(--primary);background:var(--primary-bg,rgba(59,130,246,0.06))':'';
     return '<tr data-aid="'+a.id+'" style="'+hl.replace(/^;/,'')+'">'+
       '<td style="text-align:center">'+(a.type==='loan'?'<span title="Loan = debt, not used" style="color:var(--text3)">\u2014</span>':'<input type="checkbox" title="Use in Timeline simulation"'+(a.in_sim!==false?' checked':'')+' onclick="acctToggleSim(\''+a.id+'\')">')+'</td>'+
       '<td style="white-space:nowrap">'+esc((a.bank&&typeof bankName==='function')?bankName(a.bank):(a.bank||'\u2014'))+'</td>'+
       '<td style="font-weight:600">'+esc(a.name||'')+'</td>'+
       '<td style="white-space:nowrap">'+(a.type?'<span class="type-chip" style="font-size:10px">'+esc(_acctTypeLabel(a.type))+'</span>':'')+'</td>'+
-      '<td style="text-align:right;font-family:var(--mono);white-space:nowrap'+(a.type==='loan'?';color:var(--danger)':'')+'">'+((a.balance!==undefined&&a.balance!==null&&a.balance!=='')?(a.type==='loan'?'<span style="font-size:9px">debt </span>':'')+(typeof curSym==='function'?curSym(a.currency||'THB'):'\u0e3f')+fmt(+a.balance)+(a.balance_date?'<div style="font-size:9px;color:var(--text3)">'+fmtDate(a.balance_date)+'</div>':''):'<span style="color:var(--text3)">\u2014</span>')+'</td>'+'<td style="font-size:11px;color:var(--text3)">'+esc(a.note||'')+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono);white-space:nowrap'+(a.type==='loan'?';color:var(--danger)':'')+'">'+((a.balance!==undefined&&a.balance!==null&&a.balance!=='')?(a.type==='loan'?'<span style="font-size:9px">debt </span>':'')+(typeof curSym==='function'?curSym(a.currency||'THB'):'\u0e3f')+fmt(+a.balance)+(((a.currency||'THB')!=='THB'&&typeof acctTHB==='function')?(function(){var v=acctTHB(a,a.balance,a.balance_date);return '<div style="font-size:9px;color:var(--text3)">'+(v==null?'no FX rate':'\u2248 \u0e3f'+fmt(v))+'</div>';})():'')+(a.balance_date?'<div style="font-size:9px;color:var(--text3)">'+fmtDate(a.balance_date)+'</div>':''):'<span style="color:var(--text3)">\u2014</span>')+'</td>'+'<td style="font-size:11px;color:var(--text3)">'+esc(a.note||'')+'</td>'+
       '<td style="text-align:center;white-space:nowrap">'+
         '<button class="btn btn-ghost" style="font-size:11px;padding:3px 7px;line-height:1" title="\u0e41\u0e01\u0e49\u0e44\u0e02" onclick="acctEditPopup(\''+a.id+'\')"><i class="fa-solid fa-pen"></i></button> '+
         '<button class="btn btn-ghost" style="font-size:11px;padding:3px 7px;line-height:1" title="\u0e25\u0e1a" onclick="acctDel(\''+a.id+'\')"><i class="fa-solid fa-xmark"></i></button>'+
@@ -74,9 +77,17 @@ function renderBankAccount(){
       '<button class="btn btn-primary" style="font-size:11px" onclick="acctAddPopup()"><i class="fa-solid fa-plus"></i> Add Account</button>'+
     '</div>'+
     '<p class="text-muted" style="font-size:10px;margin-bottom:8px">1 \u0e18\u0e19\u0e32\u0e04\u0e32\u0e23\u0e21\u0e35\u0e44\u0e14\u0e49\u0e2b\u0e25\u0e32\u0e22\u0e1a\u0e31\u0e0d\u0e0a\u0e35 \u2014 \u0e43\u0e0a\u0e49\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e43\u0e19 Monthly Planning (\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23\u0e14\u0e36\u0e07\u0e08\u0e32\u0e01 Banks \u0e14\u0e49\u0e32\u0e19\u0e1a\u0e19)</p>'+
+    '<div class="filterbar" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">'+
+      '<select class="inp sel" style="width:auto;font-size:11px" onchange="_acctF.bank=this.value;renderBankAccount()"><option value="">All banks</option>'+(D.banks||[]).slice().sort(function(x,y){return (x.name||'').localeCompare(y.name||'');}).map(function(x){return '<option value="'+x.id+'"'+(x.id===_F.bank?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'</select>'+
+      '<select class="inp sel" style="width:auto;font-size:11px" onchange="_acctF.type=this.value;renderBankAccount()"><option value="">All types</option>'+(D.account_types||[]).slice().sort(function(x,y){return (x.name||'').localeCompare(y.name||'');}).map(function(x){return '<option value="'+x.id+'"'+(x.id===_F.type?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'</select>'+
+      '<select class="inp sel" style="width:auto;font-size:11px" onchange="_acctF.cur=this.value;renderBankAccount()"><option value="">All currencies</option>'+(D.currencies||[{id:'THB'}]).map(function(x){return '<option value="'+x.id+'"'+(x.id===_F.cur?' selected':'')+'>'+esc(x.id)+'</option>';}).join('')+'</select>'+
+      '<select class="inp sel" style="width:auto;font-size:11px" onchange="_acctF.sim=this.value;renderBankAccount()"><option value="">Sim: all</option><option value="on"'+(_F.sim==='on'?' selected':'')+'>Sim: ticked</option><option value="off"'+(_F.sim==='off'?' selected':'')+'>Sim: not ticked</option></select>'+
+      ((_F.bank||_F.type||_F.cur||_F.sim)?'<button class="btn btn-ghost" style="font-size:11px" onclick="window._acctF={bank:\'\',type:\'\',cur:\'\',sim:\'\'};renderBankAccount()"><i class="fa-solid fa-xmark"></i> Clear</button>':'')+
+      '<span style="font-size:10px;color:var(--text3)">'+_list.length+' / '+(D.accounts||[]).length+' accounts</span>'+
+    '</div>'+
     '<table class="tbl" style="font-size:11px;width:100%">'+
       '<thead><tr>'+
-        '<th style="width:40px;text-align:center" title="Use in Timeline">Sim</th>'+
+        '<th style="width:48px;text-align:center;cursor:pointer;white-space:nowrap" title="Use in Timeline" onclick="setAcctSort(\'sim\')">Sim'+_acctAr('sim')+'</th>'+
         '<th style="cursor:pointer;white-space:nowrap;width:160px" onclick="setAcctSort(\'bank\')">Bank'+_acctAr('bank')+'</th>'+
         '<th style="cursor:pointer" onclick="setAcctSort(\'name\')">Account'+_acctAr('name')+'</th>'+
         '<th style="cursor:pointer;white-space:nowrap;width:150px" onclick="setAcctSort(\'type\')">\u0e0a\u0e19\u0e34\u0e14'+_acctAr('type')+'</th>'+
