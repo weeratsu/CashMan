@@ -424,7 +424,7 @@ h+='<button class="btn btn-primary" style="font-size:10px;padding:4px 14px" oncl
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 12px" onclick="ccCancelCard('+i+')"><i class="fa-solid fa-rotate-left"></i> Cancel</button>';
 h+='<span style="font-size:9px;color:var(--warning)">unsaved</span>';
 h+='</div><span style="flex:1"></span>';
-h+='<button class="btn btn-ghost" style="font-size:9px;padding:2px 10px;color:var(--error)" onclick="ccDeleteCard('+i+')"><i class="fa-solid fa-trash"></i> Delete card</button></div>';
+h+='<button class="btn btn-ghost cc-editbtn" style="font-size:10px;padding:3px 12px;margin-right:6px" onclick="ccEditOpen('+i+')"><i class="fa-solid fa-pen"></i> Edit</button>';h+='<button class="btn btn-ghost" style="font-size:9px;padding:2px 10px;color:var(--error)" onclick="ccDeleteCard('+i+')"><i class="fa-solid fa-trash"></i> Delete card</button></div>';
 h+='</div></div>';
 });
 h+='</div>';
@@ -432,7 +432,7 @@ h+='</div>';
 // ---- Perks / benefits comparison (moved to bottom) ----
 h+=_ccPerksSection(cards);
 
-el.innerHTML=h;
+el.innerHTML=h;_ccRO();
 }
 
 // ---- Perks / benefits comparison ----
@@ -765,3 +765,43 @@ function ccAddCardSave(){
   try{ var row=document.querySelector('[data-ci="'+ni+'"]'); if(row&&row.scrollIntoView) row.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
   if(typeof toast==='function') toast('\u2705 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e1a\u0e31\u0e15\u0e23 "'+name+'" \u0e41\u0e25\u0e49\u0e27');
 }
+
+// v316 (UI standard, user Oct 30 2026): card body is READ-ONLY; ✏️ Edit opens the same editor in a popup.
+// Edits still go to the existing draft (_ccDraft) and Save/Cancel use ccSaveCard/ccCancelCard.
+var _ccNoRO=false;
+function _ccRO(){if(_ccNoRO)return;try{
+ (D.cards||[]).forEach(function(c,i){var b=document.getElementById('ccbody_'+i);if(!b||!b.querySelectorAll)return;
+  b.querySelectorAll('input,select,textarea').forEach(function(el){
+   if(el.closest&&el.closest('.cc-keep'))return;
+   if(el.type==='checkbox'){el.disabled=true;return;}
+   var txt=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):(el.value||'');
+   var d=document.createElement('div');d.textContent=txt||'\u2014';
+   d.style.cssText='font-size:11px;padding:3px 0;white-space:pre-wrap;word-break:break-word;'+(el.tagName==='TEXTAREA'?'max-height:120px;overflow:auto;':'')+(/mono/.test(el.getAttribute('style')||'')?'font-family:var(--mono);':'');
+   el.parentNode.replaceChild(d,el);});
+  var sb=document.getElementById('ccsave_'+i);if(sb)sb.style.display='none';
+ });}catch(e){console.error('_ccRO',e);}}
+var _ccEditIdx=null;
+function ccEditOpen(i){
+ if(!D.cards[i])return;_ccEditIdx=i;_ccOpen[i]=true;
+ // render editable markup for this card, then lift its body into the popup
+ _ccNoRO=true;try{renderCreditCards();}finally{_ccNoRO=false;}
+ var body=document.getElementById('ccbody_'+i);if(!body){_ccRO();return;}
+ var html=body.innerHTML;_ccRO();
+ var ov=document.getElementById('cc-edit-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='cc-edit-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('click',function(e){if(e.target===ov)ccEditCancel();});
+ ov.innerHTML='<style>#cc-edit-ov .cc-editbtn,#cc-edit-ov [id^=ccsave_],#cc-edit-ov [id^=ccdirty_]{display:none!important}#cc-edit-ov button[onclick^="ccDeleteCard"]{display:none!important}</style>'+
+  '<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(900px,96vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-pen"></i> Edit card \u00b7 '+esc(D.cards[i].name||'')+'</h3>'+
+  '<div id="cc-edit-body">'+html+'</div>'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;position:sticky;bottom:-16px;background:var(--bg2,#fff);padding:8px 0"><button class="btn btn-ghost" onclick="ccEditCancel()">Cancel</button><button class="btn btn-primary" onclick="ccEditSave()"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);text-align:right">Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ // ids inside popup duplicate the (now read-only) page body; drop the page copies' ids to avoid clashes
+ ov.addEventListener('keydown',function(e){if(e.key==='Escape')ccEditCancel();});
+}
+function ccEditCancel(){var ov=document.getElementById('cc-edit-ov');if(ov)ov.remove();var i=_ccEditIdx;_ccEditIdx=null;if(i!=null){delete _ccDraft[i];delete _ccDirty[i];}renderCreditCards();}
+function ccEditSave(){var i=_ccEditIdx;var ov=document.getElementById('cc-edit-ov');if(ov)ov.remove();_ccEditIdx=null;if(i==null)return;
+ if(_ccDirty[i]||_ccDraft[i]){ccSaveCard(i);}else{renderCreditCards();}}
+window.ccEditOpen=ccEditOpen;window.ccEditCancel=ccEditCancel;window.ccEditSave=ccEditSave;

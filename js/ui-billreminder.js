@@ -175,7 +175,7 @@ function occEditOverride(billKey, period, fullKey, defCard, defAmt, defDue){
    '<div style="padding:16px;display:flex;flex-direction:column;gap:10px">'+rows+
    '<div style="font-size:10px;color:var(--text3)">\u0e01\u0e32\u0e23\u0e41\u0e01\u0e49\u0e19\u0e35\u0e49\u0e21\u0e35\u0e1c\u0e25\u0e40\u0e09\u0e1e\u0e32\u0e30\u0e07\u0e27\u0e14 '+esc(period)+' \u0e40\u0e17\u0e48\u0e32\u0e19\u0e31\u0e49\u0e19 \u2014 \u0e07\u0e27\u0e14\u0e2d\u0e37\u0e48\u0e19\u0e44\u0e21\u0e48\u0e01\u0e23\u0e30\u0e17\u0e1a</div>'+
    '</div>'+
-   '<div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between"><button class="btn btn-ghost" onclick="occClearOverride()" style="color:var(--error)">\u0e25\u0e49\u0e32\u0e07 override</button><span style="flex:1"></span><button class="btn btn-ghost" onclick="occCancelEdit()">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button><button class="btn btn-primary" onclick="occSaveOverride()"><i class="fa-solid fa-check"></i> \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>'+
+   '<div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between"><button class="btn btn-ghost" onclick="occClearOverride()" style="color:var(--error)">\u0e25\u0e49\u0e32\u0e07 override</button><span style="flex:1"></span><button class="btn btn-ghost" onclick="occCancelEdit()">Cancel</button><button class="btn btn-primary" onclick="occSaveOverride()"><i class="fa-solid fa-check"></i> Save</button></div>'+
    '</div>';
   document.body.appendChild(ovv);
   ovv.addEventListener('mousedown',function(e){if(e.target===ovv)occCancelEdit();});

@@ -202,7 +202,7 @@ var h='<div class="card">';
 h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">';
 h+='<h2 style="margin:0"><i class="fa-solid fa-star"></i> Wishlist</h2>';
 h+='<span style="flex:1"></span>';
-h+='<button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addWish()"><i class="fa-solid fa-plus"></i> Add item</button>';
+h+='<button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addWish()"><i class="fa-solid fa-plus"></i> Add Item</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="exportTrxExcel(\'wishlist\')" title="Export Wishlist to Excel"><i class="fa-solid fa-download"></i> Excel</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="document.getElementById(\'imp-wishlist\').click()" title="Import Wishlist from Excel (adds rows)"><i class="fa-solid fa-upload"></i> Import</button>';
 h+='<input type="file" id="imp-wishlist" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel(\'wishlist\',event)">';
@@ -289,5 +289,57 @@ h+='<tr data-row="'+w.id+'" style="'+dimd+(_wishTouched[w.id]?';box-shadow:inset
 h+='</tbody></table></div>';
 h+='<p class="text-muted" style="font-size:9px;margin-top:8px">\ud83d\udca1 "Fits?" compares each item\'s target price against your projected balance at its target month (from the latest simulation). Use <b>Plan</b> to turn a wish into a Planned expense.</p>';
 h+='</div>';
-el.innerHTML=h;
+el.innerHTML=h;_wishRO();
 }
+
+// v256 (UI standard, user Oct 30 2026): rows READ-ONLY; ✏️ -> popup -> Save.
+var _wishRowCache={};
+function _wishRO(){try{
+ var root=document.getElementById('wishlist-content');var tb=root&&root.querySelector('table');if(!tb||!tb.querySelectorAll)return;_wishRowCache={};
+ var heads=Array.prototype.map.call(tb.querySelectorAll('thead th'),function(th){return (th.textContent||'').replace(/[\u25b2\u25bc]/g,'').trim();});
+ tb.querySelectorAll('tbody tr[data-row]').forEach(function(tr){
+  var id=tr.getAttribute('data-row');_wishRowCache[id]={html:tr.innerHTML,heads:heads};
+  tr.querySelectorAll('input,select,textarea').forEach(function(el){
+   if(el.type==='checkbox')return;
+   var txt=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):(el.value||'');
+   var f=el.getAttribute('data-wf');
+   if(!txt&&(f==='note'||f==='url')){el.parentNode.removeChild(el);return;}
+   var d=document.createElement('div');d.textContent=txt||'\u2014';d.style.cssText=(el.getAttribute('style')||'')+';border:0;background:none;padding:2px 0;min-width:0';
+   if(f==='url'){d.style.whiteSpace='nowrap';d.style.overflow='hidden';d.style.textOverflow='ellipsis';d.style.maxWidth='200px';}
+   el.parentNode.replaceChild(d,el);});
+  var del=tr.querySelector('button.del-btn');if(del)del.insertAdjacentHTML('beforebegin','<button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="wishEditOpen(\''+id+'\')"><i class="fa-solid fa-pen"></i></button>');
+ });}catch(e){console.error('_wishRO',e);}}
+function wishEditOpen(id){
+ var c=_wishRowCache[id];if(!c)return;var heads=c.heads||[];
+ var w=(D.wishlist||[]).find(function(x){return x.id===id;})||{};
+ var t=document.createElement('table');t.innerHTML='<tbody><tr>'+c.html.replace(/ onchange="[^"]*"/g,'')+'</tr></tbody>';
+ var tds=t.querySelectorAll('td'),boxes='';
+ var BOX='background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0',LBL='font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px';
+ for(var k=0;k<tds.length;k++){if(!tds[k].querySelector('[data-wf]'))continue;
+  tds[k].querySelectorAll('a,button').forEach(function(a){a.parentNode.removeChild(a);});
+  boxes+='<div style="'+BOX+(k===0?';grid-column:1/-1':'')+'"><div style="'+LBL+'">'+(heads[k]||'')+'</div><div style="display:flex;flex-direction:column;gap:4px">'+tds[k].innerHTML+'</div></div>';}
+ var ov=document.getElementById('wish-edit-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='wish-edit-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('click',function(e){if(e.target===ov)wishEditClose();});
+ ov.innerHTML='<style>#wish-edit-ov .sel,#wish-edit-ov input{width:100%!important;min-width:0!important;box-sizing:border-box}</style><div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(620px,96vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-pen"></i> Edit wish \u00b7 '+esc(w.item||'')+'</h3>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;font-size:11px">'+boxes+'</div>'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="wishEditClose()">Cancel</button><button class="btn btn-primary" onclick="wishEditSave(\''+id+'\')"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('keydown',function(e){if(e.key==='Escape')wishEditClose();else if(e.key==='Enter'){e.preventDefault();wishEditSave(id);}});
+ setTimeout(function(){var f=ov.querySelector('input');if(f)f.focus();},30);
+}
+function wishEditClose(){var ov=document.getElementById('wish-edit-ov');if(ov)ov.remove();}
+function wishEditSave(id){
+ var ov=document.getElementById('wish-edit-ov');if(!ov)return;var w=(D.wishlist||[]).find(function(x){return x.id===id;});if(!w)return;
+ ov.querySelectorAll('[data-wf]').forEach(function(el){var f=el.getAttribute('data-wf'),v=el.value;
+  if(f==='target_price')w[f]=parseFloat((v+'').replace(/,/g,''))||0;
+  else if(f==='priority')w[f]=parseInt(v)||2;
+  else if(f==='target_date')w[f]=v?((typeof parseDMY==='function'&&parseDMY(v))||(/^\d{4}-\d{2}-\d{2}$/.test(v)?v:'')):'';
+  else w[f]=v;});
+ saveD();wishEditClose();_wishFrozen=null;_wishTouched[id]=true;renderWishlist();
+ if(typeof toast==='function')toast('\u2705 Saved');
+}
+window.wishEditOpen=wishEditOpen;window.wishEditClose=wishEditClose;window.wishEditSave=wishEditSave;

@@ -25,20 +25,20 @@ window.renderHolidays=function(){
  var rows=_hl().filter(function(h){return (h.date||'').slice(0,4)===String(_hy)||!h.date;}).sort(function(a,b){return (a.date||'9').localeCompare(b.date||'9');});
  var h='<div class="filterbar" style="margin-bottom:8px;gap:6px;flex-wrap:wrap;align-items:center">';
  h+='<span style="font-size:11px;color:var(--text3)">\u0e1b\u0e35</span><select class="sel" onchange="holidaySetYear(this.value)">'+ys.map(function(y){return '<option'+(String(_hy)===y?' selected':'')+'>'+y+'</option>';}).join('')+'</select>';
- h+='<button class="btn btn-primary" onclick="holidayAdd()"><i class="fa-solid fa-plus"></i> \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e27\u0e31\u0e19\u0e2b\u0e22\u0e38\u0e14</button>';
+ h+='<button class="btn btn-primary" onclick="holidayAdd()"><i class="fa-solid fa-plus"></i> Add Holiday</button>';
  h+='<button class="btn btn-ghost" style="color:var(--success)" onclick="document.getElementById(\'imp-holiday\').click()"><i class="fa-solid fa-file-excel"></i> Import Excel</button>';
  h+='<button class="btn btn-ghost" onclick="holidayExport()"><i class="fa-solid fa-download"></i> Export / Template</button>';
  h+='<button class="btn btn-ghost" style="color:var(--error)" onclick="holidayClearYear()"><i class="fa-solid fa-trash"></i> \u0e25\u0e1a\u0e17\u0e31\u0e49\u0e07\u0e1b\u0e35</button>';
  h+='<input type="file" id="imp-holiday" accept=".xlsx,.xls,.csv" style="display:none" onchange="holidayImport(event)"></div>';
  h+='<p class="text-muted" style="font-size:10px;margin:0 0 6px">Excel: \u0e04\u0e2d\u0e25\u0e31\u0e21\u0e19\u0e4c <b>Date</b> (dd/mm/yyyy) + <b>Name</b> \u00b7 import \u0e0b\u0e49\u0e33\u0e27\u0e31\u0e19\u0e40\u0e14\u0e34\u0e21\u0e08\u0e30\u0e2d\u0e31\u0e1e\u0e40\u0e14\u0e17\u0e0a\u0e37\u0e48\u0e2d\u0e43\u0e2b\u0e49</p>';
- h+='<table class="tbl" style="font-size:11px;width:100%"><thead><tr><th style="width:150px">Date</th><th style="width:60px">Day</th><th>Name</th><th style="width:40px"></th></tr></thead><tbody>';
+ h+='<table class="tbl" style="font-size:11px;width:100%"><thead><tr><th style="width:150px">Date</th><th style="width:60px">Day</th><th>Name</th><th style="width:80px"></th></tr></thead><tbody>';
  if(!rows.length)h+='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:12px">\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e27\u0e31\u0e19\u0e2b\u0e22\u0e38\u0e14\u0e1b\u0e35 '+_hy+'</td></tr>';
  rows.forEach(function(r){
   var dw=r.date?DOW[new Date(r.date+'T00:00:00').getDay()]:'';
-  h+='<tr id="hrow_'+r.id+'"'+(r.id===_hNew?' style="box-shadow:inset 3px 0 0 var(--primary);background:var(--primary-bg,rgba(59,130,246,0.06))"':'')+'><td><input type="date" class="inp" style="font-size:11px" value="'+_e(r.date)+'" onchange="holidaySet(\''+r.id+'\',\'date\',this.value)"></td>'+
+  h+='<tr id="hrow_'+r.id+'"'+(r.id===_hNew?' style="box-shadow:inset 3px 0 0 var(--primary);background:var(--primary-bg,rgba(59,130,246,0.06))"':'')+'><td style="font-family:var(--mono)">'+_dmy(r.date)+'</td>'+
    '<td style="color:'+((dw==='Sat'||dw==='Sun')?'var(--warning)':'var(--text3)')+'">'+dw+'</td>'+
-   '<td><input class="inp" style="font-size:11px;width:100%" value="'+_e(r.name)+'" placeholder="\u0e0a\u0e37\u0e48\u0e2d\u0e27\u0e31\u0e19\u0e2b\u0e22\u0e38\u0e14" onchange="holidaySet(\''+r.id+'\',\'name\',this.value)"></td>'+
-   '<td style="text-align:center"><button class="btn btn-ghost" style="font-size:11px;padding:2px 7px" title="Delete" onclick="holidayDel(\''+r.id+'\')">\u00d7</button></td></tr>';
+   '<td>'+(_e(r.name)||'\u2014')+'</td>'+
+   '<td style="text-align:center;white-space:nowrap"><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="holidayEdit(\''+r.id+'\')"><i class="fa-solid fa-pen"></i></button><button class="btn btn-ghost" style="font-size:11px;padding:2px 7px" title="Delete" onclick="holidayDel(\''+r.id+'\')">\u00d7</button></td></tr>';
  });
  h+='</tbody></table><div style="font-size:10px;color:var(--text3);margin-top:6px">'+rows.length+' \u0e27\u0e31\u0e19 \u00b7 \u0e41\u0e2a\u0e14\u0e07\u0e43\u0e19 Dashboard Calendar \u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34</div>';
  el.innerHTML=h;
@@ -46,7 +46,7 @@ window.renderHolidays=function(){
 function _done(){if(typeof saveD==='function')saveD();window.renderHolidays();if(typeof renderDashCalendar==='function'){try{renderDashCalendar();}catch(e){}}}
 window.holidaySetYear=function(y){_hy=+y;window.renderHolidays();};
 var _hNew=null;
-window.holidayAdd=function(){
+window.holidayAdd=function(){var _o0=document.getElementById('hol-add-ov');if(_o0&&_o0.removeAttribute)_o0.removeAttribute('data-edit');
  var t=new Date(),d=(String(_hy)===String(t.getFullYear()))?(t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')):(String(_hy)+'-01-01');
  var ov=document.getElementById('hol-add-ov');if(ov)ov.remove();
  ov=document.createElement('div');ov.id='hol-add-ov';
@@ -62,11 +62,16 @@ window.holidayAdd=function(){
  ov.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();holidayAddSave();}else if(e.key==='Escape')holidayAddClose();});
  setTimeout(function(){var n=document.getElementById('ha-name');if(n)n.focus();},30);
 };
+window.holidayEdit=function(id){var r=_hl().find(function(x){return x.id===id;});if(!r)return;holidayAdd();
+ var ov=document.getElementById('hol-add-ov');if(!ov)return;var h=ov.firstElementChild&&ov.firstElementChild.firstElementChild;if(h)h.innerHTML='<i class="fa-solid fa-pen"></i> \u0e41\u0e01\u0e49\u0e44\u0e02\u0e27\u0e31\u0e19\u0e2b\u0e22\u0e38\u0e14';
+ document.getElementById('ha-date').value=r.date||'';document.getElementById('ha-name').value=r.name||'';ov.setAttribute('data-edit',id);};
 window.holidayAddClose=function(){var ov=document.getElementById('hol-add-ov');if(ov)ov.remove();};
 window.holidayAddSave=function(){
+ var _eid=(document.getElementById('hol-add-ov')||{getAttribute:function(){return null;}}).getAttribute('data-edit');
  var iso=_iso((document.getElementById('ha-date')||{}).value),nm=((document.getElementById('ha-name')||{}).value||'').trim();
  if(!iso){alert('\u0e01\u0e23\u0e38\u0e13\u0e32\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48');return;}
  if(!nm){alert('\u0e01\u0e23\u0e38\u0e13\u0e32\u0e43\u0e2a\u0e48\u0e0a\u0e37\u0e48\u0e2d\u0e27\u0e31\u0e19\u0e2b\u0e22\u0e38\u0e14');return;}
+ if(_eid){var er=_hl().find(function(h){return h.id===_eid;});if(er){var dup=_hl().find(function(h){return h.date===iso&&h.id!==_eid;});if(dup){alert('\u0e21\u0e35\u0e27\u0e31\u0e19\u0e19\u0e35\u0e49\u0e2d\u0e22\u0e39\u0e48\u0e41\u0e25\u0e49\u0e27');return;}er.date=iso;er.name=nm;_hNew=er.id;_hy=+iso.slice(0,4);holidayAddClose();_done();if(typeof toast==='function')toast('\u2705 Saved');return;}}
  var ex=_hl().find(function(h){return h.date===iso;});
  if(ex){ex.name=nm;_hNew=ex.id;}else{var r={id:_hid(),date:iso,name:nm};_hl().push(r);_hNew=r.id;}
  _hy=+iso.slice(0,4);holidayAddClose();_done();
@@ -74,7 +79,7 @@ window.holidayAddSave=function(){
  setTimeout(function(){var tr=document.getElementById('hrow_'+_hNew);if(tr)tr.scrollIntoView({block:'center',behavior:'smooth'});},60);
 };
 window.holidaySet=function(id,f,v){var r=_hl().find(function(x){return x.id===id;});if(!r)return;r[f]=(f==='date')?_iso(v):v;if(f==='date'&&r.date)_hy=+r.date.slice(0,4);_done();};
-window.holidayDel=function(id){D.holidays=_hl().filter(function(x){return x.id!==id;});_done();};
+window.holidayDel=function(id){if(!confirm('Delete this holiday?'))return;D.holidays=_hl().filter(function(x){return x.id!==id;});_done();};
 window.holidayClearYear=function(){if(!confirm('\u0e25\u0e1a\u0e27\u0e31\u0e19\u0e2b\u0e22\u0e38\u0e14\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14\u0e02\u0e2d\u0e07\u0e1b\u0e35 '+_hy+'?'))return;D.holidays=_hl().filter(function(x){return (x.date||'').slice(0,4)!==String(_hy);});_done();};
 window.holidayExport=function(){
  if(typeof XLSX==='undefined'){alert('Excel library not loaded');return;}

@@ -343,5 +343,14 @@ setCardBillExtra เขียน key ผ่าน `cardExtraKey` (resolve ชื
 - **Detail:** solid ▶ at the FRONT of the row (rotates to ▼). Expands to bordered grid boxes (label on top) + **Remarks**.
 - **Tables:** every column sortable (by display name, not id); ONE search box; filter dropdowns store ids; table in its own horizontal scroll box (`.rec-scroll`).
 - **Popups:** drag-select ending outside must NOT close (global guard in index.html); Enter = Save, Esc = Cancel.
-- **Rollout status:** Recurring (Monthly+Yearly) ✅ v352 · Planned ✅ v353 · Installments ⏳ · To-Do ⏳ · others ⏳
+Assets ✅ ui-retirement v255 (rows read-only, ✏️/+Add popup) · Company Special Pay ✅ v256 (popup). Retirement Setup general inputs stay as a settings FORM (user-approved). **ROLLOUT COMPLETE (Oct 31 2026).**
+
+## 🔒 BUTTON STANDARD (user-locked Oct 31 2026) — ALL pages incl. new ones
+- **Language: ENGLISH only** for button labels (Add / Edit / Save / Cancel / Delete). Help text & toasts may stay Thai.
+- **Add:** `+ Add <Thing>` (e.g. Add Task, Add Item, Add Holiday, Add Account, Add Asset, Add Exemption) — `btn btn-primary`, **top-right of the card/section header** (flex row: h2/h3 · spacer · button). Never an `add-row` strip at the bottom of a table.
+- **Edit:** ✏️ icon button at row end → popup. **Delete:** ✕/🗑 at row end + confirm().
+- **Popup footer:** `Cancel` (btn-ghost) then `✓ Save` (btn-primary), right-aligned; Enter = Save, Esc = Cancel.
+- **No page-level Save buttons** on list pages (popups save). Exception: settings FORMS (Setup › Profile, Retirement Setup) keep `Save & Simulate`.
+- **Secondary actions** (Excel / Import / Export / Refresh): btn-ghost next to the Add button.
+- Done Oct 31: Payroll Add Income/Deduction moved to section headers; Tax Exemptions → read-only rows + ✏️ popup + `Add Exemption` header button; removed Save & Simulate from Payroll/Tax Exemptions/Recurring/Installments/Planned; removed To-Do "Save"; Thai labels → English (Holidays, Monthly Planning, Bank&Account, Bill Reminder override popup); Special Pay + Assets Add moved to top.
 - Recurring impl: `_recRO(kind)` converts rendered inputs → text after render, caches original row HTML; `recEditOpen` rebuilds those inputs inside the popup (save handlers stripped) so `readAll()` + Save writes them.

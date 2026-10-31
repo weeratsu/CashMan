@@ -9,7 +9,7 @@ var _pi=document.getElementById('tl-period-info');
 if(_pi&&D){var _sd=new Date(D.profile.start_date+'T00:00:00'),_ed=new Date(D.profile.end_date+'T00:00:00');
 var _days=Math.round((_ed-_sd)/86400000),_mo=Math.round(_days/30.44);
 _pi.innerHTML='<i class="fa-solid fa-circle-info" style="margin-right:3px"></i>'+
-_days+' days'+(_mo>=2?' ('+_mo+' months)':'')+'  \u2022  Starting: \u0e3f'+fmt(D.profile.starting_cash)}
+_days+' days'+(_mo>=2?' ('+_mo+' months)':'')+'  \u2022  Starting: \u0e3f'+fmt(typeof cmStartCash==='function'?cmStartCash():D.profile.starting_cash)+(typeof cmActualCash==='function'&&cmActualCash()!==null?' (actual balance)':'')}
 
 // Populate date inputs if present
 var _fsd=document.getElementById('f-start');if(_fsd&&D)_fsd.value=D.profile.start_date;
@@ -18,7 +18,7 @@ var _fed=document.getElementById('f-end');if(_fed&&D)_fed.value=D.profile.end_da
 var bm={};R.dLog.forEach(function(e){var mk=e.date.getFullYear()+'-'+(e.date.getMonth()<10?'0':'')+e.date.getMonth();if(!bm[mk])bm[mk]=[];bm[mk].push(e)});
 
 // Build running balance per event
-var runBal=D.profile.starting_cash;
+var runBal=(typeof cmStartCash==='function'?cmStartCash():D.profile.starting_cash);
 var balByEvent={};
 R.dLog.forEach(function(entry){
 var dk=entry.date.getFullYear()+'-'+(entry.date.getMonth()+1)+'-'+entry.date.getDate();

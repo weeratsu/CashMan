@@ -100,17 +100,15 @@ h+='</div>';
 // ===== Company Special Pay =====
 var _cspEnabled=r.include_company_special!==false;
 h+='<div style="margin-top:12px;padding:10px 14px;background:'+(_cspEnabled?'var(--warning-bg)':'var(--bg3)')+';border:1px solid '+(_cspEnabled?'var(--warning)':'var(--border)')+';border-radius:var(--radius);'+(_cspEnabled?'':'opacity:0.45;pointer-events:none')+"'>";
-h+='<div style="font-size:12px;font-weight:700;color:var(--warning);margin-bottom:6px"><i class="fa-solid fa-gift" style="margin-right:4px"></i> Company Special Pay <span style="font-size:7px;padding:0 4px;border-radius:2px;background:var(--purple-bg);color:var(--purple);font-weight:700;margin-left:4px">COMPANY</span></div>';
+h+='<div style="font-size:12px;font-weight:700;color:var(--warning);margin-bottom:6px"><i class="fa-solid fa-gift" style="margin-right:4px"></i> Company Special Pay <span style="font-size:7px;padding:0 4px;border-radius:2px;background:var(--purple-bg);color:var(--purple);font-weight:700;margin-left:4px">COMPANY</span><span style="float:right"><button class="btn btn-primary" style="font-size:11px;padding:3px 10px" onclick="retAddSpecial()"><i class="fa-solid fa-plus"></i> Add Item</button></span></div>';
 h+='<div style="font-size:8px;color:var(--text3);margin-bottom:6px">Company-specific benefits (not guaranteed by law): pro-rated AIP bonus, 13th month bonus, separation package, long service award, etc.</div>';
-h+='<table class="tbl" style="font-size:10px"><thead><tr><th>Item Name</th><th class="r">Amount (\u0e3f)</th><th>Notes</th><th style="width:30px"></th></tr></thead><tbody>';
+h+='<table class="tbl" style="font-size:10px"><thead><tr><th>Item Name</th><th class="r">Amount (\u0e3f)</th><th>Notes</th><th style="width:70px"></th></tr></thead><tbody>';
 (r.company_special_pay||[]).forEach(function(sp,si){
-h+='<tr><td><input class="inp-inline" value="'+esc(sp.name||'')+'" data-spi="'+si+'" data-f="name" style="font-size:10px"></td>';
-h+='<td class="r"><input class="inp inp-num" type="text" value="'+fmt(sp.amount||0)+'" style="width:90px;padding:2px 4px;font-size:10px" data-spi="'+si+'" data-f="amount" onfocus="var v=parseFloat(this.value.replace(/,/g,\'\'));this.value=v||\'\';" onblur="this.value=(parseFloat(this.value.replace(/,/g,\'\'))||0).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2})"></td>';
-h+='<td><input class="inp-inline" value="'+esc(sp.note||'')+'" data-spi="'+si+'" data-f="note" style="font-size:10px"></td>';
-h+='<td><button class="del-btn" onclick="readRetirement();D.retirement.company_special_pay.splice('+si+',1);saveD();renderRetSetup()"><i class="fa-solid fa-trash"></i></button></td></tr>';
+h+='<tr><td style="font-size:11px">'+(esc(sp.name||'')||'\u2014')+'</td><td class="r" style="font-family:var(--mono)">\u0e3f'+fmt(sp.amount||0)+'</td><td style="font-size:11px">'+esc(sp.note||'')+'</td>'+
+'<td style="white-space:nowrap"><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="spEditOpen('+si+')"><i class="fa-solid fa-pen"></i></button><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readRetirement();D.retirement.company_special_pay.splice('+si+',1);saveD();renderRetSetup()"><i class="fa-solid fa-trash"></i></button></td></tr>';
 });
 h+='</tbody></table>';
-h+='<div class="add-row" onclick="retAddSpecial()" style="font-size:10px"><i class="fa-solid fa-plus"></i> Add Item</div>';
+
 var spTotal=(r.company_special_pay||[]).reduce(function(s,sp){return s+(parseFloat(sp.amount)||0)},0);
 if(spTotal>0)h+='<div style="font-size:11px;font-weight:600;color:var(--warning);margin-top:4px;text-align:right">Total: \u0e3f'+fmt(spTotal)+'</div>';
 
@@ -643,6 +641,7 @@ _aTypes.forEach(function(t){var n=assets.filter(function(a){return (a.type||'')=
 h+='</select>';
 if(_assetSort||_assetTypeFilter)h+='<button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="_assetSort=\'\';_assetTypeFilter=\'\';renderAssetsPage()"><i class="fa-solid fa-xmark"></i> Clear</button>';
 h+='<span style="flex:1"></span><span style="font-size:10px;color:var(--text3)">'+_rows.length+' shown</span>';
+h+='<button class="btn btn-primary" style="font-size:11px;padding:4px 12px;white-space:nowrap" onclick="assetEditOpen(-1)"><i class="fa-solid fa-plus"></i> Add Asset</button>';
 h+='</div>';
 // Table — sortable headers (click to sort; click again to flip). All cells use a consistent 11px.
 // FX rate is merged INTO the Currency cell (shows a small rate input only for non-THB assets),
@@ -656,10 +655,10 @@ h+='<th style="cursor:pointer" onclick="setAssetSort(\'currency\')">Currency'+_a
 h+='<th class="r" style="cursor:pointer" onclick="setAssetSort(\'value\')">Value'+_arrow('value')+'</th>';
 h+='<th class="r" style="cursor:pointer" onclick="setAssetSort(\'thb\')">Value (\u0e3f)'+_arrow('thb')+'</th>';
 h+='<th style="cursor:pointer" onclick="setAssetSort(\'cashout\')">Cash-out Date'+_arrow('cashout')+'</th>';
-h+='<th>Notes</th><th style="width:30px"></th></tr></thead><tbody>';
+h+='<th>Notes</th><th style="width:70px"></th></tr></thead><tbody>';
 if(!_rows.length){h+='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:12px;font-size:11px">No assets'+(_assetTypeFilter?' of type "'+esc(_assetTypeFilter)+'"':'')+'.</td></tr>';}
 _rows.forEach(function(x){var a=x.a,i=x.i;var _isTHB=((a.currency||'THB')==='THB');
-h+='<tr><td><input class="inp-inline" style="font-size:11px" value="'+esc(a.name||'')+'" data-ai="'+i+'" data-f="name" onchange="readAssetsPage();saveD()"></td>';
+h+='<tr data-arow="'+i+'"><td><input class="inp-inline" style="font-size:11px" value="'+esc(a.name||'')+'" data-ai="'+i+'" data-f="name" onchange="readAssetsPage();saveD()"></td>';
 h+='<td><select class="sel" style="font-size:11px" data-ai="'+i+'" data-f="type" onchange="readAssetsPage();saveD();renderAssetsPage()">';
 _aTypes.forEach(function(t){h+='<option value="'+t.id+'"'+(a.type===t.id?' selected':'')+'>'+esc(t.name)+'</option>'});
 h+='</select></td>';
@@ -675,11 +674,11 @@ var _thb=assetThb(a);
 h+='<td class="r" style="font-family:var(--mono);'+(_thb===null?'color:var(--warning)':'')+'">'+(_thb===null?'\u2014':'\u0e3f'+fmt(_thb))+'</td>';
 h+='<td><input type="date" class="inp" value="'+(a.cashout_date||'')+'" data-ai="'+i+'" data-f="cashout_date" style="font-size:11px" onchange="readAssetsPage();saveD()"></td>';
 h+='<td><input class="inp-inline" style="font-size:11px" value="'+esc(a.notes||'')+'" data-ai="'+i+'" data-f="notes" onchange="readAssetsPage();saveD()"></td>';
-h+='<td><button class="del-btn" onclick="readAssetsPage();D.retirement.assets.splice('+i+',1);saveD();renderAssetsPage()"><i class="fa-solid fa-trash"></i></button></td></tr>'});
+h+='<td style="white-space:nowrap"><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="assetEditOpen('+i+')"><i class="fa-solid fa-pen"></i></button><button class="del-btn" onclick="if(!confirm(\'Delete this asset?\'))return;D.retirement.assets.splice('+i+',1);saveD();renderAssetsPage()"><i class="fa-solid fa-trash"></i></button></td></tr>'});
 h+='</tbody></table>';
 
 // Add button
-h+='<div class="add-row" onclick="D.retirement.assets.push({name:\'New Asset\',type:\'Savings\',currency:\'THB\',value:0,fx_rate:0,cashout_date:\'\',notes:\'\'});saveD();renderAssetsPage()"><i class="fa-solid fa-plus"></i> Add Asset</div>';
+
 
 // Update exchange rates button (fetches live THB rates for non-THB currencies in use)
 h+='<div style="margin-top:8px"><button class="btn btn-ghost" style="font-size:10px;padding:4px 12px" onclick="updateAssetRates()"><i class="fa-solid fa-arrows-rotate" style="margin-right:4px"></i>Update exchange rates (live)</button>'+
@@ -697,7 +696,7 @@ h+='<input type="file" id="imp-assets" accept=".xlsx,.xls,.csv" style="display:n
 // Save button
 h+='<div style="margin-top:12px"><button class="btn btn-primary" onclick="readAssetsPage();saveD();simulate();renderAssetsPage();toast(\'Saved\')"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button></div>';
 
-el.innerHTML=h;
+el.innerHTML=h;_assetRO();
 try{renderAssetsCharts()}catch(e){console.error('renderAssetsCharts:',e)}
 }
 
@@ -769,12 +768,89 @@ else r.assets[i][f]=el.value});
 
 /* Add a Company Special Pay row: save what's already typed first (readRetirement), then add the row
    and put the cursor straight into its name field so the new row is easy to find. */
-function retAddSpecial(){
-  try{ if(typeof readRetirement==='function') readRetirement(); }catch(e){}
-  if(!D.retirement.company_special_pay) D.retirement.company_special_pay=[];
-  D.retirement.company_special_pay.push({name:'',amount:0,note:''});
-  var ni=D.retirement.company_special_pay.length-1;
-  saveD(); renderRetSetup();
-  setTimeout(function(){var e=document.querySelector('[data-spi="'+ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.boxShadow='inset 3px 0 0 var(--primary)';tr.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}e.focus();}},30);
-}
+function retAddSpecial(){try{if(typeof readRetirement==='function')readRetirement();}catch(e){}spEditOpen(-1);}
 window.retAddSpecial=retAddSpecial;
+
+// v255 (UI standard, user Oct 30 2026): asset rows READ-ONLY; ✏️ / + Add -> popup -> Save.
+var _assetRowHTML={},_assetHeads=[];
+function _assetRO(){try{
+ var tr0=document.querySelector('tr[data-arow]');if(!tr0)return;var tb=tr0.closest('table');
+ _assetHeads=Array.prototype.map.call(tb.querySelectorAll('thead th'),function(th){return (th.textContent||'').replace(/[\u25b2\u25bc]/g,'').trim();});
+ _assetRowHTML={};
+ tb.querySelectorAll('tr[data-arow]').forEach(function(tr){var i=tr.getAttribute('data-arow');_assetRowHTML[i]=tr.innerHTML;
+  tr.querySelectorAll('input,select').forEach(function(el){if(el.type==='checkbox')return;
+   var txt=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):(el.value||'');
+   if(el.type==='date'&&txt&&typeof fmtDate==='function')txt=fmtDate(txt);
+   if(el.getAttribute('data-f')==='fx_rate')txt=txt?('rate '+txt):'';
+   var d=document.createElement('span');d.textContent=txt||'\u2014';d.style.cssText='font-size:11px;'+(el.classList&&el.classList.contains('inp-num')?'font-family:var(--mono);':'');
+   el.parentNode.replaceChild(d,el);});});}catch(e){console.error('_assetRO',e);}}
+var _assetEditI=null;
+function assetEditOpen(i){
+ var r=D.retirement;if(!r)return;if(!r.assets)r.assets=[];
+ var html;
+ if(i<0){ // new: render a temporary row by pushing a draft, capturing its markup, then removing it
+  r.assets.push({name:'',type:((D.asset_types||[])[0]||{}).id||'',currency:'THB',value:0,fx_rate:0,cashout_date:'',notes:''});
+  var ni=r.assets.length-1;var keepF=window._assetTypeFilter;try{_assetTypeFilter='';}catch(e){}
+  renderAssetsPage();html=_assetRowHTML[ni];r.assets.pop();try{_assetTypeFilter=keepF;}catch(e){}renderAssetsPage();_assetEditI=-1;
+ }else{html=_assetRowHTML[i];_assetEditI=i;}
+ if(!html)return;
+ var t=document.createElement('table');t.innerHTML='<tbody><tr>'+html.replace(/ onchange="[^"]*"/g,'').replace(/ onblur="[^"]*"/g,'')+'</tr></tbody>';
+ var tds=t.querySelectorAll('td'),boxes='';
+ var BOX='background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0',LBL='font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px';
+ for(var k=0;k<tds.length;k++){if(!tds[k].querySelector('[data-ai]'))continue;boxes+='<div style="'+BOX+(k===0?';grid-column:1/-1':'')+'"><div style="'+LBL+'">'+(_assetHeads[k]||'')+'</div>'+tds[k].innerHTML+'</div>';}
+ var ov=document.getElementById('asset-edit-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='asset-edit-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('click',function(e){if(e.target===ov)assetEditClose();});
+ ov.innerHTML='<style>#asset-edit-ov .sel,#asset-edit-ov input{width:100%!important;box-sizing:border-box}</style><div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(560px,96vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-'+(i<0?'plus':'pen')+'"></i> '+(i<0?'New asset':'Edit asset \u00b7 '+esc((r.assets[i]||{}).name||''))+'</h3>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:11px">'+boxes+'</div>'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="assetEditClose()">Cancel</button><button class="btn btn-primary" onclick="assetEditSave()"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('keydown',function(e){if(e.key==='Escape')assetEditClose();else if(e.key==='Enter'){e.preventDefault();assetEditSave();}});
+ setTimeout(function(){var f=ov.querySelector('input');if(f)f.focus();},30);
+}
+function assetEditClose(){var ov=document.getElementById('asset-edit-ov');if(ov)ov.remove();_assetEditI=null;}
+function assetEditSave(){var ov=document.getElementById('asset-edit-ov');if(!ov)return;var r=D.retirement;var i=_assetEditI;
+ var nm=ov.querySelector('[data-f="name"]');if(nm&&!String(nm.value).trim()){alert('Please enter a name');return;}
+ if(i<0){r.assets.push({name:'',type:'',currency:'THB',value:0,fx_rate:0,cashout_date:'',notes:''});i=r.assets.length-1;}
+ var a=r.assets[i];if(!a)return;
+ ov.querySelectorAll('[data-ai]').forEach(function(el){var f=el.getAttribute('data-f');if(!f)return;
+  if(f==='value'||f==='fx_rate')a[f]=parseFloat(String(el.value).replace(/,/g,''))||0;else a[f]=el.value;});
+ assetEditClose();saveD();try{if(typeof simulate==='function')simulate();}catch(e){}renderAssetsPage();
+ var tr=document.querySelector('tr[data-arow="'+i+'"]');if(tr){tr.style.boxShadow='inset 3px 0 0 var(--primary)';tr.style.background='var(--primary-bg,rgba(59,130,246,0.06))';try{tr.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}}
+ if(typeof toast==='function')toast('\u2705 Saved');}
+window.assetEditOpen=assetEditOpen;window.assetEditClose=assetEditClose;window.assetEditSave=assetEditSave;
+
+// UI standard: Company Special Pay rows read-only; ✏️ / + Add Item -> popup -> Save.
+var _spEditI=null;
+function spEditOpen(si){
+ var r=D.retirement;if(!r)return;if(!r.company_special_pay)r.company_special_pay=[];
+ var sp=si<0?{name:'',amount:0,note:''}:r.company_special_pay[si];if(!sp)return;_spEditI=si;
+ var e=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');};
+ var row=function(l,h){return '<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--text3)">'+l+'</label>'+h+'</div>';};
+ var ov=document.getElementById('sp-edit-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='sp-edit-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('click',function(ev){if(ev.target===ov)spEditClose();});
+ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(420px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-'+(si<0?'plus':'pen')+'"></i> '+(si<0?'New special pay':'Edit special pay')+'</h3>'+
+  '<div style="display:grid;gap:10px">'+row('Item name *','<input id="sp-name" class="inp" style="width:100%" value="'+e(sp.name)+'">')+
+  row('Amount (\u0e3f)','<input id="sp-amt" class="inp inp-num" inputmode="decimal" style="width:100%" value="'+(sp.amount?sp.amount:'')+'" placeholder="0.00">')+
+  row('Notes','<input id="sp-note" class="inp" style="width:100%" value="'+e(sp.note)+'">')+'</div>'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="spEditClose()">Cancel</button><button class="btn btn-primary" onclick="spEditSave()"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('keydown',function(ev){if(ev.key==='Escape')spEditClose();else if(ev.key==='Enter'){ev.preventDefault();spEditSave();}});
+ setTimeout(function(){var f=document.getElementById('sp-name');if(f)f.focus();},30);
+}
+function spEditClose(){var ov=document.getElementById('sp-edit-ov');if(ov)ov.remove();_spEditI=null;}
+function spEditSave(){var r=D.retirement;var g=function(id){var x=document.getElementById(id);return x?String(x.value).trim():'';};
+ var nm=g('sp-name');if(!nm){alert('Please enter an item name');return;}
+ var amt=parseFloat(g('sp-amt').replace(/,/g,''))||0,note=g('sp-note');var si=_spEditI;
+ if(si<0){r.company_special_pay.push({name:nm,amount:amt,note:note});si=r.company_special_pay.length-1;}
+ else{var sp=r.company_special_pay[si];if(!sp)return;sp.name=nm;sp.amount=amt;sp.note=note;}
+ spEditClose();saveD();renderRetSetup();try{if(typeof simulate==='function')simulate();}catch(e){}
+ if(typeof toast==='function')toast('\u2705 Saved');}
+window.spEditOpen=spEditOpen;window.spEditClose=spEditClose;window.spEditSave=spEditSave;

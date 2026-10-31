@@ -160,7 +160,7 @@ function renderMonthlyPlan(){
   host.innerHTML=
     '<div class="card">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h2 style="margin:0"><i class="fa-solid fa-wallet"></i> Monthly Planning</h2>'+
-        '<button class="btn btn-primary" style="font-size:11px" onclick="mpAddPopup()"><i class="fa-solid fa-plus"></i> \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</button></div>'+
+        '<button class="btn btn-primary" style="font-size:11px" onclick="mpAddPopup()"><i class="fa-solid fa-plus"></i> Add Item</button></div>'+
       '<p class="text-muted" style="font-size:10px;margin-bottom:8px">\u0e27\u0e32\u0e07\u0e41\u0e1c\u0e19\u0e08\u0e31\u0e14\u0e2a\u0e23\u0e23\u0e40\u0e07\u0e34\u0e19\u0e41\u0e15\u0e48\u0e25\u0e30\u0e40\u0e14\u0e37\u0e2d\u0e19 \u2014 income \u0e14\u0e36\u0e07\u0e08\u0e32\u0e01 Payroll + \u0e23\u0e32\u0e22\u0e23\u0e31\u0e1a\u0e2d\u0e37\u0e48\u0e19 \u0e46, \u0e04\u0e07\u0e40\u0e2b\u0e25\u0e37\u0e2d\u0e04\u0e33\u0e19\u0e27\u0e13\u0e17\u0e49\u0e32\u0e22\u0e41\u0e15\u0e48\u0e25\u0e30\u0e41\u0e16\u0e27 (\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48 Setup \u203a Bank & Account)</p>'+
       '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">'+
         '<span style="font-size:11px;color:var(--text3)">\u0e40\u0e14\u0e37\u0e2d\u0e19</span>'+moSel+
@@ -205,8 +205,8 @@ function _mpRowPopup(existing){
     '<div class="form-group"><label>\u0e1a\u0e31\u0e0d\u0e0a\u0e35</label><select class="inp" id="mp-f-account">'+mpAcctOpts(r.account)+'</select></div>'+
     '<div class="form-group"><label>Remarks</label><input class="inp" id="mp-f-purpose" value="'+esc(r.purpose||'')+'" placeholder="(\u0e44\u0e21\u0e48\u0e1a\u0e31\u0e07\u0e04\u0e31\u0e1a)"></div>'+
     '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">'+
-      '<button class="btn btn-ghost" onclick="_mpClosePopup()">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>'+
-      '<button class="btn btn-primary" onclick="mpSavePopup(\''+(r.id||'')+'\')"><i class="fa-solid fa-check"></i> \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button>'+
+      '<button class="btn btn-ghost" onclick="_mpClosePopup()">Cancel</button>'+
+      '<button class="btn btn-primary" onclick="mpSavePopup(\''+(r.id||'')+'\')"><i class="fa-solid fa-check"></i> Save</button>'+
     '</div></div>';
   ov.onclick=_mpClosePopup;
   document.body.appendChild(ov);
@@ -230,7 +230,7 @@ function mpSavePopup(id){
   saveD();_mpClosePopup();renderMonthlyPlan();
   setTimeout(function(){var row=document.querySelector('tr[data-rid="'+id+'"]');if(row)row.scrollIntoView({behavior:'smooth',block:'center'});},40);
 }
-function mpDelRow(id){var V=_mpActive();V.rows=(V.rows||[]).filter(function(x){return x.id!==id;});saveD();renderMonthlyPlan();}
+function mpDelRow(id){if(!confirm('Delete this item?'))return;var V=_mpActive();V.rows=(V.rows||[]).filter(function(x){return x.id!==id;});saveD();renderMonthlyPlan();}
 
 // ---- version CRUD -----------------------------------------------------------
 function mpSwitchVer(id){D.plan_active=id;saveD();renderMonthlyPlan();}

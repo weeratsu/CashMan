@@ -36,15 +36,16 @@ var chkE='<input type="checkbox" data-pi="'+gi+'" data-f="affects_epf" '+(p.affe
 var chkS='<input type="checkbox" data-pi="'+gi+'" data-f="affects_sso" '+(p.affects_sso?'checked':'')+' onchange="D.payroll['+gi+'].affects_sso=this.checked" style="margin:0">';
 var chkT='<input type="checkbox" data-pi="'+gi+'" data-f="affects_tax" '+(p.affects_tax?'checked':'')+' onchange="D.payroll['+gi+'].affects_tax=this.checked" style="margin:0">';
 
-return '<tr><td><input class="inp-inline" value="'+esc(p.name)+'" data-pi="'+gi+'" data-f="name"></td>'+
+return '<tr data-pgi="'+gi+'"><td><input class="inp-inline" value="'+esc(p.name)+'" data-pi="'+gi+'" data-f="name"></td>'+
 '<td class="r">'+amtField+'</td>'+
 '<td>'+calcSel+(pctField?' '+pctField:'')+'</td>'+
 '<td>'+freqSel+'</td><td>'+monthSel+'</td>'+
 '<td style="text-align:center">'+chkE+'</td><td style="text-align:center">'+chkS+'</td><td style="text-align:center">'+chkT+'</td>'+
-'<td><button class="del-btn" onclick="readAll();D.payroll.splice('+gi+',1);renderPayroll()"><i class="fa-solid fa-trash"></i></button></td></tr>'}
+'<td style="white-space:nowrap"><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="payEditOpen('+gi+')"><i class="fa-solid fa-pen"></i></button><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.payroll.splice('+gi+',1);renderPayroll()"><i class="fa-solid fa-trash"></i></button></td></tr>'}
 
 document.getElementById('pay-income-body').innerHTML=incItems.map(payRow).join('');
 document.getElementById('pay-deduct-body').innerHTML=dedItems.map(payRow).join('');
+window._payRowFn=payRow;_payRO();
 
 var normal=computePayroll(1);var bonus=computePayroll(12);
 document.getElementById('payroll-kpis').innerHTML=
@@ -68,11 +69,7 @@ psTbl+='<tr style="font-weight:700;background:var(--bg3)"><td colspan="3">NET PA
 document.getElementById('payroll-summary-tbl').innerHTML=psTbl}
 
 
-function addPayItem(type){readAll();D.payroll.push({name:'New '+(type==='income'?'Income':'Deduction'),type:type,amount:0,freq:'every_month',month:null,notes:'',affects_epf:(type==='income'),affects_sso:(type==='income'),affects_tax:(type==='income'),calc_mode:'fixed'});renderPayroll();
-// Small sub-list: keep the add button under the list, but jump straight into the new row's name field.
-var _ni=D.payroll.length-1;
-setTimeout(function(){var e=document.querySelector('[data-pi="'+_ni+'"][data-f="name"]');if(e){var tr=e.closest('tr');if(tr){tr.style.boxShadow='inset 3px 0 0 var(--primary)';tr.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}if(e.scrollIntoView){try{e.scrollIntoView({behavior:'smooth',block:'center'});}catch(x){}}e.focus();if(e.select)e.select();}},30);
-}
+function addPayItem(type){readAll();payEditOpen(-1,{name:'',type:type,amount:0,freq:'every_month',month:null,notes:'',affects_epf:(type==='income'),affects_sso:(type==='income'),affects_tax:(type==='income'),calc_mode:'fixed'});}
 
 
 // TAX_BRACKETS defined in simulation.js
@@ -312,14 +309,15 @@ if(isAuto&&e.source!=='fixed'){
 if(hasOverride)actCell='<button class="del-btn" title="Reset to auto" onclick="toggleOverride('+i+')" style="font-size:9px;padding:1px 4px">\ud83d\udd04</button>';
 else actCell='<button class="del-btn" title="Override" onclick="toggleOverride('+i+')" style="font-size:9px;padding:1px 4px">\u270f\ufe0f</button>'}
 if(!isAuto&&!isFixed){actCell='<button class="del-btn" title="Remove" onclick="removeExemption('+i+')"><i class="fa-solid fa-trash"></i></button>'}
+if(!isFixed&&/<input/.test(amtCell)&&!(isAuto&&!hasOverride))actCell='<button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="exEditOpen('+i+')"><i class="fa-solid fa-pen"></i></button>'+actCell;
 
-h+='<tr'+(hasOverride?' style="background:rgba(245,158,11,0.05)"':'')+'>'+
+h+='<tr data-exi="'+i+'"'+(hasOverride?' style="background:rgba(245,158,11,0.05)"':'')+'>'+
 '<td>'+esc(displayName)+badge+'</td>'+
 '<td class="r" style="white-space:nowrap">'+amtCell+'</td>'+
 '<td class="r" style="font-family:var(--mono);font-size:10px;color:var(--text3)">'+maxDisp+'</td>'+
 '<td style="font-size:9px;'+valCls+'">'+valIcon+(valMsg?' <span style="font-size:8px">'+esc(valMsg)+'</span>':'')+'</td>'+
 '<td style="font-size:9px;color:var(--text3)">'+esc(displayNotes)+'</td>'+
-'<td>'+actCell+'</td></tr>';
+'<td style="white-space:nowrap">'+actCell+'</td></tr>';
 
 // For select_ins: show expandable insurance policy selector
 if(vld.type==='select_ins'){
@@ -355,7 +353,7 @@ if(crossTotals[r.group]>r.max){
 h+='<tr style="background:rgba(217,119,6,0.08)"><td colspan="6" style="font-size:10px;color:var(--warning);padding:6px 8px">\u26a0\ufe0f <strong>'+r.label+'</strong> \u2014 Current total: \u0e3f'+fmt(crossTotals[r.group])+', exceeds by \u0e3f'+fmt(crossTotals[r.group]-r.max)+'</td></tr>'}});
 
 h+='<tr style="font-weight:700;background:var(--bg3)"><td>TOTAL EXEMPTIONS</td><td class="r" style="font-family:var(--mono);font-size:10px;color:var(--primary)">\u0e3f'+fmt(D.tax_exemptions.reduce(function(s,e){var cat2=e.id?getCatalogItem(e.id):null;var mx=(cat2?cat2.max:(e.max||0));var v=e.override!=null?Math.min(e.override,mx>0?mx:Infinity):Math.min(e.amount,mx>0?mx:Infinity);if(e.source==='fixed'&&mx>0)v=mx;return s+v},0))+'</td><td></td><td></td><td></td><td></td></tr>';
-document.getElementById('tax-exempt-body').innerHTML=h;
+document.getElementById('tax-exempt-body').innerHTML=h;_exRO();
 
 // Update header
 var thdr=document.querySelector('#pt-tax-exempt .tbl thead tr');
@@ -367,9 +365,7 @@ if(addArea){var usedIds={};D.tax_exemptions.forEach(function(e){if(e.id)usedIds[
 var opts='<option value="">-- Select exemption to add --</option>';
 TAX_EXEMPTION_CATALOG.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(c){if(!usedIds[c.id]&&c.source!=='fixed'&&c.source.indexOf('auto')!==0){
 opts+='<option value="'+c.id+'">'+esc(c.name)+(c.max>0?' (max \u0e3f'+fmt(c.max)+')':'')+'</option>'}});
-addArea.innerHTML='<div style="display:flex;gap:6px;align-items:center;margin-top:8px">'+
-'<select class="sel" id="exempt-add-sel" style="flex:1">'+opts+'</select>'+
-'<button class="btn btn-primary" style="font-size:10px;padding:4px 10px" onclick="addExemption()"><i class="fa-solid fa-plus"></i> Add</button></div>'}
+window._exAddOpts=opts;addArea.innerHTML='';}
 
 // Life insurance selection is now inline in the select_ins row above
 }
@@ -516,3 +512,83 @@ rows+='<tr style="background:'+(_diff>0?'var(--success-bg)':'var(--error-bg)')+'
 '<td class="r" style="font-family:var(--mono);font-size:12px;'+_refundStyle+'">'+(_diff>0?'+':'-')+'\u0e3f'+fmt(Math.abs(_diff))+'</td><td></td></tr>'}
 
 document.getElementById('tax-monthly-body').innerHTML=rows}
+
+// v256 (UI standard, user Oct 30 2026): payroll rows READ-ONLY; ✏️ -> popup -> Save. The popup holds a live
+// copy of the row editor (rebuilt via the same payRow) so calc-mode/frequency changes reveal their fields.
+function _payRO(){try{['pay-income-body','pay-deduct-body'].forEach(function(bid){var b=document.getElementById(bid);if(!b||!b.querySelectorAll)return;
+ b.querySelectorAll('tr[data-pgi]').forEach(function(tr){tr.querySelectorAll('input,select').forEach(function(el){
+  var txt;if(el.type==='checkbox'){var s=document.createElement('span');s.textContent=el.checked?'\u2713':'\u2014';s.style.color=el.checked?'var(--success)':'var(--text3)';el.parentNode.replaceChild(s,el);return;}
+  txt=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):(el.value||'');
+  var d=document.createElement('span');d.textContent=txt||'\u2014';d.style.cssText='font-size:11px;'+(el.getAttribute('data-f')==='name'?'font-weight:600;':'')+(el.classList&&el.classList.contains('inp-num')?'font-family:var(--mono);':'');
+  el.parentNode.replaceChild(d,el);});});});}catch(e){console.error('_payRO',e);}}
+var _payDraft=null,_payGi=null;
+function _payPopupBody(){
+ var p=_payDraft;var tmp=document.createElement('table');tmp.innerHTML='<tbody>'+window._payRowFn(Object.assign({},p,{_gi:'__draft'}))+'</tbody>';
+ var tds=tmp.querySelectorAll('td');var L=['Name','Amount','Calc','Frequency','Month','EPF','SSO','Tax'];
+ var BOX='background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0',LBL='font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px';
+ var h='';for(var k=0;k<tds.length-1;k++){h+='<div style="'+BOX+(k===0?';grid-column:1/-1':'')+'"><div style="'+LBL+'">'+L[k]+'</div>'+tds[k].innerHTML+'</div>';}
+ return h.replace(/ onchange="[^"]*"/g,' onchange="payDraftChange(this)"').replace(/data-pi="__draft"/g,'data-pd="1"');}
+function payEditOpen(gi,nw){
+ var p=nw||D.payroll[gi];if(!p)return;_payGi=nw?-1:gi;_payDraft=JSON.parse(JSON.stringify(p));
+ var ov=document.getElementById('pay-edit-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='pay-edit-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('click',function(e){if(e.target===ov)payEditClose();});
+ ov.innerHTML='<style>#pay-edit-ov .sel,#pay-edit-ov input:not([type=checkbox]){width:100%!important;box-sizing:border-box}</style><div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(600px,96vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-'+(nw?'plus':'pen')+'"></i> '+(nw?'New ':'Edit ')+(p.type==='income'?'income':'deduction')+(nw?'':' \u00b7 '+esc(p.name||''))+'</h3>'+
+  '<div id="pay-edit-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:11px">'+_payPopupBody()+'</div>'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="payEditClose()">Cancel</button><button class="btn btn-primary" onclick="payEditSave()"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('keydown',function(e){if(e.key==='Escape')payEditClose();else if(e.key==='Enter'){e.preventDefault();payEditSave();}});
+ setTimeout(function(){var f=ov.querySelector('input');if(f)f.focus();},30);
+}
+function _payReadDraft(){var ov=document.getElementById('pay-edit-ov');if(!ov)return;var p=_payDraft;
+ ov.querySelectorAll('[data-pd]').forEach(function(el){var f=el.getAttribute('data-f');if(!f)return;
+  if(el.type==='checkbox'){p[f]=el.checked;return;}var v=el.value;
+  if(f==='amount'||f==='sso_cap')p[f]=parseFloat(String(v).replace(/,/g,''))||0;
+  else if(f==='epf_pct'||f==='sso_pct')p[f]=parseFloat(v)||0;
+  else if(f==='month')p[f]=parseInt(v)||1;
+  else p[f]=v;});}
+function payDraftChange(el){_payReadDraft();var f=el.getAttribute('data-f');if(f==='calc_mode'||f==='freq'){var g=document.getElementById('pay-edit-grid');if(g)g.innerHTML=_payPopupBody();}}
+function payEditClose(){var ov=document.getElementById('pay-edit-ov');if(ov)ov.remove();_payDraft=null;}
+function payEditSave(){if(_payDraft==null)return;_payReadDraft();if(!String(_payDraft.name||'').trim()){alert('Please enter a name');return;}var gi=_payGi;if(gi<0){D.payroll.push({});gi=D.payroll.length-1;}var keep=D.payroll[gi];
+ Object.keys(_payDraft).forEach(function(k){if(k!=='_gi')keep[k]=_payDraft[k];});
+ payEditClose();saveD();renderPayroll();try{if(typeof simulate==='function')simulate();}catch(e){}
+ var r=document.querySelector('tr[data-pgi="'+gi+'"]');if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}
+ if(typeof toast==='function')toast('\u2705 Saved');}
+window.payEditOpen=payEditOpen;window.payEditClose=payEditClose;window.payEditSave=payEditSave;window.payDraftChange=payDraftChange;
+
+// UI standard: Tax Exemptions amount inputs read-only in the table; ✏️ -> popup -> Save. Add = top-right button -> popup.
+var _exRowHTML={};
+function _exRO(){try{var b=document.getElementById('tax-exempt-body');if(!b||!b.querySelectorAll)return;_exRowHTML={};
+ b.querySelectorAll('tr[data-exi]').forEach(function(tr){var i=tr.getAttribute('data-exi');_exRowHTML[i]=tr.innerHTML;
+  tr.querySelectorAll('input[data-ti]').forEach(function(el){if(el.type==='checkbox')return;var d=document.createElement('span');d.textContent=(el.getAttribute('data-f')==='units'?(el.value||'0'):'\u0e3f'+(el.value||'0'));d.style.cssText='font-family:var(--mono);font-size:10px;font-weight:600';el.parentNode.replaceChild(d,el);});});}catch(e){console.error('_exRO',e);}}
+function _exPop(title,inner,saveFn){
+ var ov=document.getElementById('ex-edit-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='ex-edit-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.addEventListener('click',function(ev){if(ev.target===ov)exEditClose();});
+ ov.innerHTML='<style>#ex-edit-ov .sel,#ex-edit-ov input:not([type=checkbox]){width:100%!important;box-sizing:border-box}</style><div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(460px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<h3 style="margin:0 0 12px;font-size:14px">'+title+'</h3><div style="display:grid;gap:10px;font-size:11px">'+inner+'</div>'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="exEditClose()">Cancel</button><button class="btn btn-primary" onclick="'+saveFn+'"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('keydown',function(ev){if(ev.key==='Escape')exEditClose();else if(ev.key==='Enter'){ev.preventDefault();var sb=ov.querySelector('button.btn-primary');if(sb)sb.click();}});
+ setTimeout(function(){var f=ov.querySelector('input,select');if(f)f.focus();},30);}
+function exEditOpen(i){var html=_exRowHTML[i];if(!html)return;var e=D.tax_exemptions[i];var cat=e&&e.id?getCatalogItem(e.id):null;
+ var t=document.createElement('table');t.innerHTML='<tbody><tr>'+html.replace(/ onchange="[^"]*"/g,'')+'</tr></tbody>';var tds=t.querySelectorAll('td');
+ var amt=tds[1]?tds[1].innerHTML:'';
+ _exPop('<i class="fa-solid fa-pen"></i> Edit \u00b7 '+esc(cat?cat.name:(e.name||'')),'<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Amount (max '+(tds[2]?tds[2].textContent:'')+')</div>'+amt+'</div>','exEditSave('+i+')');}
+function exEditSave(i){var ov=document.getElementById('ex-edit-ov');if(!ov)return;var e=D.tax_exemptions[i];if(!e)return;
+ ov.querySelectorAll('[data-ti]').forEach(function(el){var f=el.getAttribute('data-f'),v=pn(el.value);
+  if(f==='override')e.override=v===0?null:v;else if(f==='amount'){if(e.source==='manual'||e.editable||true)e.amount=v;}
+  else if(f==='units'){e.units=parseInt(el.value)||0;}});
+ exEditClose();saveD();renderExemptions();try{if(typeof simulate==='function')simulate();}catch(x){}if(typeof toast==='function')toast('\u2705 Saved');}
+function exAddOpen(){_exPop('<i class="fa-solid fa-plus"></i> Add exemption','<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Exemption *</div><select class="sel" id="exempt-add-sel">'+(window._exAddOpts||'')+'</select></div>','exAddSave()');}
+function exAddSave(){var s=document.getElementById('exempt-add-sel');if(!s||!s.value){alert('Select an exemption type first');return;}var v=s.value;exEditClose();
+ var tmp=document.createElement('select');tmp.id='exempt-add-sel';tmp.style.display='none';tmp.innerHTML='<option value="'+v+'" selected></option>';document.body.appendChild(tmp);
+ try{addExemption();}finally{tmp.remove();}
+ var ni=D.tax_exemptions.length-1;setTimeout(function(){if(_exRowHTML[ni]&&/data-ti/.test(_exRowHTML[ni]))exEditOpen(ni);},60);}
+function exEditClose(){var ov=document.getElementById('ex-edit-ov');if(ov)ov.remove();}
+window.exEditOpen=exEditOpen;window.exEditSave=exEditSave;window.exAddOpen=exAddOpen;window.exAddSave=exAddSave;window.exEditClose=exEditClose;

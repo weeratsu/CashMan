@@ -556,8 +556,8 @@ function acctTypeOpts(sel){var sid=acctTypeId(sel)||sel||'';var o='<option value
 function renderAcctTypes(){var el=document.getElementById('accttypes-list');if(!el)return;
 el.innerHTML=_acctTypesSorted().map(function(t){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameAcctType(\''+t.id+'\')">'+esc(t.name)+' <span class="x" onclick="event.stopPropagation();rmAcctType(\''+t.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addAcctType()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
-function addAcctType(){var n=prompt('\u0e0a\u0e19\u0e34\u0e14\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e43\u0e2b\u0e21\u0e48:');if(!n||!n.trim())return;n=n.trim();if((D.account_types||[]).some(function(x){return x.name===n;})){toast('\u26a0\ufe0f \u0e21\u0e35\u0e2d\u0e22\u0e39\u0e48\u0e41\u0e25\u0e49\u0e27');return}if(typeof D._account_type_seq!=='number')D._account_type_seq=0;D.account_types.push({id:'atp'+(++D._account_type_seq),name:n});saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
-function renameAcctType(id){var t=(D.account_types||[]).find(function(x){return x.id===id;});if(!t)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',t.name);if(n===null||!n.trim())return;t.name=n.trim();saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
+function addAcctType(){cmPrompt('\u0e0a\u0e19\u0e34\u0e14\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e43\u0e2b\u0e21\u0e48:',function(n){if(!n||!n.trim())return;n=n.trim();if((D.account_types||[]).some(function(x){return x.name===n;})){toast('\u26a0\ufe0f \u0e21\u0e35\u0e2d\u0e22\u0e39\u0e48\u0e41\u0e25\u0e49\u0e27');return}if(typeof D._account_type_seq!=='number')D._account_type_seq=0;D.account_types.push({id:'atp'+(++D._account_type_seq),name:n});saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}});}
+function renameAcctType(id){var t=(D.account_types||[]).find(function(x){return x.id===id;});if(!t)return;cmPrompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',t.name,function(n){if(n===null||!n.trim())return;t.name=n.trim();saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}});}
 function rmAcctType(id){var t=(D.account_types||[]).find(function(x){return x.id===id;});if(!t)return;if(!confirm('\u0e25\u0e1a\u0e0a\u0e19\u0e34\u0e14 "'+t.name+'"? (\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e2d\u0e22\u0e39\u0e48\u0e08\u0e30\u0e44\u0e21\u0e48\u0e21\u0e35\u0e0a\u0e19\u0e34\u0e14)'))return;D.account_types=(D.account_types||[]).filter(function(x){return x.id!==id;});saveD();renderAcctTypes();if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
 window.acctTypeName=acctTypeName;window.acctTypeId=acctTypeId;window.acctTypeOpts=acctTypeOpts;window.renderAcctTypes=renderAcctTypes;window.addAcctType=addAcctType;window.renameAcctType=renameAcctType;window.rmAcctType=rmAcctType;
 if(!D.profile.name)D.profile.name='';
@@ -732,11 +732,11 @@ function renderTypes(){var c=document.getElementById('types-list');
 c.innerHTML=sTypes().map(function(t){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameType(\''+t.id+'\')">'+esc(t.name)+' <span class="x" onclick="event.stopPropagation();rmType(\''+t.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addType()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 
-function addType(){var t=prompt('New type:');if(!t||!t.trim())return;t=t.trim();if((D.types||[]).some(function(x){return x.name===t;}))return;if(typeof D._type_seq!=='number')D._type_seq=0;D.types.push({id:'ty'+(++D._type_seq),name:t});saveD&&saveD();if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),D.profile.daily_living);
+function addType(){cmPrompt('New type:',function(t){if(!t||!t.trim())return;t=t.trim();if((D.types||[]).some(function(x){return x.name===t;}))return;if(typeof D._type_seq!=='number')D._type_seq=0;D.types.push({id:'ty'+(++D._type_seq),name:t});saveD&&saveD();if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),D.profile.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),D.profile.cat_expense);
 if(document.getElementById('f-catname'))document.getElementById('f-catname').value=D.profile.cat_names||'';
-renderTypes()}
-function renameType(id){var t=(D.types||[]).find(function(x){return x.id===id;});if(!t)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e2b\u0e21\u0e27\u0e14:',t.name);if(n===null||!n.trim())return;t.name=n.trim();saveD&&saveD();renderTypes();try{filterMonthly&&filterMonthly()}catch(e){}}
+renderTypes()});}
+function renameType(id){var t=(D.types||[]).find(function(x){return x.id===id;});if(!t)return;cmPrompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e2b\u0e21\u0e27\u0e14:',t.name,function(n){if(n===null||!n.trim())return;t.name=n.trim();saveD&&saveD();renderTypes();try{filterMonthly&&filterMonthly()}catch(e){}});}
 
 function rmType(id){var t=(D.types||[]).find(function(x){return x.id===id;});if(!t)return;if(!confirm('Remove type "'+t.name+'"? (\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e2b\u0e21\u0e27\u0e14\u0e19\u0e35\u0e49\u0e08\u0e30\u0e44\u0e21\u0e48\u0e21\u0e35\u0e2b\u0e21\u0e27\u0e14)'))return;D.types=(D.types||[]).filter(function(x){return x.id!==id;});saveD&&saveD();if(document.getElementById('f-living'))numFmt(document.getElementById('f-living'),D.profile.daily_living);
 if(document.getElementById('f-cat'))numFmt(document.getElementById('f-cat'),D.profile.cat_expense);
@@ -748,8 +748,8 @@ c.innerHTML=_ownersSorted().map(function(o){var isMe=(o.id==='me');return '<span
 (isMe?'':' <span class="x" onclick="event.stopPropagation();rmOwner(\''+o.id+'\')">&times;</span>')+'</span>'}).join('')+
 '<span class="type-add" onclick="addOwner()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 
-function addOwner(){var o=prompt('New owner name:');if(!o||!o.trim())return;o=o.trim();if((D.owners||[]).some(function(x){return x.name===o;})){alert('Already exists');return}if(typeof D._owner_seq!=='number')D._owner_seq=0;D.owners.push({id:'o'+(++D._owner_seq),name:o});OWNERS=D.owners;saveD();renderOwners()}
-function renameOwner(id){var o=(D.owners||[]).find(function(x){return x.id===id;});if(!o||o.id==='me')return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',o.name);if(n===null||!n.trim())return;o.name=n.trim();OWNERS=D.owners;saveD();renderOwners();try{renderInst&&renderInst()}catch(e){}}
+function addOwner(){cmPrompt('New owner name:',function(o){if(!o||!o.trim())return;o=o.trim();if((D.owners||[]).some(function(x){return x.name===o;})){alert('Already exists');return}if(typeof D._owner_seq!=='number')D._owner_seq=0;D.owners.push({id:'o'+(++D._owner_seq),name:o});OWNERS=D.owners;saveD();renderOwners()});}
+function renameOwner(id){var o=(D.owners||[]).find(function(x){return x.id===id;});if(!o||o.id==='me')return;cmPrompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',o.name,function(n){if(n===null||!n.trim())return;o.name=n.trim();OWNERS=D.owners;saveD();renderOwners();try{renderInst&&renderInst()}catch(e){}});}
 
 function rmOwner(id){var o=(D.owners||[]).find(function(x){return x.id===id;});if(!o)return;if(o.id==='me'){alert('Cannot remove "Me"');return}
 if(!confirm('Remove owner "'+o.name+'"? Items assigned to them will keep their current value.')){return}
@@ -763,8 +763,8 @@ function renderAssetTypes(){var el=document.getElementById('asset-types-list');i
 el.innerHTML=_assetTypesSorted().map(function(t){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameAssetType(\''+t.id+'\')">'+esc(t.name)+' <span class="x" onclick="event.stopPropagation();rmAssetType(\''+t.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addAssetType()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
 
-function addAssetType(){var n=prompt('New asset type:');if(!n||!n.trim())return;n=n.trim();if((D.asset_types||[]).some(function(x){return x.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._asset_type_seq!=='number')D._asset_type_seq=0;D.asset_types.push({id:'at'+(++D._asset_type_seq),name:n});saveD();renderAssetTypes()}
-function renameAssetType(id){var t=(D.asset_types||[]).find(function(x){return x.id===id;});if(!t)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',t.name);if(n===null||!n.trim())return;t.name=n.trim();saveD();renderAssetTypes();try{renderAssetsPage&&renderAssetsPage()}catch(e){}}
+function addAssetType(){cmPrompt('New asset type:',function(n){if(!n||!n.trim())return;n=n.trim();if((D.asset_types||[]).some(function(x){return x.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._asset_type_seq!=='number')D._asset_type_seq=0;D.asset_types.push({id:'at'+(++D._asset_type_seq),name:n});saveD();renderAssetTypes()});}
+function renameAssetType(id){var t=(D.asset_types||[]).find(function(x){return x.id===id;});if(!t)return;cmPrompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',t.name,function(n){if(n===null||!n.trim())return;t.name=n.trim();saveD();renderAssetTypes();try{renderAssetsPage&&renderAssetsPage()}catch(e){}});}
 
 function rmAssetType(id){var t=(D.asset_types||[]).find(function(x){return x.id===id;});if(!t)return;if(!confirm('Remove asset type "'+t.name+'"?'))return;D.asset_types=(D.asset_types||[]).filter(function(x){return x.id!==id;});saveD();renderAssetTypes()}
 
@@ -775,8 +775,8 @@ function bankId(x){var b=(D.banks||[]).find(function(z){return z.id===x||z.name=
 function renderBanks(){var el=document.getElementById('banks-list');if(!el)return;
 el.innerHTML=(D.banks||[]).map(function(b){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameBank(\''+b.id+'\')">'+esc(b.name)+' <span class="x" title="\u0e25\u0e1a" onclick="event.stopPropagation();rmBank(\''+b.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addBank()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
-function addBank(){var n=prompt('New bank:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.banks))D.banks=[];if(D.banks.some(function(b){return b.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._bank_seq!=='number')D._bank_seq=0;D.banks.push({id:'bk'+(++D._bank_seq),name:n});D.banks.sort(function(a,b){return a.name.localeCompare(b.name,undefined,{sensitivity:'base'})});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
-function renameBank(id){var b=(D.banks||[]).find(function(x){return x.id===id;});if(!b)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23:',b.name);if(n===null||!n.trim())return;b.name=n.trim();saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){};if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
+function addBank(){cmPrompt('New bank:',function(n){if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.banks))D.banks=[];if(D.banks.some(function(b){return b.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._bank_seq!=='number')D._bank_seq=0;D.banks.push({id:'bk'+(++D._bank_seq),name:n});D.banks.sort(function(a,b){return a.name.localeCompare(b.name,undefined,{sensitivity:'base'})});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}});}
+function renameBank(id){var b=(D.banks||[]).find(function(x){return x.id===id;});if(!b)return;cmPrompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23:',b.name,function(n){if(n===null||!n.trim())return;b.name=n.trim();saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){};if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}});}
 function rmBank(id){var b=(D.banks||[]).find(function(x){return x.id===id;});if(!b)return;if(!confirm('Remove bank "'+b.name+'"? (\u0e01\u0e32\u0e23\u0e4c\u0e14/\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23\u0e19\u0e35\u0e49\u0e08\u0e30\u0e44\u0e21\u0e48\u0e21\u0e35\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23)'))return;D.banks=(D.banks||[]).filter(function(x){return x.id!==id;});saveD();renderBanks();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){};if(typeof renderBankAccount==='function')try{renderBankAccount()}catch(e){}}
 // Shared credit-limit groups — user-managed list for the limit_group dropdown (Setup chip UI). v313.
 function limitGroupName(id){var g=(D.limit_groups||[]).find(function(x){return x.id===id;});return g?g.name:(id||'');}
@@ -785,8 +785,8 @@ function _limitGroupsSorted(){return (D.limit_groups||[]).slice().sort(function(
 function renderLimitGroups(){var el=document.getElementById('limitgroups-list');if(!el)return;
 el.innerHTML=_limitGroupsSorted().map(function(g){return '<span class="type-chip" title="\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d" style="cursor:pointer" onclick="renameLimitGroup(\''+g.id+'\')">'+esc(g.name)+' <span class="x" onclick="event.stopPropagation();rmLimitGroup(\''+g.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addLimitGroup()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
-function addLimitGroup(){var n=prompt('New shared limit group:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.limit_groups))D.limit_groups=[];if(D.limit_groups.some(function(x){return x.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._limit_group_seq!=='number')D._limit_group_seq=0;D.limit_groups.push({id:'lg'+(++D._limit_group_seq),name:n});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
-function renameLimitGroup(id){var g=(D.limit_groups||[]).find(function(x){return x.id===id;});if(!g)return;var n=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',g.name);if(n===null||!n.trim())return;g.name=n.trim();saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
+function addLimitGroup(){cmPrompt('New shared limit group:',function(n){if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.limit_groups))D.limit_groups=[];if(D.limit_groups.some(function(x){return x.name===n;})){toast('\u26a0\ufe0f Already exists');return}if(typeof D._limit_group_seq!=='number')D._limit_group_seq=0;D.limit_groups.push({id:'lg'+(++D._limit_group_seq),name:n});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}});}
+function renameLimitGroup(id){var g=(D.limit_groups||[]).find(function(x){return x.id===id;});if(!g)return;cmPrompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d:',g.name,function(n){if(n===null||!n.trim())return;g.name=n.trim();saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}});}
 function rmLimitGroup(id){var g=(D.limit_groups||[]).find(function(x){return x.id===id;});if(!g)return;if(!confirm('Remove limit group "'+g.name+'"? Cards keep their current group value.'))return;D.limit_groups=(D.limit_groups||[]).filter(function(x){return x.id!==id;});saveD();renderLimitGroups();if(typeof renderCreditCards==='function')try{renderCreditCards()}catch(e){}}
 // <option> list for a limit-group <select>; includes the current value even if not in the list, plus a blank.
 function limitGroupOpts(sel){var sid=limitGroupIdOf(sel)||sel||'';var h='<option value="">\u2014 none \u2014</option>';_limitGroupsSorted().forEach(function(g){h+='<option value="'+g.id+'"'+(g.id===sid?' selected':'')+'>'+esc(g.name)+'</option>'});return h}
@@ -809,13 +809,13 @@ el.innerHTML=rows;}
 function dashLayoutToggle(key){var x=(D.dash_layout||[]).find(function(z){return z.key===key;});if(!x)return;x.visible=!x.visible;saveD();renderDashLayout();if(typeof applyDashLayout==='function')try{applyDashLayout()}catch(e){}}
 function dashLayoutMove(key,dir){var a=D.dash_layout||[];var i=a.findIndex(function(z){return z.key===key;});if(i<0)return;var j=i+dir;if(j<0||j>=a.length)return;var t=a[i];a[i]=a[j];a[j]=t;saveD();renderDashLayout();if(typeof applyDashLayout==='function')try{applyDashLayout()}catch(e){}}
 
-function addTodoCat(){var n=prompt('New to-do category:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.todo_cats))D.todo_cats=[];if(D.todo_cats.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.todo_cats.push(n);saveD();renderTodoCats();if(typeof renderTodos==='function')try{renderTodos()}catch(e){}}
+function addTodoCat(){cmPrompt('New to-do category:',function(n){if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.todo_cats))D.todo_cats=[];if(D.todo_cats.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.todo_cats.push(n);saveD();renderTodoCats();if(typeof renderTodos==='function')try{renderTodos()}catch(e){}});}
 function rmTodoCat(i){if(!confirm('Remove to-do category "'+D.todo_cats[i]+'"? Existing tasks keep their current value.'))return;D.todo_cats.splice(i,1);saveD();renderTodoCats();if(typeof renderTodos==='function')try{renderTodos()}catch(e){}}
 // Wishlist categories — user-managed list for the Wishlist module (Setup chip UI).
 function renderWishCats(){var el=document.getElementById('wishcats-list');if(!el)return;
 el.innerHTML=(D.wish_cats||[]).map(function(t,i){return '<span class="type-chip">'+esc(t)+' <span class="x" onclick="rmWishCat('+i+')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addWishCat()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
-function addWishCat(){var n=prompt('New wishlist category:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.wish_cats))D.wish_cats=[];if(D.wish_cats.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.wish_cats.push(n);saveD();renderWishCats();if(typeof renderWishlist==='function')try{renderWishlist()}catch(e){}}
+function addWishCat(){cmPrompt('New wishlist category:',function(n){if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.wish_cats))D.wish_cats=[];if(D.wish_cats.indexOf(n)>=0){toast('\u26a0\ufe0f Already exists');return}D.wish_cats.push(n);saveD();renderWishCats();if(typeof renderWishlist==='function')try{renderWishlist()}catch(e){}});}
 function rmWishCat(i){if(!confirm('Remove wishlist category "'+D.wish_cats[i]+'"? Existing items keep their current value.'))return;D.wish_cats.splice(i,1);saveD();renderWishCats();if(typeof renderWishlist==='function')try{renderWishlist()}catch(e){}}
 // <option> list for a bank <select>; includes the current value even if not in the list, plus a blank.
 function bankOpts(sel){var sid=bankId(sel)||sel||'';var h='<option value="">\u2014 select \u2014</option>';var list=(D.banks||[]).slice().sort(function(a,b){return a.name.localeCompare(b.name,undefined,{sensitivity:'base'})});list.forEach(function(b){h+='<option value="'+b.id+'"'+(b.id===sid?' selected':'')+'>'+esc(b.name)+'</option>'});return h}
@@ -839,11 +839,11 @@ function _planCatName(id){var c=(D.plan_categories||[]).find(function(x){return 
 function renderPlanCats(){var el=document.getElementById('plancats-list');if(!el)return;
 el.innerHTML=(D.plan_categories||[]).map(function(c){return '<span class="type-chip" title="คลิกเพื่อเปลี่ยนชื่อ" style="cursor:pointer" onclick="renamePlanCat(\''+c.id+'\')">'+esc(c.name)+' <span class="x" title="ลบ" onclick="event.stopPropagation();rmPlanCat(\''+c.id+'\')">&times;</span></span>'}).join('')+
 '<span class="type-add" onclick="addPlanCat()"><i class="fa-solid fa-plus" style="font-size:8px"></i> Add</span>'}
-function addPlanCat(){var n=prompt('หมวดหมู่แพลนใหม่:');if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.plan_categories))D.plan_categories=[];
+function addPlanCat(){cmPrompt('หมวดหมู่แพลนใหม่:',function(n){if(!n||!n.trim())return;n=n.trim();if(!Array.isArray(D.plan_categories))D.plan_categories=[];
 if(D.plan_categories.some(function(c){return c.name===n;})){toast('\u26a0\ufe0f มีอยู่แล้ว');return}
 if(typeof D._plan_cat_seq!=='number')D._plan_cat_seq=0;
-D.plan_categories.push({id:'pc'+(++D._plan_cat_seq),name:n});saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}}
-function renamePlanCat(id){var c=(D.plan_categories||[]).find(function(x){return x.id===id;});if(!c)return;var n=prompt('เปลี่ยนชื่อหมวด:',c.name);if(n===null||!n.trim())return;c.name=n.trim();saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}}
+D.plan_categories.push({id:'pc'+(++D._plan_cat_seq),name:n});saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}});}
+function renamePlanCat(id){var c=(D.plan_categories||[]).find(function(x){return x.id===id;});if(!c)return;cmPrompt('เปลี่ยนชื่อหมวด:',c.name,function(n){if(n===null||!n.trim())return;c.name=n.trim();saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}});}
 function rmPlanCat(id){var c=(D.plan_categories||[]).find(function(x){return x.id===id;});if(!c)return;if(!confirm('ลบหมวด "'+c.name+'"? (รายการที่ใช้หมวดนี้จะไม่มีหมวด)'))return;D.plan_categories=(D.plan_categories||[]).filter(function(x){return x.id!==id;});saveD();renderPlanCats();if(typeof renderMonthlyPlan==='function')try{renderMonthlyPlan()}catch(e){}}
 function planCatOpts(sel){var o='<option value="">\u2014 หมวด \u2014</option>';(D.plan_categories||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});}).forEach(function(c){o+='<option value="'+c.id+'"'+(c.id===sel?' selected':'')+'>'+esc(c.name)+'</option>';});return o;}
 window.renderPlanCats=renderPlanCats;window.addPlanCat=addPlanCat;window.rmPlanCat=rmPlanCat;window.renamePlanCat=renamePlanCat;window.planCatOpts=planCatOpts;window._planCatName=_planCatName;
@@ -852,3 +852,26 @@ window.ownerName=ownerName;window.ownerId=ownerId;window.renameOwner=renameOwner
 window.typeName=typeName;window.typeId=typeId;window.renameType=renameType;
 window.assetTypeName=assetTypeName;window.assetTypeId=assetTypeId;window.assetTypeOpts=assetTypeOpts;window.renameAssetType=renameAssetType;
 window.limitGroupName=limitGroupName;window.limitGroupIdOf=limitGroupIdOf;window.renameLimitGroup=renameLimitGroup;
+
+// UI standard (Oct 31 2026): styled popup instead of browser prompt() for master Add/Rename. Enter=Save, Esc=Cancel.
+function cmPrompt(msg,def,cb){
+ if(typeof def==='function'){cb=def;def='';}
+ var ov=document.getElementById('cm-prompt-ov');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='cm-prompt-ov';
+ ov.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ var e=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');};
+ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(380px,94vw);box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
+  '<div style="font-size:13px;font-weight:700;margin-bottom:10px">'+e(msg)+'</div>'+
+  '<input id="cm-prompt-in" class="inp" style="width:100%;box-sizing:border-box" value="'+e(def||'')+'">'+
+  '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" id="cm-prompt-no">Cancel</button><button class="btn btn-primary" id="cm-prompt-ok"><i class="fa-solid fa-check"></i> Save</button></div>'+
+  '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+ document.body.appendChild(ov);
+ var inp=document.getElementById('cm-prompt-in'),done=false;
+ var close=function(v){if(done)return;done=true;ov.remove();if(v!==null)cb(v);};
+ document.getElementById('cm-prompt-ok').onclick=function(){close(inp.value);};
+ document.getElementById('cm-prompt-no').onclick=function(){close(null);};
+ ov.addEventListener('click',function(ev){if(ev.target===ov)close(null);});
+ inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();close(inp.value);}else if(ev.key==='Escape')close(null);});
+ setTimeout(function(){inp.focus();inp.select&&inp.select();},30);
+}
+window.cmPrompt=cmPrompt;

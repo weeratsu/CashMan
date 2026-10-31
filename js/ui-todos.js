@@ -513,8 +513,8 @@ var h='<div class="card">';
 h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">';
 h+='<h2 style="margin:0"><i class="fa-solid fa-list-check"></i> To-Do</h2>';
 h+='<span style="flex:1"></span>';
-h+='<button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addTodo()"><i class="fa-solid fa-plus"></i> Add task</button>';
-h+='<button class="btn btn-ghost" style="font-size:11px;padding:4px 12px" onclick="todoSaveAll()" title="All changes save automatically; click to confirm"><i class="fa-solid fa-floppy-disk"></i> Save</button>';
+h+='<button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addTodo()"><i class="fa-solid fa-plus"></i> Add Task</button>';
+
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="exportTrxExcel(\'todos\')" title="Export To-Do list to Excel"><i class="fa-solid fa-download"></i> Excel</button>';
 h+='<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="document.getElementById(\'imp-todos\').click()" title="Import To-Do list from Excel (adds rows)"><i class="fa-solid fa-upload"></i> Import</button>';
 h+='<input type="file" id="imp-todos" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel(\'todos\',event)">';
@@ -646,7 +646,7 @@ h+='<tr><td style="min-width:220px;white-space:normal;word-break:normal;overflow
 h+='</tbody></table></div>';
 }
 h+='</div></div>';
-el.innerHTML=h;
+el.innerHTML=h;_todoRO();
 }
 
 
@@ -716,3 +716,64 @@ if(openEdit){var ed=document.getElementById('tedit_'+id);if(ed){ed.style.display
 },120);
 }
 window.todoJumpTo=todoJumpTo;
+
+// v318 (UI standard, user Oct 30 2026): task rows are READ-ONLY text; ✏️ -> popup (all fields) -> Save.
+// Exceptions kept clickable: ▶ toggle, Done/Reopen, ✕ delete. Completion History keeps its own controls.
+var _todoRowCache={};
+function _todoRO(){try{
+ var tb=document.querySelector('#todos-content table.todo-tbl');if(!tb||!tb.querySelectorAll)return;_todoRowCache={};
+ tb.querySelectorAll('tr.todo-r1').forEach(function(r1){
+  var id=r1.getAttribute('data-row'),r2=r1.nextElementSibling;
+  _todoRowCache[id]={r2:r2?r2.innerHTML:''};
+  [r1,r2].forEach(function(r){if(!r)return;r.querySelectorAll('input,select,textarea').forEach(function(el){
+   if(el.type==='checkbox')return;
+   var h=el.parentElement,hid=false;while(h&&h!==r){if(h.style&&h.style.display==='none'){hid=true;break;}h=h.parentElement;}
+   if(hid)return;
+   var txt=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):(el.value||'');
+   if(el.type==='date'&&txt&&typeof fmtDate==='function')txt=fmtDate(txt);
+   var sp=document.createElement('div');sp.textContent=txt;sp.style.cssText=(el.getAttribute('style')||'')+';border:0;background:none;padding:2px 0;min-height:0';
+   if(!txt){if(el.getAttribute('data-tf')==='note'){el.parentNode.removeChild(el);return;}sp.textContent='\u2014';}
+   el.parentNode.replaceChild(sp,el);});});
+  var del=r1.querySelector('button.del-btn');if(del)del.insertAdjacentHTML('beforebegin','<button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-bottom:4px" title="Edit" onclick="todoEditOpen(\''+id+'\')"><i class="fa-solid fa-pen"></i></button><br>');
+ });}catch(e){console.error('_todoRO',e);}}
+function todoEditOpen(id){
+ var t=(D.todos||[]).find(function(x){return x.id===id;});if(!t)return;
+ addTodo();var ov=document.getElementById('todo-add-ov');if(!ov)return;
+ var $=function(k){return document.getElementById(k);};
+ var h3=ov.querySelector('h3');if(h3)h3.innerHTML='<i class="fa-solid fa-pen"></i> Edit task';
+ $('ta-title').value=t.title||'';$('ta-note').value=t.note||'';
+ if($('ta-cat')){var cs=$('ta-cat');if(t.category&&!cs.querySelector('option[value="'+t.category+'"]')&&Array.prototype.every.call(cs.options,function(o){return o.text!==t.category;}))cs.insertAdjacentHTML('beforeend','<option>'+esc(t.category)+'</option>');cs.value=t.category||'';}
+ $('ta-pri').value=String(t.priority||2);$('ta-mode').value=t.deadline_mode||'none';
+ $('ta-datewrap').style.visibility=(t.deadline_mode==='date')?'visible':'hidden';$('ta-date').value=t.due_date||'';
+ $('ta-time').value=t.due_time||'';$('ta-dl').value=t.deadline_date||'';$('ta-recur').value=t.recur||'none';
+ // recurrence details + link, cloned from the row editor (save handlers stripped)
+ var c=_todoRowCache[id],extra='';
+ if(c&&c.r2){var tmp=document.createElement('div');tmp.innerHTML='<table><tbody><tr>'+c.r2+'</tr></tbody></table>';
+  var meta=tmp.querySelector('#tedit_'+id);if(meta){meta.removeAttribute('id');meta.style.display='grid';
+   meta.querySelectorAll('[onchange]').forEach(function(e){e.removeAttribute('onchange');});
+   var bx=meta.children;for(var k=bx.length-1;k>=0;k--){var lb=(bx[k].textContent||'').toUpperCase();if(/CATEGORY|PRIORITY/.test(lb.split('\n')[0]||lb))bx[k].parentNode.removeChild(bx[k]);}
+   extra='<div style="margin-top:10px"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Repeat details \u00b7 Link</div>'+meta.outerHTML+'</div>';}}
+ var err=$('ta-err');if(err&&extra)err.insertAdjacentHTML('beforebegin','<div id="ta-extra">'+extra+'</div>');
+ var sv=ov.querySelector('button.btn-primary');if(sv)sv.setAttribute('onclick','todoEditSave(\''+id+'\')');
+ var box=ov.firstElementChild;if(box)box.setAttribute('onkeydown',"if(event.key==='Escape')todoAddClose();if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'){event.preventDefault();todoEditSave('"+id+"');}");
+}
+function todoEditSave(id){
+ var t=(D.todos||[]).find(function(x){return x.id===id;});if(!t)return;
+ var g=function(k){var e=document.getElementById(k);return e?String(e.value).trim():'';};
+ var title=g('ta-title');if(!title){var er=document.getElementById('ta-err');if(er)er.textContent='Please enter a task name';return;}
+ var mode=g('ta-mode')||'none',due=g('ta-date');
+ if(mode==='date'&&!due){var er2=document.getElementById('ta-err');if(er2)er2.textContent='Pick a date (or set Due to None/ASAP)';return;}
+ t.title=title;t.note=g('ta-note');t.category=g('ta-cat')||t.category;t.priority=parseInt(g('ta-pri'))||2;
+ t.deadline_mode=mode;t.due_date=mode==='date'?due:'';t.due_time=g('ta-time');
+ var dl=g('ta-dl');t.deadline_date=(mode==='date'&&dl&&dl>due)?dl:'';
+ var rc=g('ta-recur')||'none';if(rc!==t.recur){t.recur=rc;if(rc!=='none'&&t.due_date){var d0=new Date(t.due_date+'T00:00:00');t.recur_dow=d0.getDay();t.recur_dom=d0.getDate();t.recur_month=d0.getMonth()+1;}}
+ var ex=document.getElementById('ta-extra');
+ if(ex)ex.querySelectorAll('[data-tf]').forEach(function(e){var f=e.getAttribute('data-tf'),v=e.value;
+  if(f==='link'){if(!v){t.link_type='';t.link_ref='';}else{var p=v.split('::');t.link_type=p[0]||'';t.link_ref=p.slice(1).join('::')||'';}return;}
+  if(['title','note','category','priority','deadline_mode','due_date','due_time','deadline_date','recur'].indexOf(f)>=0)return;
+  if(f==='recur_every')t[f]=Math.max(1,parseInt(v)||1);else if(f==='recur_dow'||f==='recur_dom'||f==='recur_month')t[f]=parseInt(v)||0;else t[f]=v;});
+ saveD();todoAddClose();_todoFreeze();_todoTouched[id]=true;renderTodos();
+ try{if(typeof renderDashCalendar==='function')renderDashCalendar();}catch(e){}
+ if(typeof toast==='function')toast('\u2705 Saved');
+}
+window.todoEditOpen=todoEditOpen;window.todoEditSave=todoEditSave;

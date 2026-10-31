@@ -350,7 +350,7 @@ return '<option value="">\u2014</option>'+a.map(function(x){return '<option valu
 function _acctLbl(id){var x=(D.accounts||[]).find(function(a){return a.id===id;});if(!x)return '';var bn=(x.bank&&typeof bankName==='function')?bankName(x.bank):(x.bank||'');return (bn?bn+' \u00b7 ':'')+(x.name||'');}
 // v352 (UI standard, user Oct 30 2026): rows are READ-ONLY; edit via ✏️ -> popup -> Save. Exceptions kept
 // clickable in the row: select checkbox, Auto checkbox, ▶ toggle, delete.
-var _recCache={monthly:{},yearly:{},planned:{}};
+var _recCache={monthly:{},yearly:{},planned:{},inst:{}};
 function _roize(root){
  root.querySelectorAll('input,select,textarea').forEach(function(el){
   if(el.type==='checkbox')return;
@@ -363,6 +363,7 @@ function _roize(root){
 }
 function _recRO(kind){try{
  var body=document.getElementById(kind+'-body');if(!body||!body.querySelectorAll)return;
+ if(kind==='inst'){var CI=_recCache.inst={};body.querySelectorAll('tr[data-idx]').forEach(function(tr){var ck=tr.querySelector('input.inst-chk');if(!ck||ck.getAttribute('data-auto')!==null)return;var i=tr.getAttribute('data-idx');CI[i]={main:tr.innerHTML,det:''};_roize(tr);var last=tr.lastElementChild;if(last){last.insertAdjacentHTML('afterbegin','<button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit" onclick="recEditOpen(\'inst\','+i+')"><i class="fa-solid fa-pen"></i></button>');last.style.whiteSpace='nowrap';}});return;}
  var p=kind==='monthly'?'m':(kind==='yearly'?'y':'pl'),ra=kind==='monthly'?'data-mrow':(kind==='yearly'?'data-yrow':'data-plrow'),C=_recCache[kind]={};
  body.querySelectorAll('tr.'+p+'-main').forEach(function(tr){
   var i=tr.getAttribute(ra),det=body.querySelector('tr.'+p+'-detail['+ra+'="'+i+'"]');
@@ -373,12 +374,12 @@ function _recRO(kind){try{
  });}catch(e){console.error('_recRO',e);}}
 function _noSaveHandlers(h){return h.replace(/ onchange="([^"]*)"/g,function(m,b){return /saveD|readAll/.test(b)?'':m;});}
 function recEditOpen(kind,i){
- var c=(_recCache[kind]||{})[i];if(!c)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:D.planned),it=arr[i];if(!it)return;
+ var c=(_recCache[kind]||{})[i];if(!c)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:(kind==='inst'?D.installments:D.planned)),it=arr[i];if(!it)return;
  var hdr=document.getElementById(kind+'-hdr'),heads=hdr?Array.prototype.map.call(hdr.children,function(th){return (th.textContent||'').replace(/[\u25b2\u25bc]/g,'').trim();}):[];
  var t=document.createElement('table');t.innerHTML='<tbody><tr>'+_noSaveHandlers(c.main)+'</tr></tbody>';
  var tds=t.querySelectorAll('td'),boxes='';
  var BOX='background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0',LBL='font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px';
- for(var k=2;k<tds.length-1;k++){boxes+='<div style="'+BOX+'"><div style="'+LBL+'">'+(heads[k]||'')+'</div>'+tds[k].innerHTML+'</div>';}
+ for(var k=(kind==='inst'?1:2);k<tds.length-1;k++){if(kind==='inst'&&/^source$/i.test(heads[k]||''))continue;boxes+='<div style="'+BOX+'"><div style="'+LBL+'">'+(heads[k]||'')+'</div>'+tds[k].innerHTML+'</div>';}
  var dt=document.createElement('table');dt.innerHTML='<tbody><tr>'+_noSaveHandlers(c.det)+'</tr></tbody>';
  var dtd=dt.querySelectorAll('td'),detH=dtd.length?dtd[dtd.length-1].innerHTML:'';
  var ov=document.getElementById('rec-edit-ov');if(ov)ov.remove();
@@ -387,7 +388,7 @@ function recEditOpen(kind,i){
  ov.addEventListener('click',function(e){if(e.target===ov)recEditClose();});
  ov.innerHTML='<style>#rec-edit-ov .sel,#rec-edit-ov input:not([type=checkbox]),#rec-edit-ov textarea{width:100%!important;max-width:none!important;box-sizing:border-box}#rec-edit-ov .rec-det{width:auto!important;position:static!important}</style>'+
   '<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(760px,96vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
-  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-pen"></i> Edit '+kind+' \u00b7 '+esc(it.name||'')+'</h3>'+
+  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-pen"></i> Edit '+(kind==='inst'?'installment':kind)+' \u00b7 '+esc(it.name||'')+'</h3>'+
   '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;font-size:11px;margin-bottom:10px">'+boxes+'</div>'+
   '<div class="'+(kind==='monthly'?'m':(kind==='yearly'?'y':'pl'))+'-detail">'+detH+'</div>'+
   '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="recEditClose()">Cancel</button><button class="btn btn-primary" onclick="recEditSave(\''+kind+'\','+i+')"><i class="fa-solid fa-check"></i> Save</button></div>'+
@@ -398,12 +399,12 @@ function recEditOpen(kind,i){
 }
 function recEditClose(){var ov=document.getElementById('rec-edit-ov');if(ov)ov.remove();}
 function recEditSave(kind,i){
- var ov=document.getElementById('rec-edit-ov');if(!ov)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:D.planned);
- var cb=ov.querySelector('input[type=checkbox]:not(.m-chk):not(.y-chk):not(.pl-chk)');if(cb&&arr[i])arr[i].auto_pay=cb.checked;
+ var ov=document.getElementById('rec-edit-ov');if(!ov)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:(kind==='inst'?D.installments:D.planned));
+ var cb=kind==='inst'?null:ov.querySelector('input[type=checkbox]:not(.m-chk):not(.y-chk):not(.pl-chk)');if(cb&&arr[i])arr[i].auto_pay=cb.checked;
  readAll();saveD();recEditClose();
- if(kind==='monthly'){renderMonthly();try{filterMonthly();}catch(e){}}else if(kind==='yearly'){renderYearly();try{filterYearly();}catch(e){}}else{try{simulate();}catch(e){}renderPlanned();try{filterPlanned();}catch(e){}}
+ if(kind==='monthly'){renderMonthly();try{filterMonthly();}catch(e){}}else if(kind==='yearly'){renderYearly();try{filterYearly();}catch(e){}}else if(kind==='inst'){try{if(typeof autoFinishInstallments==='function')autoFinishInstallments();}catch(e){}try{simulate();}catch(e){}renderInst();try{filterInst();}catch(e){}try{renderInstMonthly();}catch(e){}}else{try{simulate();}catch(e){}renderPlanned();try{filterPlanned();}catch(e){}}
  try{if(typeof renderBillReminder==='function')renderBillReminder();}catch(e){}try{if(typeof simulate==='function')simulate();}catch(e){}
- var r=document.querySelector('#'+kind+'-body tr[data-'+(kind==='monthly'?'mrow':(kind==='yearly'?'yrow':'plrow'))+'="'+i+'"]');if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}
+ var r=document.querySelector('#'+kind+'-body tr[data-'+(kind==='monthly'?'mrow':(kind==='yearly'?'yrow':(kind==='inst'?'idx':'plrow')))+'="'+i+'"]');if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}
  if(typeof toast==='function')toast('\u2705 Saved');
 }
 window.recEditOpen=recEditOpen;window.recEditClose=recEditClose;window.recEditSave=recEditSave;
@@ -747,8 +748,8 @@ rows+='<tr data-idx="'+inst._oi+'" style="'+opac+'"><td style="width:24px"><inpu
 '<td><input type="date" class="inp" value="'+(inst.hide_before||'')+'" title="Hide periods before this date (Timeline & Bills Reminder)" style="width:115px;padding:2px 4px;font-size:10px" data-ii="'+inst._oi+'" data-f="hide_before"></td>'+
 '<td><select class="sel" data-ii="'+inst._oi+'" data-f="status">'+STATUSES.map(function(s){return '<option'+(st===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select></td>'+
 '<td>'+srcTag+'</td>'+
-'<td><button class="del-btn" onclick="if(confirm(\'Delete?\')){{readAll();D.installments.splice('+inst._oi+',1);renderInst()}}"><i class="fa-solid fa-trash"></i></button></td></tr>'}});
-document.getElementById('inst-body').innerHTML=rows;
+'<td><button class="del-btn" onclick="if(confirm(\'Delete this item?\')){{readAll();D.installments.splice('+inst._oi+',1);renderInst()}}"><i class="fa-solid fa-trash"></i></button></td></tr>'}});
+document.getElementById('inst-body').innerHTML=rows;_recRO('inst');
 populateInstDropdown()}
 
 var instSortState={col:null,asc:true};

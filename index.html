@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-30 21:35";
+window.APP_VERSION="2026-10-31 12:15";
 // v-popdrag: a text-select drag that starts INSIDE a popup and ends on the dark backdrop fires a 'click' on the backdrop -> popup closed. Only close when the press also started on the backdrop.
 (function(){var md=null;document.addEventListener('mousedown',function(e){md=e.target;},true);document.addEventListener('click',function(e){var t=e.target;if(md&&md!==t&&t&&t.contains&&t.contains(md)){try{if(getComputedStyle(t).position==='fixed'){e.stopImmediatePropagation();e.stopPropagation();}}catch(_){}}},true);})();
 window.addEventListener("error",function(e){
@@ -270,6 +270,7 @@ html.dark .inp,html.dark .sel,html.dark select,html.dark textarea,html.dark inpu
 html.dark input::placeholder,html.dark textarea::placeholder{color:#8b90a0;-webkit-text-fill-color:#8b90a0}
 html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </style>
+<style id="tl-today-css">.day-row.day-today{background:rgba(59,130,246,.10)!important;box-shadow:inset 3px 0 0 var(--primary)}.day-row.day-today .day-date{color:var(--primary)!important;font-weight:700}.day-row.day-today .day-date::after{content:" \25cf Today";font-size:9px;display:block}</style>
 </head>
 <body>
 <nav class="nav">
@@ -291,6 +292,8 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <button class="nav-tab" data-tab="todos" title="To-Do"><i class="fa-solid fa-list-check"></i><span>To-Do</span></button>
 <button class="nav-tab" data-tab="wishlist" title="Wishlist"><i class="fa-solid fa-star"></i><span>Wishlist</span></button>
 <div class="nav-group">Wealth &amp; Future</div>
+<button class="nav-tab" data-tab="accounts" title="Accounts &amp; Wealth"><i class="fa-solid fa-sack-dollar"></i><span>Accounts &amp; Wealth</span></button>
+<div class="nav-subwrap" data-parent="accounts"><button class="nav-sub" data-tab="accounts" data-sub="acctlist"><span>Accounts</span></button><button class="nav-sub" data-tab="accounts" data-sub="acctbal"><span>Balances</span></button><button class="nav-sub" data-tab="accounts" data-sub="acctfx"><span>FX Rates</span></button></div>
 <button class="nav-tab" data-tab="assets" title="Assets"><i class="fa-solid fa-piggy-bank"></i><span>Assets</span></button>
 <button class="nav-tab" data-tab="retirement" title="Retirement"><i class="fa-solid fa-umbrella-beach"></i><span>Retirement</span></button>
 <div class="nav-subwrap" data-parent="retirement"><button class="nav-sub" data-tab="retirement" data-sub="setup"><span>Scenario Setup</span></button><button class="nav-sub" data-tab="retirement" data-sub="assets"><span>Pension & Funds</span></button><button class="nav-sub" data-tab="retirement" data-sub="calc"><span>Severance Calculator</span></button><button class="nav-sub" data-tab="retirement" data-sub="summary"><span>Summary</span></button></div>
@@ -335,6 +338,14 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <div id="cc-ccdata" class="sub-panel"><div class="card"><p class="muted" style="font-size:10px;margin:0 0 6px">ข้อมูลดิบจากหลังบ้าน (window.CARD_BILLS + D.cards) read-only</p><div id="carddata-content"></div></div></div>
 </div>
 
+<!-- ===== ACCOUNTS & WEALTH ===== -->
+<div id="tab-accounts" class="tab-content">
+<div class="sub-tabs"><span class="sub-tab active" onclick="swAcct(this,'list')">Accounts</span><span class="sub-tab" onclick="swAcct(this,'bal')">Balances</span><span class="sub-tab" onclick="swAcct(this,'fx')">FX Rates</span></div>
+<div id="acct-list" class="sub-panel active"><div id="setup-accounts-host"></div></div>
+<div id="acct-bal" class="sub-panel"><div id="an-balances-body"></div></div>
+<div id="acct-fx" class="sub-panel"><div id="setup-fx-body"></div></div>
+</div>
+
 <!-- ===== ANALYSIS ===== -->
 <div id="tab-analysis" class="tab-content">
 <div id="analysis-period" style="margin-bottom:10px"></div>
@@ -359,7 +370,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <div class="card"><h2><i class="fa-solid fa-user"></i> Profile &amp; Income</h2><div class="form-grid">
 <div class="form-group"><label>Profile Name</label><input type="text" class="inp" id="f-name" placeholder="Your name"></div>
 <div class="form-group"><label>Date of Birth</label><input type="date" class="inp" id="f-dob"></div>
-<div class="form-group"><label>Starting Cash</label><input type="text" class="inp inp-num" id="f-cash"></div>
+<div class="form-group"><label>Starting Cash</label><input type="text" class="inp inp-num" id="f-cash"><div style="font-size:9px;color:var(--text3);margin-top:2px">Overridden by the total Actual Balance in Bank &amp; Account when entered</div></div>
 <div class="form-group"><label>"Due soon" lead time (days)</label><input type="number" min="1" max="60" class="inp" id="f-due-soon" placeholder="7" title="Bills within this many days show as 'Due soon' in Bills Reminder" onchange="var v=parseInt(this.value);if(v>0){D.due_soon_days=v;saveD();if(typeof renderBillReminder==='function')try{renderBillReminder()}catch(e){}if(typeof renderDashBills==='function')try{renderDashBills()}catch(e){}}"></div>
 </div></div>
 <div class="card"><h2><i class="fa-solid fa-tags"></i> Transaction Types</h2><div class="types-list" id="types-list"></div></div>
@@ -384,7 +395,6 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <div id="setup-holiday" class="sub-panel"><div class="card"><h2>🎌 Holidays (วันหยุดประจำปี)</h2><div id="holiday-body"></div></div></div>
 <div id="setup-bank" class="sub-panel">
 <div class="card" style="margin-bottom:10px"><h2><i class="fa-solid fa-building-columns"></i> Banks</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">Bank issuers — ใช้ใน Credit Cards &rarr; Card Details และเป็นตัวเลือกธนาคารของบัญชีด้านล่าง</p><div class="types-list" id="banks-list"></div></div>
-<div id="setup-accounts-host"></div>
 <div class="card"><h2><i class="fa-solid fa-tags"></i> Plan Categories</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">หมวดหมู่สำหรับรายการใน Monthly Planning (Payroll &amp; Tax &rarr; Monthly Planning)</p><div class="types-list" id="plancats-list"></div></div>
 <div class="card"><h2><i class="fa-solid fa-layer-group"></i> ชนิดบัญชี (Account Types)</h2><p class="text-muted" style="font-size:10px;margin-bottom:6px">ชนิดของบัญชี — ใช้ใน dropdown ของตารางบัญชีด้านบน (เพิ่ม/ลบ/เปลี่ยนชื่อได้)</p><div class="types-list" id="accttypes-list"></div></div>
 </div>
@@ -407,14 +417,14 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </div></div>
 <div class="card"><h2><i class="fa-solid fa-pen-to-square"></i> Payroll Setup</h2>
 <p class="text-muted mb-3" style="font-size:10px">Define your income and deduction components. Net pay is calculated automatically.</p>
-<h3 style="font-size:12px;color:var(--success);margin:10px 0 8px;padding:6px 10px;background:var(--success-bg);border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:5px"><i class="fa-solid fa-arrow-up"></i> Income Components</h3>
+<div style="display:flex;align-items:center;gap:8px;margin:10px 0 8px"><h3 style="font-size:12px;color:var(--success);margin:0;padding:6px 10px;background:var(--success-bg);border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:5px"><i class="fa-solid fa-arrow-up"></i> Income Components</h3><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px;white-space:nowrap" onclick="addPayItem('income')"><i class="fa-solid fa-plus"></i> Add Income</button></div>
 <table class="tbl"><thead><tr><th style="cursor:pointer" onclick="readAll();sortPayroll('name')">Component</th><th class="r" style="cursor:pointer" onclick="readAll();sortPayroll('amount')">Amount</th><th>Calc Mode</th><th>Frequency</th><th>Month</th><th style="text-align:center;font-size:8px">EPF</th><th style="text-align:center;font-size:8px">SSO</th><th style="text-align:center;font-size:8px">Tax</th><th></th></tr></thead><tbody id="pay-income-body"></tbody></table>
-<div class="add-row" onclick="addPayItem('income')"><i class="fa-solid fa-plus"></i> Add Income</div>
-<h3 style="font-size:12px;color:var(--error);margin:18px 0 8px;padding:6px 10px;background:var(--error-bg);border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:5px"><i class="fa-solid fa-arrow-down"></i> Deductions</h3>
+
+<div style="display:flex;align-items:center;gap:8px;margin:18px 0 8px"><h3 style="font-size:12px;color:var(--error);margin:0;padding:6px 10px;background:var(--error-bg);border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:5px"><i class="fa-solid fa-arrow-down"></i> Deductions</h3><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px;white-space:nowrap" onclick="addPayItem('deduction')"><i class="fa-solid fa-plus"></i> Add Deduction</button></div>
 <table class="tbl"><thead><tr><th style="cursor:pointer" onclick="readAll();sortPayroll('name')">Component</th><th class="r" style="cursor:pointer" onclick="readAll();sortPayroll('amount')">Amount</th><th>Calc Mode</th><th>Frequency</th><th>Month</th><th style="text-align:center;font-size:8px">EPF</th><th style="text-align:center;font-size:8px">SSO</th><th style="text-align:center;font-size:8px">Tax</th><th></th></tr></thead><tbody id="pay-deduct-body"></tbody></table>
-<div class="add-row" onclick="addPayItem('deduction')"><i class="fa-solid fa-plus"></i> Add Deduction</div>
+
 </div>
-<button class="btn btn-primary" onclick="saveAll()" style="margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+
 </div>
 <div id="pt-monthly-earn" class="sub-panel">
 <div id="earnings-year-selector" style="margin-bottom:10px"></div>
@@ -434,11 +444,11 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <div id="tax-recommendation"></div>
 </div></div>
 <div id="pt-tax-exempt" class="sub-panel">
-<div class="card"><h2><i class="fa-solid fa-shield-halved"></i> Tax Exemptions &amp; Deductions</h2>
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-shield-halved"></i> Tax Exemptions &amp; Deductions</h2><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px;white-space:nowrap" onclick="exAddOpen()"><i class="fa-solid fa-plus"></i> Add Exemption</button></div>
 <p class="text-muted mb-3" style="font-size:10px">Configure your tax deductions. These reduce your taxable income.</p>
 <table class="tbl"><thead><tr><th>Deduction</th><th class="r">Amount (&#x0E3F;)</th><th class="r">Max</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="tax-exempt-body"></tbody></table>
 <div id="tax-exempt-add-area"></div>
-<button class="btn btn-primary" onclick="saveAll()" style="margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+
 </div></div>
 <div id="pt-monthly-plan" class="sub-panel"></div>
 </div>
@@ -488,7 +498,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </div>
 </div>
 <div class="flex gap-2 flex-wrap" style="margin-top:6px">
-<button class="btn btn-primary" onclick="saveAll()"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="exportTrxExcel('recurring')"><i class="fa-solid fa-file-excel"></i> Export Recurring (Excel)</button>
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-recurring').click()"><i class="fa-solid fa-file-import"></i> Import Recurring</button>
 <input type="file" id="imp-recurring" accept=".xlsx,.xls" style="display:none" onchange="importTrxExcel('recurring',event)">
@@ -507,7 +517,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 
 <!-- SUB: Installments -->
 <div id="bp-installments" class="sub-panel">
-<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-calendar-check"></i> Installments</h2><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addInst()"><i class="fa-solid fa-plus"></i> Add Manual</button></div>
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-calendar-check"></i> Installments</h2><span style="flex:1"></span><button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="addInst()"><i class="fa-solid fa-plus"></i> Add Installment</button></div>
 <div class="filterbar flex gap-2 flex-wrap mb-3">
 <select class="sel" id="flt-i-type" onchange="filterInst()"><option value="">All Types</option></select>
 <select class="sel" id="flt-i-card" onchange="filterInst()"><option value="">All Cards</option></select>
@@ -527,7 +537,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-inst').click()"><i class="fa-solid fa-file-import"></i> Import Excel</button>
 <input type="file" id="imp-inst" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrxExcel('installments',event)">
 </div></div>
-<button class="btn btn-primary" onclick="saveAll()" style="margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+
 <!-- Installments Summary -->
 <div class="card" style="margin-top:10px"><h2><i class="fa-solid fa-chart-pie"></i> Installments Summary</h2><div class="kpi-grid" id="inst-kpis"></div><div id="inst-summary-groups"></div></div>
 <!-- Monthly Payment Schedule -->
@@ -568,7 +578,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <button class="btn btn-ghost" style="font-size:9px;padding:3px 8px" onclick="document.getElementById('imp-planned').click()"><i class="fa-solid fa-file-import"></i> Import Excel</button>
 <input type="file" id="imp-planned" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrxExcel('planned',event)">
 </div>
-<button class="btn btn-primary" onclick="saveAll()" style="margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Simulate</button>
+
 </div></div><!-- /bp-planned -->
 <!-- SUB: Card Bills -->
 <div id="bp-cardbills" class="sub-panel">
@@ -672,7 +682,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </div><!-- /.main -->
 
 <script>try{window.__cmBootLM=(JSON.parse(localStorage.getItem('cashflow_v5')||'null')||{}).last_modified||'';}catch(e){window.__cmBootLM='';}</script>
-<script src="js/data.js?v=320"></script>
+<script src="js/data.js?v=321"></script>
 <script src="js/unified.js?v=8"></script>
 <script src="js/unified-adapter.js?v=18"></script>
 <script>window.CM_USE_UNIFIED=true;/* Step 2: Bill Reminder/Timeline/Calendar read the unified generator via billOccurrencesUnified. Set false to A/B against legacy. */</script>
@@ -680,26 +690,27 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/config-sheet.js" onerror="window.CM_SHEET_CFG=null"></script>
 <script src="js/sheet-sync.js?v=11"></script>
 </script>
-<script src="js/simulation.js?v=289"></script>
+<script src="js/simulation.js?v=290"></script>
 
-<script src="js/ui-setup.js?v=259"></script>
-<script src="js/ui-holidays.js?v=2"></script>
+<script src="js/ui-setup.js?v=262"></script>
+<script src="js/ui-holidays.js?v=5"></script>
+<script src="js/ui-balances.js?v=4"></script>
 
-<script src="js/ui-payroll.js?v=255"></script>
-<script src="js/ui-monthlyplan.js?v=14"></script>
-<script src="js/ui-bills.js?v=353"></script>
-<script src="js/ui-creditcards.js?v=315"></script>
+<script src="js/ui-payroll.js?v=258"></script>
+<script src="js/ui-monthlyplan.js?v=16"></script>
+<script src="js/ui-bills.js?v=354"></script>
+<script src="js/ui-creditcards.js?v=317"></script>
 
-<script src="js/ui-timeline.js?v=255"></script>
-<script src="js/ui-dashboard.js?v=313"></script>
+<script src="js/ui-timeline.js?v=256"></script>
+<script src="js/ui-dashboard.js?v=314"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>
-<script src="js/ui-retirement.js?v=254"></script>
+<script src="js/ui-retirement.js?v=257"></script>
 
-<script src="js/ui-billreminder.js?v=349"></script>
-<script src="js/ui-todos.js?v=317"></script>
-<script src="js/ui-wishlist.js?v=255"></script>
+<script src="js/ui-billreminder.js?v=350"></script>
+<script src="js/ui-todos.js?v=319"></script>
+<script src="js/ui-wishlist.js?v=257"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
      still see window.UTILITY_DATA) — otherwise the browser serves a stale cached copy and new
@@ -715,7 +726,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-cardtxns.js?v=2"></script>
 <script src="js/ui-cardsummary.js?v=17"></script>
 <script src="js/drive-view.js?v=2"></script>
-<script src="js/app.js?v=295"></script>
+<script src="js/app.js?v=297"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
 <script src="../WRHub/shared/table-fit.js?v=3" onerror="var s=document.createElement('script');s.src='js/table-fit.js?v=3';document.body.appendChild(s);"></script>
 <script src="js/table-search.js?v=2"></script>

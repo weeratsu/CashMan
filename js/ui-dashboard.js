@@ -26,7 +26,7 @@ try{applyDashLayout()}catch(e){console.warn('applyDashLayout:',e);}
 try{renderPeriodBanner('dash-period','Dashboard');}catch(e){console.warn('period banner:',e);}
 if(typeof Highcharts==='undefined'){var _cb=document.getElementById('chart-balance'),_cm=document.getElementById('chart-monthly');if(_cb)_cb.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px">Charts need an internet connection (Highcharts) — reconnect and refresh.</div>';if(_cm)_cm.innerHTML='';}
 document.getElementById('kpi-area').innerHTML=
-'<div class="kpi"><div class="kpi-label">Starting</div><div class="kpi-val">฿'+fmt(D.profile.starting_cash)+'</div></div>'+
+'<div class="kpi"><div class="kpi-label">Starting'+((typeof cmActualCash==='function'&&cmActualCash()!==null)?' <span style="font-size:9px;font-weight:400">(actual)</span>':'')+'</div><div class="kpi-val">฿'+fmt(typeof cmStartCash==='function'?cmStartCash():D.profile.starting_cash)+'</div></div>'+
 '<div class="kpi"><div class="kpi-label">Ending</div><div class="kpi-val text-success">฿'+fmt(R.finalB)+'</div></div>'+
 '<div class="kpi"><div class="kpi-label">Income</div><div class="kpi-val text-success">฿'+fmt(R.totI)+'</div></div>'+
 '<div class="kpi"><div class="kpi-label">Expenses</div><div class="kpi-val text-error">฿'+fmt(R.totE)+'</div></div>'+

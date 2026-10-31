@@ -313,7 +313,7 @@ if(_extra>0&&!_hasPdf){addE(_dlDate,'\u2795','Extra spend (keyed in)',-_extra,_g
 addE(_dlDate,'\ud83d\udcb3',_simCardName(_g.card)+' statement',-_eff,_g.card,'Card Payment','card_statement',(_hasPdf?('\ud83d\udcc4 from statement'+(_g.count>0?(' \u00b7 '+_g.count+' charge'+(_g.count!==1?'s':'')):'')):(_g.count+' charge'+(_g.count!==1?'s':'')+(_extra>0?' \u00b7 +extra':''))))}
 })}
 // Run
-var bal=p.starting_cash,minB=bal,minDt=new Date(sd),cData=[],mAgg={},dLog=[];var prevMK=null;var cur2=new Date(sd);
+var bal=(typeof cmStartCash==='function'?cmStartCash():p.starting_cash),minB=bal,minDt=new Date(sd),cData=[],mAgg={},dLog=[];var prevMK=null;var cur2=new Date(sd);
 while(cur2<=ed){var mk=cur2.getFullYear()+'-'+(cur2.getMonth()<10?'0':'')+cur2.getMonth();
 if(mk!==prevMK){mAgg[mk]={income:0,expense:0,start:bal,end:0,y:cur2.getFullYear(),m:cur2.getMonth(),byType:{},byCard:{}};prevMK=mk}
 var k2=dk(cur2);var dE=events[k2]||[];
