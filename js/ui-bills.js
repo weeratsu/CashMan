@@ -1111,7 +1111,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
 ov.style.display='flex';
 setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var pd=document.getElementById('pa-date');if(pd)pd.value=prefillISO;}var e=document.getElementById('pa-name');if(e)e.focus();},30);
 }
-function plAddClose(){var ov=document.getElementById('pl-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+function plAddClose(){var _k=window._cmFromCal;window._cmFromCal=false;var ov=document.getElementById('pl-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
 function plAddSave(){
 var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
 var err=function(m,f){var e=document.getElementById('pa-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&fe.focus)fe.focus();};
@@ -1122,8 +1122,10 @@ var ae=document.getElementById('pa-auto');
 D.planned.push({name:name,type:g('pa-type')||D.types[0]||'Other',amount:amt,date:date,card:g('pa-card')||'Cash/Direct',account:g('pa-acct'),
  direction:g('pa-dir')||'expense',own_by:g('pa-own')||'me',notes:g('pa-notes'),auto_pay:!!(ae&&ae.checked)});
 _plNewIdx=D.planned.length-1;
+var _fc=!!window._cmFromCal;
 saveD();plAddClose();
 simulate();renderAllTabs();
+if(_fc&&typeof window._dashCalAfterSave==='function'){window._dashCalAfterSave();if(typeof toast==='function')toast('\u2705 Planned item added');return;}
 try{filterPlanned();}catch(e){}
 var r=document.querySelector('#planned-body tr.pl-main[data-plrow="'+_plNewIdx+'"]');
 if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}

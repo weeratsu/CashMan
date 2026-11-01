@@ -9,7 +9,7 @@ var _todoFilter='open';   // open | done | all
 var _todoCatFilter='';
 var _todoSearch='';   // Oct 9 2026: keyword search (title, note, category, link) - combines with status + category filters
 function _todoNorm(x){ return String(x==null?'':x).toLowerCase(); }
-function _todoMatch(t,q){ if(!q) return true; var hay=_todoNorm([t.title,t.note,t.category,t.link].join(' '));
+function _todoMatch(t,q){ if(!q) return true; var hay=_todoNorm([t.title,t.note,t.category,t.link,t.url].join(' '));
  return q.split(/\s+/).filter(Boolean).every(function(w){ return hay.indexOf(w)>=0; }); }
 var _todoSearchT=null;
 function setTodoSearch(v){ _todoSearch=_todoNorm(v).trim(); clearTimeout(_todoSearchT);
@@ -42,6 +42,11 @@ function setTodoSortMode(mode){_todoFrozen=null;_todoTouched={};_todoSort=mode;_
 function _todoId(){return 't'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
 
 /* Add task opens a popup form; the task is added to the list only on Save (nothing jumps while typing). */
+
+// v320 (Nov 1 2026): URL field + clickable links (To-Do rows, calendar popup)
+function todoLinkify(s){var e=esc(String(s||''));return e.replace(/(https?:\/\/[^\s<]+)/g,function(u){return '<a href="'+u+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--primary);word-break:break-all">'+u+'</a>';});}
+function todoUrlA(u){if(!u)return '';var h=/^https?:\/\//i.test(u)?u:'https://'+u;return '<a href="'+esc(h)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--primary);word-break:break-all;font-size:10px"><i class="fa-solid fa-link"></i> '+esc(u.replace(/^https?:\/\//i,'').slice(0,60))+(u.length>68?'\u2026':'')+'</a>';}
+window.todoLinkify=todoLinkify;window.todoUrlA=todoUrlA;
 function addTodo(prefillISO){
 readAll();
 var cats=(D.todo_cats||['Other']).slice().sort(function(a,b){return a.localeCompare(b);});
@@ -56,6 +61,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +'<div style="display:grid;gap:10px">'
  +row('Task *','<input id="ta-title" class="inp" placeholder="What needs doing?" style="width:100%">')
  +row('Note','<input id="ta-note" class="inp" placeholder="note / idea" style="width:100%">')
+ +row('Link (URL)','<input id="ta-url" class="inp" type="url" placeholder="https://…" style="width:100%">')
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
  +row('Category','<select id="ta-cat" class="sel">'+cats.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</select>')
  +row('Priority','<select id="ta-pri" class="sel"><option value="1">\ud83d\udd34 High</option><option value="2" selected>\ud83d\udfe1 Normal</option><option value="3">\ud83d\udfe3 Low</option></select>')
@@ -75,7 +81,7 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
 ov.style.display='flex';
 setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var dm=document.getElementById('ta-mode');var dd=document.getElementById('ta-date');var dw=document.getElementById('ta-datewrap');if(dm)dm.value='date';if(dw)dw.style.visibility='visible';if(dd)dd.value=prefillISO;}var e=document.getElementById('ta-title');if(e)e.focus();},30);
 }
-function todoAddClose(){var ov=document.getElementById('todo-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+function todoAddClose(){window._cmFromCal=false;var ov=document.getElementById('todo-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
 function todoAddSave(){
 var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
 var title=g('ta-title');
@@ -84,14 +90,16 @@ var mode=g('ta-mode')||'none', due=g('ta-date');
 if(mode==='date'&&!due){var er2=document.getElementById('ta-err');if(er2)er2.textContent='Pick a date (or set Deadline to None/ASAP)';return;}
 var recur=g('ta-recur')||'none';
 var d0=due?new Date(due+'T00:00:00'):new Date();
-var t={id:_todoId(),title:title,note:g('ta-note'),
+var t={id:_todoId(),title:title,note:g('ta-note'),url:g('ta-url'),
  deadline_mode:mode,due_date:mode==='date'?due:'',due_time:g('ta-time'),deadline_date:(mode==='date'&&g('ta-dl')&&g('ta-dl')>due)?g('ta-dl'):'',
  recur:recur,recur_every:1,recur_dow:d0.getDay(),recur_dom:d0.getDate(),recur_month:d0.getMonth()+1,recur_until:'',
  category:g('ta-cat')||((D.todo_cats&&D.todo_cats[0])||'Other'),priority:parseInt(g('ta-pri'))||2,
  done:false,done_date:'',link_type:'',link_ref:''};
 D.todos.push(t);
+var _fc=!!window._cmFromCal;
 saveD();
 todoAddClose();
+if(_fc&&typeof window._dashCalAfterSave==='function'){try{renderTodos();}catch(e){}window._dashCalAfterSave();if(typeof toast==='function')toast('\u2705 Task added');return;}
 // keep current order; just highlight the new row so it's easy to find
 _todoFreeze();_todoTouched[t.id]=true;
 renderTodos();
@@ -731,9 +739,10 @@ function _todoRO(){try{
    if(hid)return;
    var txt=el.tagName==='SELECT'?((el.options[el.selectedIndex]||{}).text||''):(el.value||'');
    if(el.type==='date'&&txt&&typeof fmtDate==='function')txt=fmtDate(txt);
-   var sp=document.createElement('div');sp.textContent=txt;sp.style.cssText=(el.getAttribute('style')||'')+';border:0;background:none;padding:2px 0;min-height:0';
+   var sp=document.createElement('div');sp.textContent=txt;if(el.getAttribute('data-tf')==='note'&&/https?:\/\//.test(txt)){sp.innerHTML=todoLinkify(txt);}sp.style.cssText=(el.getAttribute('style')||'')+';border:0;background:none;padding:2px 0;min-height:0';
    if(!txt){if(el.getAttribute('data-tf')==='note'){el.parentNode.removeChild(el);return;}sp.textContent='\u2014';}
    el.parentNode.replaceChild(sp,el);});});
+  try{var _tt=(D.todos||[]).find(function(x){return x.id===id;});if(_tt&&_tt.url){var _c=r1.querySelector('td:first-child')||r1.cells[0];var _tc=r1.cells&&r1.cells.length>1?r1.cells[0]:_c;var _hold=null;r1.querySelectorAll('td').forEach(function(td){if(!_hold&&(td.textContent||'').indexOf(_tt.title||'\u0000')>=0)_hold=td;});(_hold||_tc).insertAdjacentHTML('beforeend','<div style="margin-top:2px">'+todoUrlA(_tt.url)+'</div>');}}catch(_e){}
   var del=r1.querySelector('button.del-btn');if(del)del.insertAdjacentHTML('beforebegin','<button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-bottom:4px" title="Edit" onclick="todoEditOpen(\''+id+'\')"><i class="fa-solid fa-pen"></i></button><br>');
  });}catch(e){console.error('_todoRO',e);}}
 function todoEditOpen(id){
@@ -741,7 +750,7 @@ function todoEditOpen(id){
  addTodo();var ov=document.getElementById('todo-add-ov');if(!ov)return;
  var $=function(k){return document.getElementById(k);};
  var h3=ov.querySelector('h3');if(h3)h3.innerHTML='<i class="fa-solid fa-pen"></i> Edit task';
- $('ta-title').value=t.title||'';$('ta-note').value=t.note||'';
+ $('ta-title').value=t.title||'';$('ta-note').value=t.note||'';if($('ta-url'))$('ta-url').value=t.url||'';
  if($('ta-cat')){var cs=$('ta-cat');if(t.category&&!cs.querySelector('option[value="'+t.category+'"]')&&Array.prototype.every.call(cs.options,function(o){return o.text!==t.category;}))cs.insertAdjacentHTML('beforeend','<option>'+esc(t.category)+'</option>');cs.value=t.category||'';}
  $('ta-pri').value=String(t.priority||2);$('ta-mode').value=t.deadline_mode||'none';
  $('ta-datewrap').style.visibility=(t.deadline_mode==='date')?'visible':'hidden';$('ta-date').value=t.due_date||'';
@@ -763,7 +772,7 @@ function todoEditSave(id){
  var title=g('ta-title');if(!title){var er=document.getElementById('ta-err');if(er)er.textContent='Please enter a task name';return;}
  var mode=g('ta-mode')||'none',due=g('ta-date');
  if(mode==='date'&&!due){var er2=document.getElementById('ta-err');if(er2)er2.textContent='Pick a date (or set Due to None/ASAP)';return;}
- t.title=title;t.note=g('ta-note');t.category=g('ta-cat')||t.category;t.priority=parseInt(g('ta-pri'))||2;
+ t.title=title;t.note=g('ta-note');t.url=g('ta-url');t.category=g('ta-cat')||t.category;t.priority=parseInt(g('ta-pri'))||2;
  t.deadline_mode=mode;t.due_date=mode==='date'?due:'';t.due_time=g('ta-time');
  var dl=g('ta-dl');t.deadline_date=(mode==='date'&&dl&&dl>due)?dl:'';
  var rc=g('ta-recur')||'none';if(rc!==t.recur){t.recur=rc;if(rc!=='none'&&t.due_date){var d0=new Date(t.due_date+'T00:00:00');t.recur_dow=d0.getDay();t.recur_dom=d0.getDate();t.recur_month=d0.getMonth()+1;}}

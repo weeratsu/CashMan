@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-10-31 20:50";
+window.APP_VERSION="2026-11-01 10:30";
 // v-popdrag: a text-select drag that starts INSIDE a popup and ends on the dark backdrop fires a 'click' on the backdrop -> popup closed. Only close when the press also started on the backdrop.
 (function(){var md=null;document.addEventListener('mousedown',function(e){md=e.target;},true);document.addEventListener('click',function(e){var t=e.target;if(md&&md!==t&&t&&t.contains&&t.contains(md)){try{if(getComputedStyle(t).position==='fixed'){e.stopImmediatePropagation();e.stopPropagation();}}catch(_){}}},true);})();
 window.addEventListener("error",function(e){
@@ -699,18 +699,18 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 
 <script src="js/ui-payroll.js?v=258"></script>
 <script src="js/ui-monthlyplan.js?v=16"></script>
-<script src="js/ui-bills.js?v=354"></script>
+<script src="js/ui-bills.js?v=355"></script>
 <script src="js/ui-creditcards.js?v=317"></script>
 
 <script src="js/ui-timeline.js?v=256"></script>
-<script src="js/ui-dashboard.js?v=314"></script>
+<script src="js/ui-dashboard.js?v=316"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>
 <script src="js/ui-retirement.js?v=257"></script>
 
 <script src="js/ui-billreminder.js?v=350"></script>
-<script src="js/ui-todos.js?v=319"></script>
+<script src="js/ui-todos.js?v=321"></script>
 <script src="js/ui-wishlist.js?v=257"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
