@@ -244,7 +244,20 @@ renderDashCalendar();}
 function dashCalToggleAuto(cb){_dashCalShowAuto=!!cb.checked;renderDashCalendar();}
 function dashCalToggleBills(cb){_dashCalShowBills=!!cb.checked;renderDashCalendar();}
 function dashCalToggleTasks(cb){_dashCalShowTasks=!!cb.checked;renderDashCalendar();}
-function renderDashCalendar(){
+
+// Nov 1 2026: Calendar item style — Setup option. A=plain text (default), B=full pill, C=soft chip.
+function calStyle(){try{return localStorage.getItem('cm_cal_style')||'A';}catch(e){return 'A';}}
+function setCalStyle(v){try{localStorage.setItem('cm_cal_style',v);}catch(e){}_calApplyStyle();try{renderDashCalendar();}catch(e){}}
+function _calApplyStyle(){var s=document.getElementById('cm-calstyle-css');if(!s){s=document.createElement('style');s.id='cm-calstyle-css';document.head.appendChild(s);}
+ var v=calStyle(),b='#dash-calendar .cl-it';
+ if(v==='B')s.textContent=b+'{display:block;border-radius:999px;padding:1px 7px!important;margin:0 0 2px;line-height:1.5!important;background:var(--bg3);border:1px solid transparent}'+
+  b+'.cl-task{background:rgba(59,130,246,.12)}'+b+'.cl-inc{background:rgba(16,185,129,.14)}'+b+'.cl-stm{background:rgba(147,51,234,.12)}'+b+'.cl-ovd{background:rgba(239,68,68,.12)}'+b+'.cl-auto{background:var(--bg3)}'+b+'.cl-dl{background:rgba(217,119,6,.13)}'+b+'.cl-done{background:transparent;border-color:var(--border)}';
+ else if(v==='C')s.textContent=b+'{display:block;border-radius:4px;padding:1px 5px!important;margin:0 0 2px;line-height:1.5!important;background:var(--bg3);border-left:3px solid var(--border)}'+
+  b+'.cl-task{border-left-color:#3b82f6}'+b+'.cl-inc{border-left-color:#10b981}'+b+'.cl-stm{border-left-color:#9333ea}'+b+'.cl-ovd{border-left-color:#ef4444}'+b+'.cl-auto{border-left-color:#9ca3af}'+b+'.cl-dl{border-left-color:#d97706}'+b+'.cl-done{border-left-color:var(--border);background:transparent}';
+ else s.textContent='';}
+window.calStyle=calStyle;window.setCalStyle=setCalStyle;
+
+function renderDashCalendar(){_calApplyStyle();
 var el=document.getElementById('dash-calendar');if(!el)return;
 if(!D){el.innerHTML='';return;}
 var now=new Date();now.setHours(0,0,0,0);
@@ -322,7 +335,7 @@ function _calBar(seg,muted){
  if(isT&&!_dashCalShowDone&&done)return '';if(!isT&&!_dashCalShowPaid&&done)return '';
  var col=done?'var(--text3)':(seg.late?'var(--error)':'#d97706');
  var idx=isT?_dashCalCache.push({_isTask:true,task:it})-1:it._calIdx;
- return '<div onclick="event.stopPropagation();dashCalShow('+idx+')" title="\u23f0 Deadline: '+esc((isT?it.title:it.name)||'')+' (due '+seg.due+')" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(seg.late&&!done?';font-weight:700':'')+(done?';opacity:.45;text-decoration:line-through':'')+(muted?';opacity:.6':'')+'">\u23f0 '+esc((isT?it.title:it.name)||'')+'</div>';}
+ return '<div class="cl-it cl-dl'+(seg.late&&!done?' cl-ovd':'')+(done?' cl-done':'')+'" onclick="event.stopPropagation();dashCalShow('+idx+')" title="\u23f0 Deadline: '+esc((isT?it.title:it.name)||'')+' (due '+seg.due+')" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(seg.late&&!done?';font-weight:700':'')+(done?';opacity:.45;text-decoration:line-through':'')+(muted?';opacity:.6':'')+'">\u23f0 '+esc((isT?it.title:it.name)||'')+'</div>';}
 function _calCell(bills,tasks,muted,iso){
 var B=(bills||[]).filter(function(o){return !o._calRange;}),T=_calTaskSort((tasks||[]).filter(function(t){return !t._calRange;})),h1='',h2='';
 var bars=(iso&&window._calRanges&&window._calRanges[iso])||[];bars=bars.slice().sort(function(a,b){return a.order-b.order;});
@@ -346,7 +359,7 @@ var caret=isStmt?'<span style="color:var(--text3);font-size:8px">\u25b8</span> '
 var bic=(typeof _billIcon==='function')?_billIcon(o):'';
 var perLbl=(o.kind==='Installment'&&o.info)?' <span style="color:var(--text3);font-size:8px">'+esc(o.info)+'</span>':'';
 var stmtNote=o._surfaced?' <span style="color:var(--text3);font-size:8px" title="also included in the '+esc(o._inStmtCard||o.card||'')+' statement">\u21b3'+esc(o._inStmtCard||o.card||'')+'</span>':'';
-return '<div onclick="event.stopPropagation();dashCalShow('+o._calIdx+')" title="'+esc(o.name)+(o.kind==='Installment'&&o.info?' '+esc(o.info):'')+' \u00b7 '+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+(o._income?' (receivable)':(o.auto_pay?' (auto)':''))+(isStmt?' \u00b7 click for breakdown':' \u00b7 click for details')+'" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(muted?';opacity:.7':'')+_paidFade+'">'+caret+bic+' '+esc(o.name)+perLbl+stmtNote+auto+paidMark+' <span style="color:'+(o._income?'#10b981':'var(--text3)')+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+'</span></div>';
+return '<div onclick="event.stopPropagation();dashCalShow('+o._calIdx+')" title="'+esc(o.name)+(o.kind==='Installment'&&o.info?' '+esc(o.info):'')+' \u00b7 '+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+(o._income?' (receivable)':(o.auto_pay?' (auto)':''))+(isStmt?' \u00b7 click for breakdown':' \u00b7 click for details')+'" class="cl-it cl-bill'+(o._income?' cl-inc':'')+(_calIsPaidG&&_calIsPaidG(o)?' cl-done':'')+(isStmt?' cl-stm':'')+'" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(muted?';opacity:.7':'')+_paidFade+'">'+caret+bic+' '+esc(o.name)+perLbl+stmtNote+auto+paidMark+' <span style="color:'+(o._income?'#10b981':'var(--text3)')+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+'</span></div>';
 }
 // Tasks for the month (by due_date) — plus adjacent months for the faded edge cells.
 var taskByDay={},prevTaskByDay={},nextTaskByDay={};
@@ -424,7 +437,7 @@ var _fade=(muted&&!_ovd)?';opacity:.7':'';// overdue ignores the mute so it stay
 if(t.done)_fade=';opacity:.45;text-decoration:line-through';  // v291: completed tasks fade + strike so they drop focus
 var _wt=_ovd?';font-weight:700':'';
 var _mark=_ovd?'\u26a0\ufe0f ':(t.cancelled?'<i class="fa-solid fa-xmark" style="width:14px;text-align:center;color:var(--text3)"></i> ':(t.done?'<i class="fa-solid fa-check" style="width:14px;text-align:center;color:var(--text3)"></i> ':'<i class="fa-solid fa-list-check" style="width:14px;text-align:center"></i> '));
-return '<div onclick="event.stopPropagation();dashCalShow('+tidx+')" title="'+esc(t.title||'')+(t.category?' \u00b7 '+esc(t.category):'')+(_ovd?' \u00b7 OVERDUE':'')+(t.cancelled?' \u00b7 CANCELLED':'')+' \u00b7 click for details" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+_col+_fade+_wt+'">'+_mark+(t.due_time?'<b>['+esc(String(t.due_time).slice(0,5))+']</b> ':'')+esc(t.title||'')+'</div>';
+return '<div onclick="event.stopPropagation();dashCalShow('+tidx+')" title="'+esc(t.title||'')+(t.category?' \u00b7 '+esc(t.category):'')+(_ovd?' \u00b7 OVERDUE':'')+(t.cancelled?' \u00b7 CANCELLED':'')+' \u00b7 click for details" class="cl-it cl-task'+(t.done?' cl-done':'')+(_ovd?' cl-ovd':'')+'" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+_col+_fade+_wt+'">'+_mark+(t.due_time?'<b>['+esc(String(t.due_time).slice(0,5))+']</b> ':'')+esc(t.title||'')+'</div>';
 }
 // v307: collect due->deadline ranges (only when deadline > due) and split per day / per week.
 window._calRanges={};(function(){var ord=0;

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-11-01 10:30";
+window.APP_VERSION="2026-11-01 20:30";
 // v-popdrag: a text-select drag that starts INSIDE a popup and ends on the dark backdrop fires a 'click' on the backdrop -> popup closed. Only close when the press also started on the backdrop.
 (function(){var md=null;document.addEventListener('mousedown',function(e){md=e.target;},true);document.addEventListener('click',function(e){var t=e.target;if(md&&md!==t&&t&&t.contains&&t.contains(md)){try{if(getComputedStyle(t).position==='fixed'){e.stopImmediatePropagation();e.stopPropagation();}}catch(_){}}},true);})();
 window.addEventListener("error",function(e){
@@ -367,6 +367,14 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <div id="tab-setup" class="tab-content">
 <div class="sub-tabs"><span class="sub-tab active" onclick="swSetup(this,'profile')">Profile &amp; Settings</span><span class="sub-tab" onclick="swSetup(this,'bank')">Bank &amp; Account</span><span class="sub-tab" onclick="swSetup(this,'holiday')">Holidays</span></div>
 <div id="setup-profile" class="sub-panel active">
+<div class="card"><h2><i class="fa-solid fa-palette"></i> Calendar Style</h2><p class="text-muted" style="font-size:10px;margin-bottom:8px">How items look inside Dashboard calendar cells (saved in this browser)</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap" id="calstyle-opts">
+<label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="radio" name="calstyle" value="A" onchange="setCalStyle(this.value)"> <span><b>A · Plain</b><br><span style="font-size:9px;color:var(--text3)">text + icon (fits most)</span></span></label>
+<label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="radio" name="calstyle" value="B" onchange="setCalStyle(this.value)"> <span><b>B · Pill</b><br><span style="display:inline-block;font-size:9px;border-radius:999px;padding:0 6px;background:rgba(59,130,246,.12)">rounded bubble</span></span></label>
+<label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="radio" name="calstyle" value="C" onchange="setCalStyle(this.value)"> <span><b>C · Soft chip</b><br><span style="display:inline-block;font-size:9px;border-radius:3px;padding:0 5px;background:var(--bg3);border-left:3px solid #3b82f6">left color bar</span></span></label>
+</div></div>
+<script>setTimeout(function(){var v=(typeof calStyle==='function')?calStyle():'A';var r=document.querySelector('#calstyle-opts input[value="'+v+'"]');if(r)r.checked=true;},300);</script>
+
 <div class="card" style="border-color:var(--primary)"><h2><i class="fa-solid fa-cloud-arrow-up"></i> Backup &amp; Restore</h2><p class="text-muted" style="font-size:10px;margin-bottom:8px">Save all your data to a file, or load it on another device (e.g. move from computer to phone). Data lives in this browser only — export to move it.</p><div class="filterbar" style="margin-bottom:0"><button class="btn btn-primary" onclick="exportData()"><i class="fa-solid fa-download"></i> Export (JSON)</button><button class="btn btn-ghost" onclick="document.getElementById('imp').click()"><i class="fa-solid fa-upload"></i> Import (JSON)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="exportTrxExcel('all')"><i class="fa-solid fa-file-excel"></i> Export (Excel)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="document.getElementById('imp-all-xlsx').click()"><i class="fa-solid fa-file-excel"></i> Import (Excel)</button></div><p class="text-muted" style="font-size:9px;margin-top:6px;margin-bottom:0"><i class="fa-solid fa-circle-info"></i> Import replaces ALL current data with the file's contents.</p></div>
 <div class="card"><h2><i class="fa-solid fa-user"></i> Profile &amp; Income</h2><div class="form-grid">
 <div class="form-group"><label>Profile Name</label><input type="text" class="inp" id="f-name" placeholder="Your name"></div>
@@ -703,7 +711,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-creditcards.js?v=317"></script>
 
 <script src="js/ui-timeline.js?v=256"></script>
-<script src="js/ui-dashboard.js?v=316"></script>
+<script src="js/ui-dashboard.js?v=317"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>
