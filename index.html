@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-11-01 20:30";
+window.APP_VERSION="2026-11-01 20:50";
 // v-popdrag: a text-select drag that starts INSIDE a popup and ends on the dark backdrop fires a 'click' on the backdrop -> popup closed. Only close when the press also started on the backdrop.
 (function(){var md=null;document.addEventListener('mousedown',function(e){md=e.target;},true);document.addEventListener('click',function(e){var t=e.target;if(md&&md!==t&&t&&t.contains&&t.contains(md)){try{if(getComputedStyle(t).position==='fixed'){e.stopImmediatePropagation();e.stopPropagation();}}catch(_){}}},true);})();
 window.addEventListener("error",function(e){
@@ -701,7 +701,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </script>
 <script src="js/simulation.js?v=290"></script>
 
-<script src="js/ui-setup.js?v=270"></script>
+<script src="js/ui-setup.js?v=271"></script>
 <script src="js/ui-holidays.js?v=5"></script>
 <script src="js/ui-balances.js?v=12"></script>
 
@@ -711,7 +711,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-creditcards.js?v=317"></script>
 
 <script src="js/ui-timeline.js?v=256"></script>
-<script src="js/ui-dashboard.js?v=317"></script>
+<script src="js/ui-dashboard.js?v=318"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>

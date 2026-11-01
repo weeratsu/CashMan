@@ -358,7 +358,8 @@ var isStmt=(o.kind==='Card Statement'&&o.children&&o.children.length);
 var caret=isStmt?'<span style="color:var(--text3);font-size:8px">\u25b8</span> ':'';
 var bic=(typeof _billIcon==='function')?_billIcon(o):'';
 var perLbl=(o.kind==='Installment'&&o.info)?' <span style="color:var(--text3);font-size:8px">'+esc(o.info)+'</span>':'';
-var stmtNote=o._surfaced?' <span style="color:var(--text3);font-size:8px" title="also included in the '+esc(o._inStmtCard||o.card||'')+' statement">\u21b3'+esc(o._inStmtCard||o.card||'')+'</span>':'';
+var _scn=(function(r){r=r||'';try{return (typeof cardDisplayName==='function'?cardDisplayName(r):'')||r;}catch(e){return r;}})(o._inStmtCard||o.card);
+var stmtNote=o._surfaced?' <span style="color:var(--text3);font-size:8px" title="also included in the '+esc(_scn)+' statement">\u21b3'+esc(_scn)+'</span>':'';
 return '<div onclick="event.stopPropagation();dashCalShow('+o._calIdx+')" title="'+esc(o.name)+(o.kind==='Installment'&&o.info?' '+esc(o.info):'')+' \u00b7 '+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+(o._income?' (receivable)':(o.auto_pay?' (auto)':''))+(isStmt?' \u00b7 click for breakdown':' \u00b7 click for details')+'" class="cl-it cl-bill'+(o._income?' cl-inc':'')+(_calIsPaidG&&_calIsPaidG(o)?' cl-done':'')+(isStmt?' cl-stm':'')+'" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(muted?';opacity:.7':'')+_paidFade+'">'+caret+bic+' '+esc(o.name)+perLbl+stmtNote+auto+paidMark+' <span style="color:'+(o._income?'#10b981':'var(--text3)')+'">'+(o._income?'+':'')+'\u0e3f'+fmt(o.amount||0)+'</span></div>';
 }
 // Tasks for the month (by due_date) — plus adjacent months for the faded edge cells.
@@ -685,7 +686,7 @@ var extra=(o.amount||0)-kidSum;
 if(extra>0.005)body+='<tr><td style="padding:3px 0;color:var(--primary)">+ extra spend</td><td></td><td style="text-align:right;font-family:var(--mono);color:var(--primary)">\u0e3f'+fmt(extra)+'</td></tr>';
 body+='</tbody><tfoot><tr style="border-top:2px solid var(--border);font-weight:700"><td style="padding:5px 0">Total</td><td></td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(o.amount||0)+'</td></tr></tfoot>';
 body+='</table>';
-body+='<div style="font-size:10px;color:var(--text3);margin-top:6px">'+o.children.length+' charge'+(o.children.length!==1?'s':'')+' on this '+esc(o.card||'')+' statement'+(extra>0.005?' (+ manually-added spend)':'')+'.</div>';
+body+='<div style="font-size:10px;color:var(--text3);margin-top:6px">'+o.children.length+' charge'+(o.children.length!==1?'s':'')+' on this '+esc((typeof cardDisplayName==='function'?cardDisplayName(o.card):'')||o.card||'')+' statement'+(extra>0.005?' (+ manually-added spend)':'')+'.</div>';
 }else{
 body+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
 body+='<tr><td style="color:var(--text3);padding:3px 0">Amount</td><td style="text-align:right;font-family:var(--mono);font-weight:600">\u0e3f'+fmt(o.amount||0)+'</td></tr>';
