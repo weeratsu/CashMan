@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.APP_VERSION="2026-11-01 20:50";
+window.APP_VERSION="2026-11-02 10:10";
 // v-popdrag: a text-select drag that starts INSIDE a popup and ends on the dark backdrop fires a 'click' on the backdrop -> popup closed. Only close when the press also started on the backdrop.
 (function(){var md=null;document.addEventListener('mousedown',function(e){md=e.target;},true);document.addEventListener('click',function(e){var t=e.target;if(md&&md!==t&&t&&t.contains&&t.contains(md)){try{if(getComputedStyle(t).position==='fixed'){e.stopImmediatePropagation();e.stopPropagation();}}catch(_){}}},true);})();
 window.addEventListener("error",function(e){
@@ -21,7 +21,7 @@ var b=document.getElementById("__err");if(!b){b=document.createElement("div");b.
 <link rel="icon" type="image/png" sizes="32x32" href="images/cashman-favicon-32.png?v=252">
 <link rel="apple-touch-icon" sizes="180x180" href="images/cashman-apple-touch-icon.png?v=252">
 <style>
-:root{--bg:#f5f6f8;--bg2:#fff;--bg3:#f0f1f4;--surface:#e8eaef;--border:#d4d7e0;--border2:#c0c4d0;--text:#1a1d27;--text2:#4a5068;--text3:#7a8098;--primary:#4a7aed;--primary-bg:rgba(74,122,237,.1);--success:#16a34a;--success-bg:rgba(22,163,74,.08);--warning:#d97706;--warning-bg:rgba(217,119,6,.08);--error:#dc2626;--error-bg:rgba(220,38,38,.08);--purple:#7c3aed;--purple-bg:rgba(124,58,237,.08);--radius:8px;--radius-sm:6px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Fira Code','Cascadia Code',monospace;--shadow:0 1px 3px rgba(0,0,0,.06)}
+:root{--bg:#f5f6f8;--bg2:#fff;--bg3:#f0f1f4;--surface:#e8eaef;--border:#d4d7e0;--border2:#c0c4d0;--text:#1a1d27;--text2:#4a5068;--text3:#7a8098;--primary:#4a7aed;--primary-bg:rgba(74,122,237,.1);--success:#16a34a;--success-bg:rgba(22,163,74,.08);--warning:#d97706;--warning-bg:rgba(217,119,6,.08);--error:#dc2626;--error-bg:rgba(220,38,38,.08);--purple:#7c3aed;--purple-bg:rgba(124,58,237,.08);--radius:8px;--radius-sm:6px;--font:'Noto Sans Thai','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Fira Code','Cascadia Code',monospace;--shadow:0 1px 3px rgba(0,0,0,.06)}
 html.dark{--bg:#0f1117;--bg2:#1a1d27;--bg3:#252833;--surface:#2a2d3a;--border:#353849;--border2:#454860;--text:#e8eaed;--text2:#9aa0b0;--text3:#6b7185;--primary:#5b8def;--primary-bg:rgba(91,141,239,.12);--success:#4ade80;--success-bg:rgba(74,222,128,.1);--warning:#fbbf24;--warning-bg:rgba(251,191,36,.1);--error:#f87171;--error-bg:rgba(248,113,113,.1);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.1);--shadow:0 1px 3px rgba(0,0,0,.3)}
 *{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px}
 .nav{background:var(--bg2);border-right:1px solid var(--border);padding:8px 8px;display:flex;flex-direction:column;align-items:stretch;width:190px;position:fixed;top:0;left:0;bottom:0;z-index:100;box-shadow:var(--shadow);transition:width .18s ease;overflow:hidden}.nav-brand{font-size:14px;font-weight:700;white-space:nowrap;padding:6px 8px 10px;display:flex;align-items:center;gap:6px;overflow:hidden}.sb-toggle{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;color:var(--text2);font-size:13px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font)}.sb-toggle:hover{background:var(--bg3);color:var(--text)}.nav-tabs{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto;overflow-x:hidden;align-items:stretch}.nav-tab{padding:8px 10px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-radius:var(--radius-sm);white-space:nowrap;font-family:var(--font);transition:background .15s ease,color .15s ease;text-align:left;width:100%}.nav-tab:hover{color:var(--text);background:var(--bg3)}.nav-tab:active{opacity:.7}.nav-tab.active{color:#fff;background:var(--primary);font-weight:600;box-shadow:0 1px 4px rgba(74,122,237,.35)}.nav-tab i{font-size:14px;width:18px;text-align:center;flex-shrink:0}.nav-group{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--text3);text-transform:uppercase;padding:10px 10px 3px;white-space:nowrap;user-select:none}.nav-group:first-child{padding-top:2px}.nav-right{display:flex;flex-direction:column;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}.theme-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;color:var(--text2);font-size:12px;display:flex;align-items:center;gap:10px;font-family:var(--font);white-space:nowrap}.theme-btn i{width:18px;text-align:center;flex-shrink:0}.theme-btn:hover{background:var(--bg3)}body.sb-collapsed .nav{width:56px}body.sb-collapsed .nav-tab span,body.sb-collapsed .theme-btn span,body.sb-collapsed .nav-brand .brand-txt,body.sb-collapsed .nav-group{display:none}body.sb-collapsed .nav-tab,body.sb-collapsed .theme-btn{justify-content:center;gap:0}body.sb-collapsed .nav-brand{justify-content:center;padding:6px 0 10px}
@@ -271,6 +271,7 @@ html.dark input::placeholder,html.dark textarea::placeholder{color:#8b90a0;-webk
 html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </style>
 <style id="tl-today-css">.day-row.day-today{background:rgba(59,130,246,.10)!important;box-shadow:inset 3px 0 0 var(--primary)}.day-row.day-today .day-date{color:var(--primary)!important;font-weight:700}.day-row.day-today .day-date::after{content:" \25cf Today";font-size:9px;display:block}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <nav class="nav">
@@ -711,7 +712,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-creditcards.js?v=317"></script>
 
 <script src="js/ui-timeline.js?v=256"></script>
-<script src="js/ui-dashboard.js?v=318"></script>
+<script src="js/ui-dashboard.js?v=321"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>

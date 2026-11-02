@@ -248,7 +248,7 @@ function dashCalToggleTasks(cb){_dashCalShowTasks=!!cb.checked;renderDashCalenda
 // Nov 1 2026: Calendar item style — Setup option. A=plain text (default), B=full pill, C=soft chip.
 function calStyle(){try{return localStorage.getItem('cm_cal_style')||'A';}catch(e){return 'A';}}
 function setCalStyle(v){try{localStorage.setItem('cm_cal_style',v);}catch(e){}_calApplyStyle();try{renderDashCalendar();}catch(e){}}
-function _calApplyStyle(){var s=document.getElementById('cm-calstyle-css');if(!s){s=document.createElement('style');s.id='cm-calstyle-css';document.head.appendChild(s);}
+function _calApplyStyle(){window._calMaxLines=(calStyle()==='A')?6:5;var s=document.getElementById('cm-calstyle-css');if(!s){s=document.createElement('style');s.id='cm-calstyle-css';document.head.appendChild(s);}
  var v=calStyle(),b='#dash-calendar .cl-it';
  if(v==='B')s.textContent=b+'{display:block;border-radius:999px;padding:1px 7px!important;margin:0 0 2px;line-height:1.5!important;background:var(--bg3);border:1px solid transparent}'+
   b+'.cl-task{background:rgba(59,130,246,.12)}'+b+'.cl-inc{background:rgba(16,185,129,.14)}'+b+'.cl-stm{background:rgba(147,51,234,.12)}'+b+'.cl-ovd{background:rgba(239,68,68,.12)}'+b+'.cl-auto{background:var(--bg3)}'+b+'.cl-dl{background:rgba(217,119,6,.13)}'+b+'.cl-done{background:transparent;border-color:var(--border)}';
@@ -336,15 +336,21 @@ function _calBar(seg,muted){
  var col=done?'var(--text3)':(seg.late?'var(--error)':'#d97706');
  var idx=isT?_dashCalCache.push({_isTask:true,task:it})-1:it._calIdx;
  return '<div class="cl-it cl-dl'+(seg.late&&!done?' cl-ovd':'')+(done?' cl-done':'')+'" onclick="event.stopPropagation();dashCalShow('+idx+')" title="\u23f0 Deadline: '+esc((isT?it.title:it.name)||'')+' (due '+seg.due+')" style="cursor:pointer;font-size:9px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:'+col+(seg.late&&!done?';font-weight:700':'')+(done?';opacity:.45;text-decoration:line-through':'')+(muted?';opacity:.6':'')+'">\u23f0 '+esc((isT?it.title:it.name)||'')+'</div>';}
-function _calCell(bills,tasks,muted,iso){
-var B=(bills||[]).filter(function(o){return !o._calRange;}),T=_calTaskSort((tasks||[]).filter(function(t){return !t._calRange;})),h1='',h2='';
+var CAL_MAX=6;   // Nov 2 2026: fixed cell height, show up to 6 lines then "+N more" (Google-Calendar style)
+function _calCell(bills,tasks,muted,iso,dk){
+var B=(bills||[]).filter(function(o){return !o._calRange;}),T=_calTaskSort((tasks||[]).filter(function(t){return !t._calRange;})),L=[];
 var bars=(iso&&window._calRanges&&window._calRanges[iso])||[];bars=bars.slice().sort(function(a,b){return a.order-b.order;});
-var bp='',bd='';bars.forEach(function(s){var dn=s.task?s.it.done:_calIsPaid(s.it);if(dn)bd+=_calBar(s,muted);else bp+=_calBar(s,muted);});
-B.forEach(function(o){if(!_calIsPaid(o))h1+=_calBillLine(o,muted);});
-T.forEach(function(t){if(!t.done)h1+=_calTaskLine(t,muted);});
-B.forEach(function(o){if(_calIsPaid(o))h2+=_calBillLine(o,muted);});
-T.forEach(function(t){if(t.done)h2+=_calTaskLine(t,muted);});
-return h1+bp+bd+h2;
+var push=function(s){if(s)L.push(s);};
+B.forEach(function(o){if(!_calIsPaid(o)&&!o.auto_pay)push(_calBillLine(o,muted));});
+B.forEach(function(o){if(!_calIsPaid(o)&&o.auto_pay)push(_calBillLine(o,muted));});
+T.forEach(function(t){if(!t.done)push(_calTaskLine(t,muted));});
+bars.forEach(function(s){var dn=s.task?s.it.done:_calIsPaid(s.it);if(!dn)push(_calBar(s,muted));});
+bars.forEach(function(s){var dn=s.task?s.it.done:_calIsPaid(s.it);if(dn)push(_calBar(s,muted));});
+B.forEach(function(o){if(_calIsPaid(o))push(_calBillLine(o,muted));});
+T.forEach(function(t){if(t.done)push(_calTaskLine(t,muted));});
+var max=(window._calMaxLines||CAL_MAX);if(L.length<=max)return L.join('');
+var shown=L.slice(0,max-1).join(''),rest=L.length-(max-1);
+return shown+'<div class="cl-more" onclick="event.stopPropagation();'+(dk!=null?'dashCalDay('+dk+',event)':'')+'" style="cursor:pointer;font-size:9px;font-weight:700;color:var(--text2);padding:1px 6px;border-radius:6px" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">+'+rest+' more</div>';
 }
 function _calBillLine(o,muted){
 var auto=o.auto_pay?' <span style="color:var(--text3)" title="auto-pay">\ud83e\udd16</span>':'';
@@ -492,7 +498,7 @@ h+='<div style="font-size:10px;font-weight:600;color:'+(_we?'var(--warning)':'va
 // Leading days: show the tail of the previous month, faded (not empty), so the first row starts Sunday.
 var _prevLast=new Date(y,m,0).getDate();// last day of previous month
 for(var b=0;b<startDow;b++){var _pd=_prevLast-startDow+1+b;
-h+='<div onclick="dashCalDay('+_calDayReg(new Date(_prevY,_prevM,_pd),prevByDay[_pd],prevTaskByDay[_pd])+',event)" style="cursor:pointer;min-height:74px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 4px;overflow:hidden;opacity:.6"><div style="font-size:10px;font-weight:600;color:var(--text3)">'+_pd+'</div>';
+h+='<div onclick="dashCalDay('+_calDayReg(new Date(_prevY,_prevM,_pd),prevByDay[_pd],prevTaskByDay[_pd])+',event)" style="cursor:pointer;min-height:74px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 4px;overflow:hidden;opacity:.6;height:var(--cal-cell-h,132px);box-sizing:border-box"><div style="font-size:10px;font-weight:600;color:var(--text3)">'+_pd+'</div>';
 h+=_calCell(prevByDay[_pd],prevTaskByDay[_pd],true,_calISO(new Date(_prevY,_prevM,_pd)));
 h+='</div>';}
 for(var day=1;day<=daysIn;day++){
@@ -510,7 +516,7 @@ var cellBar=_act===2?'box-shadow:inset 3px 0 0 var(--error);':(_act===1?'box-sha
 // (box-shadow doesn't shift layout) on top of the 2px blue border.
 if(isToday){ cellBar += 'box-shadow:0 0 0 2px rgba(59,130,246,0.45);'; }
 var _dk=_calDayReg(new Date(y,m,day),billByDay[day],taskByDay[day]);
-h+='<div onclick="dashCalDay('+_dk+',event)" title="Tap for the full list of this day" style="cursor:pointer;min-height:74px;background:'+cellBg+';'+cellBd+';'+cellBar+'border-radius:6px;padding:3px 4px;overflow:hidden">';
+h+='<div onclick="dashCalDay('+_dk+',event)" title="Tap for the full list of this day" style="cursor:pointer;height:var(--cal-cell-h,132px);box-sizing:border-box;background:'+cellBg+';'+cellBd+';'+cellBar+'border-radius:6px;padding:3px 4px;overflow:hidden">';
 // v290 (user Oct 15 2026): lighter tone + no "วันนี้" tag. Today = soft blue pill (light bg,
 // blue number), subtle ring/border. Just the number in a light pill, nothing else.
 if(isToday){
@@ -520,13 +526,13 @@ if(isToday){
 }
 if(_hol&&_dashCalShowHol)h+='<div title="'+esc(_hol.map(function(x){return x.name;}).join(', '))+'" style="display:block;font-size:9px;line-height:1.4;color:#b45309;background:rgba(245,158,11,0.18);border-radius:8px;padding:0 6px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'+((new Date(y,m,day)<_calToday)?';opacity:.45;font-weight:400':'')+'">\ud83c\udf8c '+esc(_hol.map(function(x){return x.name||'Holiday';}).join(', '))+'</div>';
 var bills=billByDay[day]||[],tasks=taskByDay[day]||[];
-h+=_calCell(bills,tasks,false,_calISO(new Date(y,m,day)));
+h+=_calCell(bills,tasks,false,_calISO(new Date(y,m,day)),_dk);
 h+='</div>';
 }
 // Trailing days: fill the last row with the start of next month, faded, so the row ends on Saturday.
 var _usedCells=startDow+daysIn;var _trail=(7-(_usedCells%7))%7;
 for(var tzi=1;tzi<=_trail;tzi++){
-h+='<div onclick="dashCalDay('+_calDayReg(new Date(_nextY,_nextM,tzi),nextByDay[tzi],nextTaskByDay[tzi])+',event)" style="cursor:pointer;min-height:74px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 4px;overflow:hidden;opacity:.6"><div style="font-size:10px;font-weight:600;color:var(--text3)">'+tzi+'</div>';
+h+='<div onclick="dashCalDay('+_calDayReg(new Date(_nextY,_nextM,tzi),nextByDay[tzi],nextTaskByDay[tzi])+',event)" style="cursor:pointer;min-height:74px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 4px;overflow:hidden;opacity:.6;height:var(--cal-cell-h,132px);box-sizing:border-box"><div style="font-size:10px;font-weight:600;color:var(--text3)">'+tzi+'</div>';
 h+=_calCell(nextByDay[tzi],nextTaskByDay[tzi],true,_calISO(new Date(_nextY,_nextM,tzi)));
 h+='</div>';}
 h+='</div>';
