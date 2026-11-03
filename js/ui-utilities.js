@@ -18,8 +18,13 @@ function utilToggleRow(key){ _utilExpanded[key] = !_utilExpanded[key]; renderUti
 
 function _utilData(){
   var d = (typeof window !== 'undefined' && window.UTILITY_DATA) ? window.UTILITY_DATA : null;
-  if(!d || !d.bills) return {generated_at:'', bill_count:0, bills:[]};
-  return d;
+  var leg=(typeof window!=='undefined'&&window.UTILITY_LEGACY&&window.UTILITY_LEGACY.bills)||[];
+  if(!d || !d.bills){ if(!leg.length) return {generated_at:'', bill_count:0, bills:[]}; d={generated_at:'',bills:[]}; }
+  if(!leg.length) return d;
+  var have={}; d.bills.forEach(function(b){ have[(b.utility||'')+'|'+(b.period||'')]=1; });
+  var add=leg.filter(function(b){ return !have[b.utility+'|'+b.period]; });
+  if(!add.length) return d;
+  var out=Object.assign({},d); out.bills=d.bills.concat(add); out.bill_count=out.bills.length; return out;
 }
 
 function setUtilFilter(v){_utilFilter=v||'all';renderUtilities();}

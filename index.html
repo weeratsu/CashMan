@@ -726,6 +726,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
      still see window.UTILITY_DATA) — otherwise the browser serves a stale cached copy and new
      receipts/bills don't appear until a manual hard-reload. -->
 <script>document.write('<script src="data/utility_log.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="data/utility_legacy.js?t='+Date.now()+'"><\/script>');</script>
 <!-- card_bills.js is REWRITTEN by parse_cardbills.py on every run (public summary only: amount/min/due).
      card_txns_local.json (detailed merchant lines) is PRIVATE (gitignored); loaded here on PC only. -->
 <script>document.write('<script src="data/card_bills.js?t='+Date.now()+'"><\/script>');</script>
