@@ -1529,7 +1529,7 @@ var _inStmtNote=r._surfacedInHist?' <span style="font-size:8px;color:var(--prima
 // ttb statement for the paid-date period isn't in history yet) shows a badge pointing at the period
 // it WILL fold into once that statement is paid. Grouped by its own paid_date month meanwhile.
 var _soloNote=(r._soloCardCharge&&r._targetPeriod)?' <span style="font-size:8px;color:var(--text3);background:rgba(128,128,128,.08);padding:1px 5px;border-radius:4px" title="paid individually; will fold under the '+esc(_cardDisp(r._targetCard||''))+' '+esc(r._targetPeriod)+' statement once that statement is marked paid">\u21b3 '+esc(_cardDisp(r._targetCard||''))+' '+esc(r._targetPeriod)+'</span>':'';
-h+='<tr'+(r._surfacedInHist?' style="background:rgba(128,128,128,.03)"':'')+'><td class="r"><input type="checkbox" class="hist-chk" data-hkey="'+esc(r.key)+'" onchange="histUpdateSelCount()"></td><td>'+_caret+_billIcon(r)+' '+esc(r.name)+((r.kind==='Installment'&&r.info)?' <span style="color:var(--text3);font-size:9px">'+esc(r.info)+'</span>':'')+_perBadge(r.period)+_inStmtNote+_soloNote+(_hasK?' <span style="font-size:8px;color:var(--text3)">('+_kids.length+' charge'+(_kids.length!==1?'s':'')+')</span>':'')+'</td>'+
+h+='<tr data-histkey="'+esc(r.key)+'"'+(r._surfacedInHist?' style="background:rgba(128,128,128,.03)"':'')+'><td class="r"><input type="checkbox" class="hist-chk" data-hkey="'+esc(r.key)+'" onchange="histUpdateSelCount()"></td><td>'+_caret+_billIcon(r)+' '+esc(r.name)+((r.kind==='Installment'&&r.info)?' <span style="color:var(--text3);font-size:9px">'+esc(r.info)+'</span>':'')+_perBadge(r.period)+_inStmtNote+_soloNote+(_hasK?' <span style="font-size:8px;color:var(--text3)">('+_kids.length+' charge'+(_kids.length!==1?'s':'')+')</span>':'')+'</td>'+
 '<td style="font-size:10px">'+_tCell+'</td><td>'+_mCell+'</td>'+
 '<td class="r" style="font-family:var(--mono)'+(r._surfacedInHist?';color:var(--text3)':'')+'">\u0e3f'+fmt(r.amount)+'</td>'+
 '<td>'+((r._origDueDisp||r.due)?fmtDate(r._origDueDisp||r.due):'\u2014')+'</td><td>'+(r.paid_date?fmtDate(r.paid_date):'\u2014')+'</td>'+
@@ -1611,6 +1611,23 @@ el.innerHTML=h;
 function billJumpTo(fullKey){
 var b=document.querySelector('.nav-tab[data-tab="billreminder"]');if(b)b.click();
 var rec=(D.bill_payments||{})[fullKey];
+if(rec&&rec.paid){
+  _histSectionOpen=true;if(typeof _histOpen!=='undefined')_histOpen=true;_histFYear='';_histFMonth='';_histFType='';_histFCat='';_histFMethod='';_histFCard='';
+  try{renderBillReminder();}catch(e){}
+  setTimeout(function(){
+    var hb=document.getElementById('brhist-body');if(hb)hb.style.display='';
+    var rows=document.querySelectorAll('[data-histkey]'),r=null;
+    for(var i=0;i<rows.length;i++){if(rows[i].getAttribute('data-histkey')===fullKey){r=rows[i];break;}}
+    if(!r){var pfx=fullKey.split('::')[0];for(var j=0;j<rows.length;j++){if(String(rows[j].getAttribute('data-histkey')).indexOf(pfx)===0){r=rows[j];break;}}}
+    if(!r){toast('\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e43\u0e19 Payment History');return;}
+    var p=r.parentNode;while(p&&p!==document.body){if(p.id&&p.id.indexOf('hgrp_')===0&&p.style.display==='none'){p.style.display='';var hd=p.previousElementSibling;var cc=hd&&hd.querySelector('.hgc');if(cc)cc.textContent='\u25bc';}p=p.parentNode;}
+    if(r.style.display==='none')r.style.display='';
+    try{r.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){r.scrollIntoView();}
+    var bg=r.style.background,bs=r.style.boxShadow;r.style.transition='background .4s';r.style.background='rgba(59,130,246,0.18)';r.style.boxShadow='inset 3px 0 0 var(--primary)';
+    setTimeout(function(){r.style.background=bg;r.style.boxShadow=bs;},2200);
+  },200);
+  return;
+}
 _billFilter=(rec&&rec.paid)?'all':'unpaid';_billYear='';_billMonth='';_billDay='';
 try{var s=document.querySelector('#billreminder-content input[type=search],#billreminder-content .tbl-search');if(s){s.value='';s.dispatchEvent(new Event('input'));}}catch(e){}
 try{renderBillReminder();}catch(e){}

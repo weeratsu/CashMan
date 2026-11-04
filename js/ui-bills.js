@@ -1056,22 +1056,37 @@ var detail='<tr class="pl-detail" data-plrow="'+i+'" style="'+(open?'':'display:
 '<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0;grid-column:span 2"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Notes</div><input class="inp" value="'+esc(p.notes||'')+'" data-pli="'+i+'" data-f="notes" style="font-size:10px;width:100%" onchange="readAll();saveD()"></div>'+
 '<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0;grid-column:1/-1"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Remarks</div><textarea class="inp" rows="2" style="width:100%;font-size:11px;resize:vertical;box-sizing:border-box" data-pli="'+i+'" data-f="remarks" onchange="D.planned['+i+'].remarks=this.value;saveD();">'+esc(p.remarks||'')+'</textarea></div>'+
 '</div></td></tr>';
-return mainRow+detail}).join('');_recFitDet();_recRO('planned');
+return mainRow+detail}).join('');_recFitDet();_recRO('planned');try{document.querySelectorAll('#planned-body tr[data-plrow]').forEach(function(tr){var p=D.planned[+tr.getAttribute('data-plrow')];tr.classList.toggle('pl-done',!!p&&_planStatus(p)==='paid');});}catch(e){}
 // Warn about planned items whose date falls outside the simulation window (they won't appear on the Timeline)
 var _pw=document.getElementById('planned-window-warn');
 if(_pw){
 var sd=D.profile&&D.profile.start_date?new Date(D.profile.start_date+'T00:00:00'):null;
 var ed=D.profile&&D.profile.end_date?new Date(D.profile.end_date+'T00:00:00'):null;
 var outside=[];
-D.planned.forEach(function(p){if(!p.date)return;var d=new Date(p.date+'T00:00:00');if(sd&&ed&&(d<sd||d>ed))outside.push(p)});
+D.planned.forEach(function(p){if(!p.date)return;var d=new Date(p.date+'T00:00:00');if(sd&&ed&&d<sd&&(p._fromUtility||p._fromCard))return;if(sd&&ed&&(d<sd||d>ed))outside.push(p)});
 var noDate=D.planned.filter(function(p){return !p.date}).length;
 var msgs=[];
-if(outside.length)msgs.push('<b>'+outside.length+'</b> planned item(s) fall <b>outside the simulation window</b> ('+(sd?sd.toLocaleDateString('en-GB'):'?')+' \u2192 '+(ed?ed.toLocaleDateString('en-GB'):'?')+') and won\'t show on the Timeline: '+outside.map(function(p){return esc(p.name)+' ('+p.date+')'}).join(', ')+'. Extend the End date on the Timeline tab.');
+if(outside.length)msgs.push('<b>'+outside.length+'</b> planned item(s) fall <b>outside the simulation window</b> ('+(sd?sd.toLocaleDateString('en-GB'):'?')+' \u2192 '+(ed?ed.toLocaleDateString('en-GB'):'?')+') and won\'t show on the Timeline. '+'<a href="#" onclick="plShowOutside();return false;" style="color:inherit;text-decoration:underline">View list</a>');window._plOutside=outside;
 if(noDate)msgs.push('<b>'+noDate+'</b> planned item(s) have <b>no date</b> set and are skipped.');
 _pw.innerHTML=msgs.length?'<div style="background:rgba(217,119,6,0.12);border:1px solid var(--warning);border-radius:6px;padding:8px 10px;font-size:10px;color:var(--warning);margin-top:8px"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>'+msgs.join('<br>')+'</div>':'';
 }
 populatePlannedFilters()}
 
+
+function plShowOutside(){
+  var list=(window._plOutside||[]).slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date));});
+  var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+  var rows=list.map(function(p){return '<tr><td style="padding:4px 8px">'+esc(p.name)+'</td><td style="padding:4px 8px;white-space:nowrap">'+esc(p.date)+'</td><td style="padding:4px 8px;text-align:right">'+(Number(p.amount)||0).toLocaleString('en-US',{minimumFractionDigits:2})+'</td></tr>';}).join('');
+  ov.innerHTML='<div style="background:var(--bg2,#fff);border-radius:10px;max-width:560px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.3)">'
+   +'<div style="padding:10px 14px;font-weight:700;border-bottom:1px solid var(--border)">Outside simulation window ('+list.length+')</div>'
+   +'<div style="overflow:auto;padding:6px"><table style="width:100%;font-size:11px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:4px 8px">Name</th><th style="text-align:left;padding:4px 8px">Date</th><th style="text-align:right;padding:4px 8px">Amount</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+   +'<div style="padding:8px 14px;border-top:1px solid var(--border);text-align:right"><button class="btn btn-ghost" onclick="this.closest(\'div[style*=fixed]\').remove()">Close</button></div></div>';
+  ov.addEventListener('mousedown',function(e){ov._down=e.target;});
+  ov.addEventListener('click',function(e){if(e.target===ov&&ov._down===ov)ov.remove();});
+  document.addEventListener('keydown',function k(e){if(e.key==='Escape'){ov.remove();document.removeEventListener('keydown',k);}});
+  document.body.appendChild(ov);
+}
+window.plShowOutside=plShowOutside;
 
 /* Add Planned opens a popup form (same pattern as To-Do): the item is added only on Save,
    then the page scrolls to the new row and outlines it so it's easy to find. */
@@ -1157,6 +1172,7 @@ var ft=document.getElementById('flt-p-type'),fc=document.getElementById('flt-p-c
 if(ft){var cv=ft.value;ft.innerHTML='<option value="">All Types</option>'+(typeof tOpts==='function'?tOpts(cv):'');ft.value=cv}
 if(fc){var cv2=fc.value;fc.innerHTML='<option value="">All Cards</option>'+Object.keys(cards).sort().map(function(c){return '<option'+(cv2===c?' selected':'')+'>'+esc(c)+'</option>'}).join('')}}
 
+(function(){if(document.getElementById('pl-done-css'))return;var s=document.createElement('style');s.id='pl-done-css';s.textContent='#planned-body tr.pl-done{opacity:.55}#planned-body tr.pl-done td,#planned-body tr.pl-done .inp-inline,#planned-body tr.pl-done .sel{color:var(--text3)!important}#planned-body tr.pl-done:hover{opacity:.85}';document.head.appendChild(s);})();
 
 function filterPlanned(){var ft=document.getElementById('flt-p-type').value,fc=document.getElementById('flt-p-card').value;var fsEl=document.getElementById('flt-p-status');var fs=fsEl?fsEl.value:'';
 var spEl=document.getElementById('flt-p-showpaid');_planShowPaid=spEl?spEl.checked:false;
@@ -1167,6 +1183,7 @@ pi=+pi;if(!D.planned[pi]){tr.style.display='';return}
 var show=true;if(ft&&D.planned[pi].type!==ft)show=false;if(fc&&D.planned[pi].card!==fc)show=false;if(fs&&_planStatus(D.planned[pi])!==fs)show=false;
 var _paid=_planIsPaid(D.planned[pi]);
 var _isD=tr.classList.contains('pl-detail');
+tr.classList.toggle('pl-done',_planStatus(D.planned[pi])==='paid');
 if(_paid){if(!_isD)_paidN++;if(!_planShowPaid&&fs!=='paid')show=false;}
 var isDetail=tr.classList.contains('pl-detail');
 tr.style.display=(show&&(!isDetail||_plExpanded[pi]))?'':'none';})

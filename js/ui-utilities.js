@@ -394,6 +394,26 @@ function utilAutoSyncPlanned(){
       // If the user already marked this bill paid from Bills Reminder (a paid ledger entry exists,
       // whether or not it carries _fromUtility), treat it as paid and REMEMBER it in util_manual_paid
       // so this sync (and future reloads) don't wipe it. This lets "Mark paid" work from any page.
+      // PAID-EARLY CARRY-OVER (Nov 4 2026): user often pays the known amount on the RECURRING forecast
+      // (key M|<name>::YYYY-MM) before the PDF arrives. When the real bill lands it replaces that
+      // recurring row, which orphaned the paid mark. Carry it over to the real bill once.
+      if(!isPaid && !mp[ukey]){
+        var _rk=Object.keys(D.bill_payments).find(function(k){
+          if(k.indexOf('M|')!==0) return false;
+          var r=D.bill_payments[k]; if(!r||!r.paid) return false;
+          if(k.slice(-9)!=='::'+dmk && String(r.due||r.orig_due||'').slice(0,7)!==dmk) return false;
+          var nmR=k.slice(2,k.length-9);
+          var it=(D.monthly||[]).find(function(x){ return x&&x.name===nmR; });
+          var lk=it?(it.util_link===''?null:(it.util_link||(/\u0e44\u0e1f|electric|\u0e01\u0e32\u0e23\u0e44\u0e1f\u0e1f\u0e49\u0e32|mea/i.test(nmR)?'electric':(/\u0e19\u0e49\u0e33|water|\u0e1b\u0e23\u0e30\u0e1b\u0e32|mwa/i.test(nmR)?'water':null)))):null;
+          return lk===b.utility;
+        });
+        if(_rk){
+          var _rr=D.bill_payments[_rk];
+          if(!D.util_manual_paid) D.util_manual_paid={};
+          D.util_manual_paid[ukey]={paid_date:_rr.paid_date||due, from_recurring:_rk, recurring_amount:_rr.paid_amount||null};
+          mp=D.util_manual_paid; isPaid=true; paidDate=_rr.paid_date||due; changed=true;
+        }
+      }
       var _ledgerPaid=D.bill_payments[payKey]&&D.bill_payments[payKey].paid;
       if(_ledgerPaid&&!isPaid){
         isPaid=true;
