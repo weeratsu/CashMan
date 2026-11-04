@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-23T11:00:52",
-  "bill_count": 78,
+  "generated_at": "2026-11-04T15:00:54",
+  "bill_count": 79,
   "bills": [
     {
       "utility": "electric",
@@ -1817,6 +1817,26 @@
       "receipt_file": "[Receipt] 2026-09-26 - 25690926_1267166877.pdf",
       "receipt_path": "G:\\My Drive\\Documents\\Bills\\Water Bills\\2026\\09 - September\\[Receipt] 2026-09-26 - 25690926_1267166877.pdf",
       "paid": true
+    },
+    {
+      "utility": "electric",
+      "ref": "24696137532",
+      "period": "2026-10",
+      "amount": 3204.59,
+      "units": 726.0,
+      "meter_now": 8202.0,
+      "meter_prev": 7476.0,
+      "ft": 0.1623,
+      "due_date": "2027-01-04",
+      "meter_date": "2026-11-02",
+      "energy_charge": 2852.49,
+      "service_fee": 24.62,
+      "ft_amount": 117.83,
+      "vat": 209.65,
+      "ca_no": "010961575",
+      "installation": "68221246",
+      "invoice_file": "[Invoice] 2026-11-04 - SIGN_24696137532.pdf",
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\10 - October\\[Invoice] 2026-11-04 - SIGN_24696137532.pdf"
     },
     {
       "utility": "water",
