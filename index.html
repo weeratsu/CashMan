@@ -727,6 +727,8 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
      receipts/bills don't appear until a manual hard-reload. -->
 <script>document.write('<script src="data/utility_log.js?t='+Date.now()+'"><\/script>');</script>
 <script>document.write('<script src="data/utility_legacy.js?t='+Date.now()+'"><\/script>');</script>
+<!-- VillageMan public export: central (common-area) meter split for the home/central view -->
+<script>document.write('<script src="../VillageManPublic/villageman_data.js?t='+Date.now()+'"><\/script>');</script>
 <!-- card_bills.js is REWRITTEN by parse_cardbills.py on every run (public summary only: amount/min/due).
      card_txns_local.json (detailed merchant lines) is PRIVATE (gitignored); loaded here on PC only. -->
 <script>document.write('<script src="data/card_bills.js?t='+Date.now()+'"><\/script>');</script>
