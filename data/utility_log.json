@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T15:00:54",
+  "generated_at": "2026-11-05T11:34:47",
   "bill_count": 79,
   "bills": [
     {
@@ -1836,7 +1836,14 @@
       "ca_no": "010961575",
       "installation": "68221246",
       "invoice_file": "[Invoice] 2026-11-04 - SIGN_24696137532.pdf",
-      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\10 - October\\[Invoice] 2026-11-04 - SIGN_24696137532.pdf"
+      "invoice_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\10 - October\\[Invoice] 2026-11-04 - SIGN_24696137532.pdf",
+      "invoice_no": "24696137532",
+      "charge": 2994.94,
+      "paid_amount": 3204.59,
+      "paid_date": "2026-11-03",
+      "receipt_file": "[Receipt] 2026-11-05 - SIGN_O1100307539.pdf",
+      "receipt_path": "G:\\My Drive\\Documents\\Bills\\Electric Bills\\2026\\10 - October\\[Receipt] 2026-11-05 - SIGN_O1100307539.pdf",
+      "paid": true
     },
     {
       "utility": "water",
