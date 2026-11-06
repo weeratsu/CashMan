@@ -354,3 +354,15 @@ Assets ✅ ui-retirement v255 (rows read-only, ✏️/+Add popup) · Company Spe
 - **Secondary actions** (Excel / Import / Export / Refresh): btn-ghost next to the Add button.
 - Done Oct 31: Payroll Add Income/Deduction moved to section headers; Tax Exemptions → read-only rows + ✏️ popup + `Add Exemption` header button; removed Save & Simulate from Payroll/Tax Exemptions/Recurring/Installments/Planned; removed To-Do "Save"; Thai labels → English (Holidays, Monthly Planning, Bank&Account, Bill Reminder override popup); Special Pay + Assets Add moved to top.
 - Recurring impl: `_recRO(kind)` converts rendered inputs → text after render, caches original row HTML; `recEditOpen` rebuilds those inputs inside the popup (save handlers stripped) so `readAll()` + Save writes them.
+
+
+## Oct 31 – Nov 2 2026 (APP 2026-11-02 10:10)
+- NEW module Accounts & Wealth (js/ui-balances.js, nav data-tab="accounts"): Accounts / Balances / Interest / FX Rates.
+- Accounts (ui-setup.js renderBankAccount): Actual Balance + As of (auto = today when balance changes, manual date wins), Sim tick (in_sim), currency, loan type = debt, Max Target + progress, interest rate + effective date -> D.rate_log, tiered rates "2000=4.5;*=0.5", rate by month "18=1.25;24=1.35;*=0" + open_date + pay_maturity; filters bank/type/currency/sim.
+- Timeline/Dashboard starting cash = cmStartCash() (sum of ticked non-loan THB balances, else Profile Starting Cash).
+- D.currencies, D.fx_log, D.balance_log, D.rate_log.
+- Interest page: per-account tiers/periods with current-tier marker, rate history, filters (bank/account/type/rate type/sort), "Where to deposit" planner (tiers fill in order, respects Max Target, lists skipped higher-rate accounts).
+- To-Do: url field + clickable links (todoLinkify/todoUrlA); calendar Edit opens edit popup; calendar +Task/+Bill stay on calendar (_cmFromCal).
+- Calendar: style A/B/C in Setup (localStorage cm_cal_style), fixed cell height + "+N more", order: manual unpaid > auto unpaid > tasks > deadlines > paid > done; card id -> name in labels.
+- Font: Noto Sans Thai + Inter (Google Fonts).
+- WealthMan: Offshore Tax Check page (js/taxcheck.js) + Help tax section per Por.161/162.

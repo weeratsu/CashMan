@@ -448,14 +448,17 @@ var applies=p.freq==='every_month'||(p.freq==='specific_month'&&p.month===m);
 if(applies)taxableGross+=p.amount})}
 var exemptions=D.tax_exemptions.reduce(function(s,e){
 var amt=e.override!=null?Math.min(e.override,e.max>0?e.max:Infinity):Math.min(e.amount,e.max>0?e.max:Infinity);return s+amt},0);
-return{gross:gross,taxableGross:taxableGross,exemptions:exemptions,taxable:Math.max(0,taxableGross-exemptions),payMonths:_maxMo}}
+var _oi={amount:0,expense:0};try{if(typeof oiYearTotals==='function')_oi=oiYearTotals()}catch(e){}
+taxableGross+=_oi.amount;gross+=_oi.amount;exemptions+=_oi.expense;
+return{gross:gross,taxableGross:taxableGross,exemptions:exemptions,taxable:Math.max(0,taxableGross-exemptions),payMonths:_maxMo,otherIncome:_oi}}
 
 
 
 function getAnnualTaxWithheld(){
 if(D.tax_actual_override!=null&&D.tax_actual_override!==''&&D.tax_actual_override!==0)return parseFloat(D.tax_actual_override)||0;
+var _oiW=0;try{if(typeof oiYearTotals==='function')_oiW=oiYearTotals().wht}catch(e){}
 var _maxMo=_payMonthsInTaxYear();
-var total=0;
+var total=_oiW;
 for(var m=1;m<=_maxMo;m++){
 try{var pr=computePayrollDetailed(m);
 pr.items.forEach(function(p){

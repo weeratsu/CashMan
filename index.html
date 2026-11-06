@@ -283,7 +283,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <button class="nav-tab active" data-tab="dashboard" title="Dashboard"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></button>
 <div class="nav-group">Money In &amp; Out</div>
 <button class="nav-tab" data-tab="paytax" title="Payroll & Tax"><i class="fa-solid fa-money-check-dollar"></i><span>Payroll &amp; Tax</span></button>
-<div class="nav-subwrap" data-parent="paytax"><button class="nav-sub" data-tab="paytax" data-sub="payroll-setup"><span>Payroll Setup</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-earn"><span>Monthly Earnings</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-plan"><span>Monthly Planning</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-calc"><span>Tax Calculator</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-exempt"><span>Tax Exemptions</span></button></div>
+<div class="nav-subwrap" data-parent="paytax"><button class="nav-sub" data-tab="paytax" data-sub="payroll-setup"><span>Payroll Setup</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-earn"><span>Monthly Earnings</span></button><button class="nav-sub" data-tab="paytax" data-sub="monthly-plan"><span>Monthly Planning</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-calc"><span>Tax Calculator</span></button><button class="nav-sub" data-tab="paytax" data-sub="tax-exempt"><span>Tax Exemptions</span></button><button class="nav-sub" data-tab="paytax" data-sub="other-income"><span>50 Tawi</span></button></div>
 <button class="nav-tab" data-tab="bills" title="Bills & Plans"><i class="fa-solid fa-receipt"></i><span>Bills &amp; Plans</span></button>
 <div class="nav-subwrap" data-parent="bills"><button class="nav-sub" data-tab="bills" data-sub="recurring"><span>Recurring</span></button><button class="nav-sub" data-tab="bills" data-sub="installments"><span>Installments</span></button><button class="nav-sub" data-tab="bills" data-sub="planned"><span>Planned</span></button><button class="nav-sub" data-tab="bills" data-sub="cardbills"><span>Card Bills</span></button><button class="nav-sub" data-tab="bills" data-sub="utilities"><span>Utilities</span></button></div>
 <button class="nav-tab" data-tab="billreminder" title="Bills Reminder"><i class="fa-solid fa-bell"></i><span>Bills Reminder</span></button>
@@ -412,7 +412,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 
 <!-- ===== PAYROLL & TAX ===== -->
 <div id="tab-paytax" class="tab-content">
-<div class="sub-tabs"><span class="sub-tab active" onclick="swPayTax(this,'payroll-setup')">Payroll Setup</span><span class="sub-tab" onclick="swPayTax(this,'monthly-earn')">Monthly Earnings</span><span class="sub-tab" onclick="swPayTax(this,'monthly-plan')">Monthly Planning</span><span class="sub-tab" onclick="swPayTax(this,'tax-calc')">Tax Calculator</span><span class="sub-tab" onclick="swPayTax(this,'tax-exempt')">Tax Exemptions</span></div>
+<div class="sub-tabs"><span class="sub-tab active" onclick="swPayTax(this,'payroll-setup')">Payroll Setup</span><span class="sub-tab" onclick="swPayTax(this,'monthly-earn')">Monthly Earnings</span><span class="sub-tab" onclick="swPayTax(this,'monthly-plan')">Monthly Planning</span><span class="sub-tab" onclick="swPayTax(this,'tax-calc')">Tax Calculator</span><span class="sub-tab" onclick="swPayTax(this,'tax-exempt')">Tax Exemptions</span><span class="sub-tab" onclick="swPayTax(this,'other-income')">50 Tawi</span></div>
 <div id="pt-payroll-setup" class="sub-panel active">
 <div class="card" style="margin-bottom:10px"><h2><i class="fa-solid fa-calendar-day"></i> Payout Settings</h2>
 <div class="form-grid">
@@ -459,6 +459,12 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <table class="tbl"><thead><tr><th>Deduction</th><th class="r">Amount (&#x0E3F;)</th><th class="r">Max</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="tax-exempt-body"></tbody></table>
 <div id="tax-exempt-add-area"></div>
 
+</div></div>
+<div id="pt-other-income" class="sub-panel">
+<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-hand-holding-dollar"></i> Other Income (non-salary)</h2><span style="flex:1"></span><button class="btn btn-ghost" style="font-size:11px;padding:4px 12px" onclick="oiImportWHT()"><i class="fa-solid fa-file-import"></i> Import 50 Tawi</button><button class="btn btn-primary" style="font-size:11px;padding:4px 12px" onclick="oiEdit(-1)"><i class="fa-solid fa-plus"></i> Add</button></div>
+<p class="text-muted mb-3" style="font-size:10px">Income outside payroll (e.g. Lazada 50 Tawi). Included in Tax Calculator for the selected tax year (PND 90/91).</p>
+<div id="oi-kpis" class="kpi-grid" style="margin-bottom:8px"></div>
+<table class="tbl"><thead><tr><th>Date paid</th><th>Payer</th><th>Type</th><th>Cert no.</th><th class="r">Amount</th><th class="r">Expense</th><th class="r">WHT</th><th></th></tr></thead><tbody id="oi-body"></tbody></table>
 </div></div>
 <div id="pt-monthly-plan" class="sub-panel"></div>
 </div>
@@ -706,7 +712,9 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-holidays.js?v=5"></script>
 <script src="js/ui-balances.js?v=12"></script>
 
-<script src="js/ui-payroll.js?v=258"></script>
+<script src="js/ui-payroll.js?v=259"></script>
+<script src="data/wht_income.js" onerror="window.WHT_INCOME=[]"></script>
+<script src="js/ui-otherincome.js?v=16"></script>
 <script src="js/ui-monthlyplan.js?v=16"></script>
 <script src="js/ui-bills.js?v=355"></script>
 <script src="js/ui-creditcards.js?v=317"></script>

@@ -8,7 +8,7 @@ var SKEY='cashflow_v5',MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'
 STATUSES=['Active','Cancelled','Finished','Planned'],OWNERS=['Me','Mum','Other'],
 COLORS=['#4a7aed','#16a34a','#d97706','#dc2626','#7c3aed','#0891b2','#c026d3','#ea580c','#4f46e5','#059669'];
 
-// Thai Tax Exemption Master Catalog (Revenue Dept 2024-2025 rules)
+// Thai Tax Exemption Master Catalog (updated tax year 2569/2026 per KKP infographic)
 var TAX_EXEMPTION_CATALOG=[
 {id:'personal',name:'Personal Allowance',max:60000,source:'fixed',group:'personal',notes:'Every taxpayer',validation:{type:'fixed'}},
 {id:'spouse',name:'Spouse Allowance',max:60000,source:'manual',group:'personal',notes:'If spouse has no income',validation:{type:'manual'}},
@@ -20,21 +20,30 @@ var TAX_EXEMPTION_CATALOG=[
 {id:'auto_expense',name:'Expense Deduction (50%)',max:100000,source:'auto_expense',group:'income',notes:'50% of assessable income, max \u0e3f100K',validation:{type:'auto'}},
 {id:'auto_sso',name:'Social Security (SSO)',max:10500,source:'auto_sso',group:'income',notes:'Auto from payroll SSO deduction',validation:{type:'auto'}},
 {id:'auto_epf',name:'Provident Fund (PVD)',max:500000,source:'auto_epf',group:'savings',notes:'Auto from payroll EPF deduction',validation:{type:'auto',cross_group:'retirement_combined'}},
-{id:'life_ins',name:'Life Insurance Premium',max:100000,source:'manual',group:'insurance',notes:'Select from yearly recurring policies',validation:{type:'select_ins'}},
-{id:'health_ins',name:'Health Insurance Premium',max:25000,source:'manual',group:'insurance',notes:'Select from yearly recurring policies',validation:{type:'select_ins',ins_filter:'health'}},
+{id:'life_ins',name:'Life Insurance Premium',max:100000,source:'manual',group:'insurance',notes:'Select from yearly recurring policies; life+health combined max \u0e3f100K',validation:{type:'select_ins',cross_group:'life_health_combined'}},
+{id:'health_ins',name:'Health Insurance Premium',max:25000,source:'manual',group:'insurance',notes:'Select from yearly recurring policies; life+health combined max \u0e3f100K',validation:{type:'select_ins',ins_filter:'health',cross_group:'life_health_combined'}},
 {id:'parent_health_ins',name:'Parent Health Insurance',max:15000,source:'manual',group:'insurance',notes:'Health insurance for parents',validation:{type:'manual'}},
+{id:'spouse_life_ins',name:'Spouse Life Insurance',max:10000,source:'manual',group:'insurance',notes:'If spouse has no income',validation:{type:'manual'}},
+{id:'pension_ins',name:'Pension Life Insurance',max:200000,source:'manual',group:'savings',notes:'Max 15% of income or \u0e3f200K',validation:{type:'percent_cap',pct:15,cross_group:'retirement_combined'}},
+{id:'gpf',name:'Government Pension Fund (GPF)',max:500000,source:'manual',group:'savings',notes:'Max \u0e3f500K',validation:{type:'manual',cross_group:'retirement_combined'}},
+{id:'teacher_fund',name:'Private School Teacher Fund',max:500000,source:'manual',group:'savings',notes:'Max \u0e3f500K',validation:{type:'manual',cross_group:'retirement_combined'}},
+{id:'nsf',name:'National Savings Fund (NSF)',max:30000,source:'manual',group:'savings',notes:'Max \u0e3f30K',validation:{type:'manual',cross_group:'retirement_combined'}},
 {id:'home_loan',name:'Home Loan Interest',max:100000,source:'manual',group:'housing',notes:'Split equally among co-borrowers',validation:{type:'manual'}},
+{id:'solar_rooftop',name:'Solar Rooftop Installation',max:200000,source:'manual',group:'housing',notes:'Max \u0e3f200K',validation:{type:'manual'}},
 {id:'rmf',name:'RMF (Retirement Mutual Fund)',max:500000,source:'manual',group:'savings',notes:'Max 30% of income or \u0e3f500K',validation:{type:'percent_cap',pct:30,cross_group:'retirement_combined'}},
 {id:'ssf',name:'SSF (Super Savings Fund)',max:200000,source:'manual',group:'savings',notes:'Max 30% of income or \u0e3f200K',validation:{type:'percent_cap',pct:30,cross_group:'retirement_combined'}},
-{id:'thai_esg',name:'Thai ESG Fund',max:300000,source:'manual',group:'savings',notes:'Max 30% of income or \u0e3f300K',validation:{type:'percent_cap',pct:30,cross_group:'retirement_combined'}},
+{id:'thai_esg',name:'Thai ESG / ThaiESGX Fund',max:300000,source:'manual',group:'savings',notes:'Max 30% of income or \u0e3f300K (separate from retirement cap)',validation:{type:'percent_cap',pct:30}},
+{id:'thai_esgx_ltf',name:'ThaiESGX (switched from LTF)',max:50000,source:'manual',group:'savings',notes:'Special: LTF switched in 2025, max \u0e3f50K',validation:{type:'manual'}},
+{id:'social_enterprise',name:'Social Enterprise Investment',max:100000,source:'manual',group:'savings',notes:'Max \u0e3f100K',validation:{type:'manual'}},
 {id:'donation',name:'Donation',max:0,source:'manual',group:'donation',notes:'Max 10% of net income after deductions',validation:{type:'percent_net',pct:10}},
-{id:'edu_donation',name:'Education Donation (x2)',max:0,source:'manual',group:'donation',notes:'Actual x2 credited, then max 10% of net',validation:{type:'percent_net_x2',pct:10}},
+{id:'edu_donation',name:'Education / State Hospital Donation (x2)',max:0,source:'manual',group:'donation',notes:'Actual x2 credited, then max 10% of net',validation:{type:'percent_net_x2',pct:10}},
 {id:'political_donation',name:'Political Party Donation',max:10000,source:'manual',group:'donation',notes:'Max \u0e3f10,000/yr',validation:{type:'manual'}}
 ];
 
 // Cross-validation rules
 var TAX_CROSS_RULES=[
-{group:'retirement_combined',ids:['auto_epf','rmf','ssf','thai_esg'],max:500000,label:'PVD + RMF + SSF + Thai ESG combined max \u0e3f500,000'}
+{group:'retirement_combined',ids:['auto_epf','pension_ins','gpf','teacher_fund','nsf','rmf','ssf'],max:500000,label:'Pension Ins + PVD + GPF + Teacher Fund + NSF + RMF + SSF combined max \u0e3f500,000'},
+{group:'life_health_combined',ids:['life_ins','health_ins'],max:100000,label:'Life + Health Insurance combined max \u0e3f100,000'}
 ];
 
 function getCatalogItem(id){return TAX_EXEMPTION_CATALOG.find(function(c){return c.id===id})||null}

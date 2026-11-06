@@ -76,7 +76,7 @@ function addPayItem(type){readAll();payEditOpen(-1,{name:'',type:type,amount:0,f
 
 
 function swPayTax(el,tab){document.querySelectorAll('#tab-paytax .sub-panel').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('#tab-paytax .sub-tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');document.getElementById('pt-'+tab).classList.add('active');
-if(tab==='tax-calc')try{renderTax()}catch(e){};if(tab==='tax-exempt')try{renderExemptions()}catch(e){};if(tab==='monthly-earn')try{renderMonthlyEarnings()}catch(e){};if(tab==='monthly-plan')try{renderMonthlyPlan()}catch(e){}}
+if(tab==='tax-calc')try{renderTax()}catch(e){};if(tab==='tax-exempt')try{renderExemptions()}catch(e){};if(tab==='other-income')try{renderOtherIncome()}catch(e){};if(tab==='monthly-earn')try{renderMonthlyEarnings()}catch(e){};if(tab==='monthly-plan')try{renderMonthlyPlan()}catch(e){}}
 
 
 function swTax(el,tab){
@@ -162,6 +162,7 @@ rmEl.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:6px 
 '<span style="color:var(--text3)">Day:</span>'+daySel+
 '<span style="color:var(--text3);font-size:9px">(refund or payment appears in the timeline on this day of the chosen month, in the following year)</span>'+
 '</div>'}
+try{_renderTaxBreakdown(info,result,withheld)}catch(e){console.warn('tax breakdown',e)}
 try{document.getElementById('tax-brackets-body').innerHTML=result.details.map(function(d){
 return '<tr'+(d.amount>0?' style="font-weight:500"':' style="opacity:.4"')+'><td>'+d.label+'</td><td class="r" style="font-family:var(--mono);font-size:10px">\u0e3f'+fmt(d.amount)+'</td><td class="r" style="font-family:var(--mono);font-size:10px">'+(d.rate*100)+'%</td><td class="r" style="font-family:var(--mono);font-size:10px;'+(d.tax>0?'color:var(--error)':'')+'">\u0e3f'+fmt(d.tax)+'</td></tr>'}).join('')+
 '<tr style="font-weight:700;background:var(--bg3)"><td>TOTAL TAX</td><td></td><td class="r" style="font-family:var(--mono);font-size:10px">'+result.effective.toFixed(2)+'%</td><td class="r" style="font-family:var(--mono);font-size:10px;color:var(--error)">\u0e3f'+fmt(result.total)+'</td></tr>';
@@ -592,3 +593,77 @@ function exAddSave(){var s=document.getElementById('exempt-add-sel');if(!s||!s.v
  var ni=D.tax_exemptions.length-1;setTimeout(function(){if(_exRowHTML[ni]&&/data-ti/.test(_exRowHTML[ni]))exEditOpen(ni);},60);}
 function exEditClose(){var ov=document.getElementById('ex-edit-ov');if(ov)ov.remove();}
 window.exEditOpen=exEditOpen;window.exEditSave=exEditSave;window.exAddOpen=exAddOpen;window.exAddSave=exAddSave;window.exEditClose=exEditClose;
+
+// Tax Calculator — step-by-step breakdown (income -> deductions -> net taxable -> tax -> refund)
+function _renderTaxBreakdown(info,result,withheld){
+var host=document.getElementById('tax-breakdown-area');
+if(!host){var anchor=document.getElementById('tax-refund-month-area');if(!anchor)return;
+host=document.createElement('div');host.id='tax-breakdown-area';anchor.parentNode.insertBefore(host,anchor.nextSibling)}
+var mo=_payMonthsInTaxYear();
+var B='\u0e3f';function F(a){return (a<0?'\u2212':'')+B+fmt(Math.abs(a))}
+var MN='font-family:var(--mono);font-size:11px;white-space:nowrap';
+function line(lbl,amt,sub,col){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:11px"><span>'+lbl+(sub?' <span style="font-size:9px;color:var(--text3)">'+sub+'</span>':'')+'</span><span style="'+MN+(col?';color:'+col:'')+'">'+F(amt)+'</span></div>'}
+function card(icon,title,total,col,body,clk){return '<div style="border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;background:var(--bg2)">'+
+'<div'+(clk?' onclick="'+clk+'" title="Click for monthly breakdown"':'')+' style="display:flex;justify-content:space-between;font-weight:700;font-size:11px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:4px'+(clk?';cursor:pointer':'')+'"><span>'+icon+' '+title+(clk?' <i class="fa-solid fa-magnifying-glass" style="font-size:9px;color:var(--primary)"></i>':'')+'</span><span style="'+MN+';color:'+col+'">'+F(total)+'</span></div>'+body+'</div>'}
+// income card
+var ib='';
+D.payroll.filter(function(p){return p.type==='income'&&p.affects_tax}).forEach(function(p){
+var a=0;for(var m=1;m<=mo;m++){if(p.freq==='every_month'||(p.freq==='specific_month'&&p.month===m))a+=p.amount}
+if(a)ib+=line(esc(p.name),a,p.freq==='every_month'?'\u00d7 '+mo+' mo':MO[(p.month||1)-1])});
+var nonTax=info.gross-info.taxableGross;
+if(info.otherIncome&&info.otherIncome.rows)info.otherIncome.rows.forEach(function(r){ib+=line(esc(r.payer||'Other')+' '+esc(r.income_code||''),r.amount||0,fmtDate(r.date))});
+if(info.otherIncome&&info.otherIncome.expense>0)ib+='<div style="font-size:9px;color:var(--text3);padding-top:3px">Other-income expense deduction \u2212'+B+fmt(info.otherIncome.expense)+' (included in deductions)</div>';
+if(nonTax>0.005)ib+='<div style="font-size:9px;color:var(--text3);padding-top:3px">+ non-taxable income '+B+fmt(nonTax)+' (excluded)</div>';
+var cards=card('\ud83d\udcb0','Taxable income',info.taxableGross,'var(--success)',ib,'_taxDetailPop(\'income\')');
+var grp={income:['\ud83e\uddfe','Expense & SSO'],personal:['\ud83d\udc6a','Personal & family'],insurance:['\ud83d\udee1\ufe0f','Insurance'],savings:['\ud83d\udcc8','Savings & investment'],housing:['\ud83c\udfe0','Housing & stimulus'],donation:['\ud83e\udd1d','Donations']};
+var byG={};D.tax_exemptions.forEach(function(e){var c=e.id?getCatalogItem(e.id):null;var mx=c?c.max:(e.max||0);
+var v=e.override!=null?e.override:e.amount;var eff=Math.min(v||0,mx>0?mx:Infinity);if(!(eff>0))return;
+var g=(c&&c.group)||'other';(byG[g]=byG[g]||[]).push({n:c?c.name:(e.name||e.id),a:eff,cap:mx,raw:v})});
+Object.keys(grp).concat(Object.keys(byG).filter(function(k){return !grp[k]})).forEach(function(g){
+var L=byG[g];if(!L)return;var s=0,b='';var gi=grp[g]||['\u2022',g];
+L.forEach(function(x){s+=x.a;b+=line(esc(x.n),-x.a,(x.raw>x.a+0.005?'capped from '+B+fmt(x.raw)+' \u00b7 ':'')+(x.cap>0?'max '+B+fmt(x.cap):''),'var(--error)')});
+cards+=card(gi[0],gi[1],-s,'var(--error)',b)});
+// summary (waterfall)
+var d=withheld-result.total;
+function sr(lbl,amt,col,big,top,clk){return '<div'+(clk?' onclick="'+clk+'" title="Click for monthly breakdown"':'')+' style="display:flex;justify-content:space-between;padding:5px 0;'+(clk?'cursor:pointer;':'')+(top?'border-top:1px dashed var(--border2);':'')+'font-size:'+(big?'13px;font-weight:700':'11px')+'"><span>'+lbl+(clk?' <i class="fa-solid fa-magnifying-glass" style="font-size:9px;color:var(--primary)"></i>':'')+'</span><span style="'+MN+';font-size:'+(big?'14px':'11px')+(col?';color:'+col:'')+'">'+F(amt)+'</span></div>'}
+var sum='<div style="border:1px solid var(--primary);border-radius:var(--radius);padding:10px 14px;background:var(--bg2);position:sticky;top:8px">'+
+'<div style="font-weight:700;font-size:12px;margin-bottom:6px">\ud83e\uddee Summary</div>'+
+sr('Taxable income',info.taxableGross,'var(--success)',0,0,'_taxDetailPop(\'income\')')+
+sr('\u2212 Deductions & allowances',-info.exemptions,'var(--error)')+
+sr('= Net taxable income',info.taxable,'var(--warning)',1,1)+
+sr('Tax <span style="font-size:9px;color:var(--text3)">(eff. '+result.effective.toFixed(2)+'%)</span>',result.total,'var(--error)')+
+sr('\u2212 Withheld (50 Tawi)',-withheld,null,0,0,'_taxDetailPop(\'wht\')')+
+sr(d>=0?'\u2705 Refund':'\u26a0\ufe0f Tax owed',Math.abs(d),d>=0?'var(--success)':'var(--error)',1,1)+'</div>';
+host.innerHTML='<div style="font-size:12px;font-weight:700;margin:10px 0 6px">\ud83e\uddfe Net Taxable Breakdown</div>'+
+'<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:10px;align-items:start;margin-bottom:12px">'+
+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">'+cards+'</div>'+sum+'</div>'}
+
+// Click popup: month-by-month source of Taxable income / Tax withheld
+function _taxDetailPop(kind){
+var mo=_payMonthsInTaxYear(),B='\u0e3f',isInc=kind==='income';
+var items=[],rows=[],colTot={},grand=0;
+if(isInc){items=D.payroll.filter(function(p){return p.type==='income'&&p.affects_tax}).map(function(p){return p.name})}
+for(var m=1;m<=mo;m++){var r={m:m,v:{}},s=0;
+if(isInc){D.payroll.forEach(function(p){if(p.type!=='income'||!p.affects_tax)return;
+if(p.freq==='every_month'||(p.freq==='specific_month'&&p.month===m)){r.v[p.name]=(r.v[p.name]||0)+p.amount;s+=p.amount}})}
+else{try{computePayrollDetailed(m).items.forEach(function(p){var n=(p.name||'').toLowerCase();
+if(p.type==='deduction'&&(n.indexOf('tax')>=0||n.indexOf('wht')>=0)){var a=Math.abs(p.amount);if(items.indexOf(p.name)<0)items.push(p.name);r.v[p.name]=(r.v[p.name]||0)+a;s+=a}})}catch(e){}}
+r.s=s;grand+=s;rows.push(r)}
+var ov=!isInc&&D.tax_actual_override!=null&&D.tax_actual_override!==''&&D.tax_actual_override!==0;
+var td='style="font-family:var(--mono);font-size:10px;text-align:right;padding:4px 8px"';
+var h='<table class="tbl"><thead><tr><th>Month</th>'+items.map(function(n){return '<th class="r">'+esc(n)+'</th>'}).join('')+'<th class="r">Total</th></tr></thead><tbody>';
+rows.forEach(function(r){h+='<tr'+(r.s?'':' style="opacity:.45"')+'><td>'+MO[r.m-1]+' '+(D.tax_year||'')+'</td>'+items.map(function(n){var v=r.v[n]||0;colTot[n]=(colTot[n]||0)+v;return '<td '+td+'>'+(v?B+fmt(v):'\u2013')+'</td>'}).join('')+'<td '+td+'><b>'+B+fmt(r.s)+'</b></td></tr>'});
+h+='<tr style="font-weight:700;background:var(--bg3)"><td>TOTAL</td>'+items.map(function(n){return '<td '+td+'>'+B+fmt(colTot[n]||0)+'</td>'}).join('')+'<td '+td+' style="color:var(--primary)">'+B+fmt(grand)+'</td></tr></tbody></table>';
+var note=isInc?'Source: Payroll Setup \u2014 income items with \u201cTax\u201d checked, '+mo+' pay month(s) in tax year.':
+'Source: Payroll deductions whose name contains \u201ctax\u201d or \u201cwht\u201d.';
+if(ov)note+='<div style="margin-top:6px;padding:6px 8px;background:var(--warning-bg);border:1px solid var(--warning);border-radius:var(--radius-sm);color:var(--warning)">\u26a0\ufe0f Manual override active: <b>'+B+fmt(parseFloat(D.tax_actual_override)||0)+'</b> is used instead of the payroll total above.</div>';
+var old=document.getElementById('tax-detail-ov');if(old)old.remove();
+var o=document.createElement('div');o.id='tax-detail-ov';
+o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+o.onclick=function(e){if(e.target===o)o.remove()};
+o.innerHTML='<div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px;max-width:90vw;max-height:85vh;overflow:auto;min-width:420px;box-shadow:0 10px 30px rgba(0,0,0,.3)">'+
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px">'+(isInc?'\ud83d\udcb0 Taxable income':'\ud83e\uddfe Tax withheld')+' \u2014 '+(D.tax_year||'')+'</b>'+
+'<button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="document.getElementById(\'tax-detail-ov\').remove()">\u2715</button></div>'+h+
+'<div style="font-size:10px;color:var(--text3);margin-top:8px">'+note+'</div></div>';
+document.body.appendChild(o)}
+window._taxDetailPop=_taxDetailPop;

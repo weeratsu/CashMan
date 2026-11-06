@@ -8,3 +8,11 @@ scripts/set_password.html
 # Private: detailed credit-card transactions (merchant lines) - login+Sheet only, NEVER public
 data/card_txns_local.json
 data/card_txns_local.js
+
+# Private: 50 Tawi / other income (PC only, never public)
+data/wht_income.json
+data/wht_income.js
+scripts/wht_log.txt
+scripts/wht_payers.json
+scripts/wht_unparsed/
+scripts/wht_scanned.json
