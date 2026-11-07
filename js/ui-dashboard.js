@@ -255,6 +255,7 @@ function _calApplyStyle(){window._calMaxLines=(calStyle()==='A')?6:5;var s=docum
  else if(v==='C')s.textContent=b+'{display:block;border-radius:4px;padding:1px 5px!important;margin:0 0 2px;line-height:1.5!important;background:var(--bg3);border-left:3px solid var(--border)}'+
   b+'.cl-task{border-left-color:#3b82f6}'+b+'.cl-inc{border-left-color:#10b981}'+b+'.cl-stm{border-left-color:#9333ea}'+b+'.cl-ovd{border-left-color:#ef4444}'+b+'.cl-auto{border-left-color:#9ca3af}'+b+'.cl-dl{border-left-color:#d97706}'+b+'.cl-done{border-left-color:var(--border);background:transparent}';
  else s.textContent='';}
+
 window.calStyle=calStyle;window.setCalStyle=setCalStyle;
 
 function renderDashCalendar(){_calApplyStyle();

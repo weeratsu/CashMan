@@ -373,7 +373,13 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="radio" name="calstyle" value="A" onchange="setCalStyle(this.value)"> <span><b>A · Plain</b><br><span style="font-size:9px;color:var(--text3)">text + icon (fits most)</span></span></label>
 <label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="radio" name="calstyle" value="B" onchange="setCalStyle(this.value)"> <span><b>B · Pill</b><br><span style="display:inline-block;font-size:9px;border-radius:999px;padding:0 6px;background:rgba(59,130,246,.12)">rounded bubble</span></span></label>
 <label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="radio" name="calstyle" value="C" onchange="setCalStyle(this.value)"> <span><b>C · Soft chip</b><br><span style="display:inline-block;font-size:9px;border-radius:3px;padding:0 5px;background:var(--bg3);border-left:3px solid #3b82f6">left color bar</span></span></label>
+</div>
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:11px">
+<label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="calopt-icons" onchange="setCalOpt('cm_cal_icons',this.checked?'1':'0')"> Show icons in items</label>
+<label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="calopt-grid" onchange="setCalOpt('cm_cal_grid',this.checked?'1':'0')"> Grid lines (Google Calendar style · more space)</label>
+<span style="color:var(--text3);font-size:10px">Text size: A− / A+ on the calendar header</span>
 </div></div>
+<script>setTimeout(function(){try{document.getElementById('calopt-icons').checked=_calOpt('cm_cal_icons','1')!=='0';document.getElementById('calopt-grid').checked=_calOpt('cm_cal_grid','0')==='1';}catch(e){}},300);</script>
 <script>setTimeout(function(){var v=(typeof calStyle==='function')?calStyle():'A';var r=document.querySelector('#calstyle-opts input[value="'+v+'"]');if(r)r.checked=true;},300);</script>
 
 <div class="card" style="border-color:var(--primary)"><h2><i class="fa-solid fa-cloud-arrow-up"></i> Backup &amp; Restore</h2><p class="text-muted" style="font-size:10px;margin-bottom:8px">Save all your data to a file, or load it on another device (e.g. move from computer to phone). Data lives in this browser only — export to move it.</p><div class="filterbar" style="margin-bottom:0"><button class="btn btn-primary" onclick="exportData()"><i class="fa-solid fa-download"></i> Export (JSON)</button><button class="btn btn-ghost" onclick="document.getElementById('imp').click()"><i class="fa-solid fa-upload"></i> Import (JSON)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="exportTrxExcel('all')"><i class="fa-solid fa-file-excel"></i> Export (Excel)</button><button class="btn btn-ghost" style="color:var(--success)" onclick="document.getElementById('imp-all-xlsx').click()"><i class="fa-solid fa-file-excel"></i> Import (Excel)</button></div><p class="text-muted" style="font-size:9px;margin-top:6px;margin-bottom:0"><i class="fa-solid fa-circle-info"></i> Import replaces ALL current data with the file's contents.</p></div>
@@ -720,7 +726,8 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 <script src="js/ui-creditcards.js?v=317"></script>
 
 <script src="js/ui-timeline.js?v=256"></script>
-<script src="js/ui-dashboard.js?v=321"></script>
+<script src="js/ui-dashboard.js?v=324"></script>
+<script src="js/ui-calview.js?v=5"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>
