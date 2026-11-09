@@ -15,7 +15,7 @@
  */
 (function(){
   'use strict';
-  var _ctCard='', _ctPeriod='', _ctSort='txn_date', _ctAsc=true;
+  var _ctCard='', _ctPeriod='', _ctSort='txn_date', _ctAsc=false;   // Nov 9 2026: default newest-first
 
   function _ctRows(){ return (typeof D!=='undefined'&&D&&Array.isArray(D.card_txns))?D.card_txns:[]; }
   function _ctNum(v){ var n=(typeof v==='number')?v:parseFloat(String(v||'').replace(/,/g,'')); return isNaN(n)?0:n; }

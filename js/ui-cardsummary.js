@@ -12,6 +12,7 @@
   'use strict';
   var _csCard='';           // filter by card ('' = all)
   var _csOpen={};           // expanded period rows: key card||period -> true
+  var _csYrOpen={};         // Nov 9 2026: expanded YEAR groups: key card||YYYY -> bool (default: current+previous year open)
 
   function _csBills(){ var b=(window.CARD_BILLS&&window.CARD_BILLS.bills); return Array.isArray(b)?b:[]; }
   function _csTxns(){ return (typeof D!=='undefined'&&D&&Array.isArray(D.card_txns))?D.card_txns:[]; }
@@ -60,7 +61,10 @@
       // Still EXCLUDE reversal-to-installment (offset by its own installment charge) and merchant
       // refunds (reduce spend, not the prior statement's balance).
       if(/reversal/i.test(d)) return;
-      if(/payment|cash\s*rebate|rebate|redem|redeem/i.test(d)) sum+=(-a);
+      // Nov 9 2026 (user: must work without keyword upkeep): ANY credit in the next statement reduces what
+      // was owed (payment, fee waiver, rebate, refund, dispute credit...) -> count all except reversal-to-
+      // installment (offset by its own installment charge). Caller caps at amount_due.
+      sum+=(-a);
     });
     return sum;
   }
@@ -80,7 +84,10 @@
     }
     // 2) email-matched paid_total from card_bills.js (BAY/AIA/JCB via card_payments.json)
     var filePt=_n(b&&b.paid_total);
-    if(filePt>0.005) return { paid_total: filePt, paid_full: !!(b&&b.paid_full), paid_date: (b&&b.paid_date)||'' };
+    // Nov 9 2026: email-matched payments don't include bank credits (e.g. ADJ.ANNUAL FEE waiver) -> take the
+    // larger of email total vs next-statement settled credits (payments+adjustments), capped at amount_due.
+    var _tx=_csRealPaidFromTxns(card, period); if(due>0 && _tx>due) _tx=due;
+    if(filePt>0.005){ var _pt=Math.max(filePt,_tx); return { paid_total: _pt, paid_full: !!(b&&b.paid_full)||(due>0&&(_pt+0.01)>=due), paid_date: (b&&b.paid_date)||'' }; }
     // 3) compute from the period's real "Payment ..." transactions (ttb/UOB with no email).
     // v16 (user Oct 16 2026): the credits that settle THIS statement appear in the NEXT statement's
     // transactions, but that next statement may ALSO contain credits that pay down ITS OWN new spend
@@ -96,6 +103,12 @@
   }
 
   window.setCardSummaryFilter=function(v){ _csCard=v||''; try{ renderCardSummary(); }catch(e){ console.error(e); } };
+  window.cardSummaryYear=function(key){ _csYrOpen[key]=!_csIsYrOpen(key); try{ renderCardSummary(); }catch(e){ console.error(e); } };
+  function _csIsYrOpen(key){ if(key in _csYrOpen) return _csYrOpen[key]; var y=+String(key).split('||')[1]; return y>=new Date().getFullYear()-1; }
+  // Nov 9 2026: open the statement PDF (archived path written by parse_cardbills.py as b.file)
+  window.cardSummaryPdf=function(ev,path){ if(ev){ev.preventDefault();ev.stopPropagation();}
+    if(typeof window.utilViewDoc==='function') return window.utilViewDoc(path, ev);
+    window.open('file:///'+String(path).replace(/\\/g,'/'),'_blank'); return false; };
   window.cardSummaryToggle=function(key){ _csOpen[key]=!_csOpen[key]; try{ renderCardSummary(); }catch(e){ console.error(e); } };
 
   function _csTxnRows(card, period){
@@ -175,7 +188,19 @@
         var _info={};
         rows.forEach(function(x){ var pp=_csPaid(card,x.period,x); _info[x.period]={due:_n(x.amount_due),paid:pp.paid_total}; });
         function _prevPeriod(per){ var m=/^(\d{4})-(\d{2})$/.exec(String(per||'')); if(!m) return ''; var y=+m[1],mo=+m[2]-1; if(mo<1){mo=12;y--;} return y+'-'+(mo<10?'0':'')+mo; }
+        var _lastYr='';
         rows.forEach(function(b){
+          var _yr=String(b.period||'').slice(0,4), _yk=card+'||'+_yr;
+          if(_yr!==_lastYr){ _lastYr=_yr;
+            var _yrRows=rows.filter(function(x){return String(x.period||'').slice(0,4)===_yr;});
+            var _ys=0,_yp=0; _yrRows.forEach(function(x){ _ys+=_n(x.amount_due); _yp+=_csPaid(card,x.period,x).paid_total; });
+            var _yo=_csIsYrOpen(_yk);
+            h+='<tr style="cursor:pointer;background:var(--bg3,#f1f5f9)" onclick="cardSummaryYear(\''+_esc(_yk).replace(/'/g,"\\'")+'\')">'+
+               '<td colspan="4" style="font-weight:700">'+(_yo?'\u25be ':'\u25b8 ')+_yr+' <span style="font-weight:400;color:var(--text3);font-size:10px">('+_yrRows.length+' \u0e07\u0e27\u0e14)</span></td>'+
+               '<td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700">'+_f(_ys)+'</td>'+
+               '<td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700">'+_f(_yp)+'</td><td colspan="2"></td></tr>';
+          }
+          if(!_csIsYrOpen(_yk)) return;
           var key=card+'||'+b.period;
           var ps=_csPaid(card,b.period,b);
           var spent=_n(b.amount_due);
@@ -188,14 +213,14 @@
           // This is self-consistent (ยกมา + รูดใหม่ === บิลรวม always) and works for the earliest period
           // too, without needing prev_balance or a prior row.
           var carried=Math.max(0, _n(b.amount_due)-newCharge);
-          var paidFull=ps.paid_full;
+          var paidFull=ps.paid_full||_n(b.amount_due)<=0.005;
           var st=paidFull?'<span style="color:var(--success,#16a34a);font-weight:600">✓ จ่ายครบ</span>'
                  :(paidT>0.005?'<span style="color:var(--warning,#d97706);font-weight:600">จ่ายบางส่วน</span>'
                  :'<span style="color:var(--error,#dc2626);font-weight:600">ค้าง</span>');
           var open=_csOpen[key];
           h+='<tr style="cursor:pointer" onclick="cardSummaryToggle(\''+_esc(key).replace(/'/g,"\\'")+'\')">'+
              '<td style="white-space:nowrap;font-weight:600">'+(open?'▾ ':'▸ ')+_esc(b.period)+'</td>'+
-             '<td style="white-space:nowrap">'+_dmy(b.stmt_date)+'</td>'+
+             '<td style="white-space:nowrap">'+_dmy(b.stmt_date)+(b.file?' <a href="#" title="'+_esc(b.file)+'" onclick="return cardSummaryPdf(event,\''+_esc(b.file).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"><i class="fa-solid fa-file-pdf" style="color:var(--error,#dc2626)"></i></a>':'')+'</td>'+
              '<td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--text3)">'+_f(carried)+'</td>'+
              '<td style="text-align:right;font-variant-numeric:tabular-nums">'+_f(newCharge)+'</td>'+
              '<td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">'+_f(b.amount_due)+'</td>'+
