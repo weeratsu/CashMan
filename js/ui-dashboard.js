@@ -510,14 +510,14 @@ var _act=dayStatus[day]||0;// 2=overdue,1=due today (manual, unpaid)
 var _hol=(typeof holidayOn==='function')?holidayOn(y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0')):null;
 var cellBg=(_hol&&!_act&&!isToday)?'rgba(245,158,11,0.10)':_act===2?'rgba(220,38,38,0.10)':(_act===1?'rgba(245,158,11,0.12)':(isToday?'rgba(59,130,246,0.06)':(_isWe?'rgba(245,158,11,0.06)':'var(--bg2)')));
 // Border priority: keep today's blue ring; else overdue red / due-today amber; else weekend/normal.
-var cellBd=isToday?'border:2px solid rgba(59,130,246,0.55)':(_act===2?'border:1px solid var(--error)':(_act===1?'border:1px solid var(--warning)':(_isWe?'border:1px solid rgba(245,158,11,0.25)':'border:1px solid var(--border)')));
+var cellBd=isToday?'border:3px solid #2563eb;box-shadow:0 0 0 1px #2563eb inset':(_act===2?'border:1px solid var(--error)':(_act===1?'border:1px solid var(--warning)':(_isWe?'border:1px solid rgba(245,158,11,0.25)':'border:1px solid var(--border)')));
 // Left accent bar for action days (doesn't shift layout).
 var cellBar=_act===2?'box-shadow:inset 3px 0 0 var(--error);':(_act===1?'box-shadow:inset 3px 0 0 var(--warning);':'');
 // v289 (user Oct 15 2026): make TODAY unmistakable — outer blue ring/glow around the whole cell
 // (box-shadow doesn't shift layout) on top of the 2px blue border.
 if(isToday){ cellBar += 'box-shadow:0 0 0 2px rgba(59,130,246,0.45);'; }
 var _dk=_calDayReg(new Date(y,m,day),billByDay[day],taskByDay[day]);
-h+='<div onclick="dashCalDay('+_dk+',event)" title="Tap for the full list of this day" style="cursor:pointer;height:var(--cal-cell-h,132px);box-sizing:border-box;background:'+cellBg+';'+cellBd+';'+cellBar+'border-radius:6px;padding:3px 4px;overflow:hidden">';
+h+='<div'+(isToday?' class="cl-today"':'')+' onclick="dashCalDay('+_dk+',event)" title="Tap for the full list of this day" style="cursor:pointer;height:var(--cal-cell-h,132px);box-sizing:border-box;background:'+cellBg+';'+cellBd+';'+cellBar+'border-radius:6px;padding:3px 4px;overflow:hidden">';
 // v290 (user Oct 15 2026): lighter tone + no "วันนี้" tag. Today = soft blue pill (light bg,
 // blue number), subtle ring/border. Just the number in a light pill, nothing else.
 if(isToday){

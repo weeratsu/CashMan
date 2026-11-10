@@ -10,6 +10,7 @@ function css(){
     c+=G+'{gap:0!important;border:1px solid var(--border);border-radius:10px;overflow:hidden}';
     c+=G+'>div{border-radius:0!important;border-width:0 1px 1px 0!important;border-style:solid!important;border-color:var(--border)!important;box-shadow:none!important;margin:0!important}';
     c+=G+'>div:nth-child(7n){border-right-width:0!important}';
+    c+=G+'>div.cl-today{box-shadow:inset 0 0 0 1px #2563eb!important;position:relative;z-index:1}';   // Nov 10 2026: today = same 1px line, darker blue
     c+=G+'>div:nth-child(-n+7){background:transparent!important}';
   }
   var f=parseFloat(opt('cm_cal_fs','1'))||1;
@@ -26,6 +27,9 @@ function apply(){
 }
 function addBtns(){
   var el=document.getElementById('dash-calendar');if(!el)return;
+  // Nov 10 2026 fix: already grouped (apply() ran again without a re-render) -> just refresh the %; removing the
+  // old groups here used to delete the nav/Today buttons that live inside them.
+  if(el.querySelector('#calview-act')){var pb=el.querySelector('#calview-fs button[onclick="calFont(0)"]');if(pb)pb.textContent=Math.round((parseFloat(opt('cm_cal_fs','1'))||1)*100)+'%';return;}
   var today=el.querySelector('button[onclick="dashCalToday()"]');if(!today)return;
   var old=document.getElementById('calview-fs');if(old)old.remove();
   var p=Math.round((parseFloat(opt('cm_cal_fs','1'))||1)*100);
@@ -35,6 +39,26 @@ function addBtns(){
     '<button class="'+cls+'" style="font-size:10px;padding:4px 8px;min-width:44px" onclick="calFont(0)" title="Reset text size">'+p+'%</button>'+
     '<button class="'+cls+'" style="'+st+'" onclick="calFont(1)" title="Larger text"><i class="fa-solid fa-plus" style="font-size:9px"></i> A</button>';
   today.parentNode.insertBefore(w,today);
+  pillify(el,today,w);
+}
+// Nov 10 2026: header controls as pill groups (same look as the Bills/Tasks .calf-grp filters)
+function pillify(el,today,fs){
+  try{
+    var prev=el.querySelector('button[onclick="dashCalNav(-1)"]'),next=el.querySelector('button[onclick="dashCalNav(1)"]');
+    var ref=el.querySelector('button[onclick="dashCalRefresh()"]');
+    var all=[prev,next,today,ref].concat([].slice.call(fs.querySelectorAll('button')));
+    all.forEach(function(b){if(!b)return;b.className='';b.style.cssText='font-size:10px;line-height:1;padding:4px 9px;border-radius:999px;cursor:pointer;white-space:nowrap;border:1px solid transparent;background:transparent;color:var(--text2,var(--text))';
+      b.onmouseenter=function(){b.style.background='var(--bg2)';b.style.borderColor='var(--border)';};b.onmouseleave=function(){b.style.background='transparent';b.style.borderColor='transparent';};});
+    var mk=function(id){var g=document.getElementById(id);if(g)g.remove();g=document.createElement('span');g.id=id;g.className='calf-grp';return g;};
+    if(prev&&next&&prev.parentNode===next.parentNode){
+      var g1=mk('calview-nav');prev.parentNode.insertBefore(g1,prev);
+      var n=prev;while(n){var nx=n.nextSibling;g1.appendChild(n);if(n===next)break;n=nx;}
+    }
+    var g2=mk('calview-fsg');fs.parentNode.insertBefore(g2,fs);g2.appendChild(fs);
+    var g3=mk('calview-act');today.parentNode.insertBefore(g3,today);g3.appendChild(today);if(ref)g3.appendChild(ref);
+    [].forEach.call(fs.querySelectorAll('button'),function(b,i){if(i===1){b.style.fontWeight='700';b.style.minWidth='40px';}});
+    if(ref)ref.title='Reload latest bills, tasks and payments';
+  }catch(e){console.warn('calview pill:',e);}
 }
 function rerender(){try{if(typeof renderDashCalendar==='function')renderDashCalendar();}catch(e){}apply();}
 // ---- Task category filter (Nov 7 2026) — filters To-Do tasks by category; bills unaffected ----

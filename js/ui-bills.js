@@ -374,6 +374,7 @@ function _recRO(kind){try{
  });}catch(e){console.error('_recRO',e);}}
 function _noSaveHandlers(h){return h.replace(/ onchange="([^"]*)"/g,function(m,b){return /saveD|readAll/.test(b)?'':m;});}
 function recEditOpen(kind,i){
+ if(kind==='planned'&&typeof plEditOpen==='function'){plEditOpen(i);return;}   // Nov 10 2026: Planned uses the Add form layout
  var c=(_recCache[kind]||{})[i];if(!c)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:(kind==='inst'?D.installments:D.planned)),it=arr[i];if(!it)return;
  var hdr=document.getElementById(kind+'-hdr'),heads=hdr?Array.prototype.map.call(hdr.children,function(th){return (th.textContent||'').replace(/[\u25b2\u25bc]/g,'').trim();}):[];
  var t=document.createElement('table');t.innerHTML='<tbody><tr>'+_noSaveHandlers(c.main)+'</tr></tbody>';
@@ -1093,34 +1094,38 @@ window.plShowOutside=plShowOutside;
 var _plNewIdx=-1;
 function addPlanned(prefillISO){
 readAll();
+// Nov 10 2026: ONE form for Add + Edit (user chose the Add layout as standard). editIdx>=0 → Edit mode.
+var _ei=(typeof window._plEditIdx==='number')?window._plEditIdx:-1;window._plEditIdx=-1;var P=_ei>=0?D.planned[_ei]:null;window._plFormIdx=_ei;
 var ov=document.getElementById('pl-add-ov');
 if(!ov){ov=document.createElement('div');ov.id='pl-add-ov';
  ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
  ov.addEventListener('mousedown',function(e){if(e.target===ov)plAddClose();});
  document.body.appendChild(ov);}
 var row=function(lbl,html){return '<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--text3)">'+lbl+'</label>'+html+'</div>';};
-ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(480px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)" onkeydown="if(event.key===\'Escape\')plAddClose();if(event.key===\'Enter\'){event.preventDefault();plAddSave();}">'
- +'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-plus"></i> New planned item</h3>'
+ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(480px,96vw);box-shadow:0 10px 40px rgba(0,0,0,.3)" onkeydown="if(event.key===\'Escape\')plAddClose();if(event.key===\'Enter\'&&event.target.tagName!==\'TEXTAREA\'){event.preventDefault();plAddSave();}">'
+ +'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-'+(P?'pen':'plus')+'"></i> '+(P?'Edit planned item':'New planned item')+'</h3>'
+ +(P?'<div style="font-size:10px;color:var(--text3);margin:-6px 0 10px">Status: '+_planStatusBadge(P)+'</div>':'')
  +'<div style="display:grid;gap:10px">'
- +row('Name *','<input id="pa-name" class="inp" placeholder="e.g. Car insurance renewal" style="width:100%">')
+ +row('Name *','<input id="pa-name" class="inp" placeholder="e.g. Car insurance renewal" style="width:100%" value="'+esc(P?P.name||'':'')+'">')
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
- +row('Income / Expense','<select id="pa-dir" class="sel">'+dirOpts('expense')+'</select>')
- +row('Type','<select id="pa-type" class="sel">'+tOpts((D.types[0]&&D.types[0].id)||'')+'</select>')
+ +row('Income / Expense','<select id="pa-dir" class="sel">'+dirOpts(P?P.direction||'expense':'expense')+'</select>')
+ +row('Type','<select id="pa-type" class="sel">'+tOpts(P?P.type:((D.types[0]&&D.types[0].id)||''))+'</select>')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
- +row('Amount *','<input id="pa-amt" class="inp inp-num" inputmode="decimal" placeholder="0.00">')
- +row('Date *','<input id="pa-date" type="date" class="inp">')
+ +row('Amount *','<input id="pa-amt" class="inp inp-num" inputmode="decimal" placeholder="0.00" value="'+(P&&P.amount?P.amount:'')+'">')
+ +row('Date *','<input id="pa-date" type="date" class="inp" value="'+(P?P.date||'':'')+'">')
  +'</div>'
  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
- +row('Card','<select id="pa-card" class="sel">'+cOpts('Cash/Direct')+'</select>')
- +row('Own By','<select id="pa-own" class="sel">'+oOpts('Me')+'</select>')
+ +row('Card','<select id="pa-card" class="sel">'+cOpts(P?P.card||'Cash/Direct':'Cash/Direct')+'</select>')
+ +row('Own By','<select id="pa-own" class="sel">'+oOpts(P?P.own_by||'Me':'Me')+'</select>')
  +'</div>'
- +row('Account','<select id="pa-acct" class="sel" style="width:100%">'+_acctOptsSel('')+'</select>')
- +row('Notes','<input id="pa-notes" class="inp" style="width:100%">')
- +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="pa-auto"> Auto-charged (auto-pay)</label>'
+ +row('Account','<select id="pa-acct" class="sel" style="width:100%">'+_acctOptsSel(P?P.account||'':'')+'</select>')
+ +row('Notes','<input id="pa-notes" class="inp" style="width:100%" value="'+esc(P?P.notes||'':'')+'">')
+ +row('Remarks','<textarea id="pa-rem" class="inp" rows="2" style="width:100%;resize:vertical;box-sizing:border-box">'+esc(P?P.remarks||'':'')+'</textarea>')
+ +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="pa-auto"'+(P&&P.auto_pay?' checked':'')+'> Auto-charged (auto-pay)</label>'
  +'</div>'
  +'<div id="pa-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
- +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="plAddClose()">Cancel</button><button class="btn btn-primary" onclick="plAddSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
+ +'<div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="plAddClose()">Cancel</button><button class="btn btn-primary" onclick="plAddSave()"><i class="fa-solid fa-check"></i> Save</button></div>'
  +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel</div>'
  +'</div>';
 ov.style.display='flex';
@@ -1134,9 +1139,12 @@ var name=g('pa-name'); if(!name){err('Please enter a name','pa-name');return;}
 var amt=parseFloat(g('pa-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amount greater than 0','pa-amt');return;}
 var date=g('pa-date'); if(!date){err('Pick a date (items without a date are skipped by the Timeline)','pa-date');return;}
 var ae=document.getElementById('pa-auto');
-D.planned.push({name:name,type:g('pa-type')||D.types[0]||'Other',amount:amt,date:date,card:g('pa-card')||'Cash/Direct',account:g('pa-acct'),
- direction:g('pa-dir')||'expense',own_by:g('pa-own')||'me',notes:g('pa-notes'),auto_pay:!!(ae&&ae.checked)});
-_plNewIdx=D.planned.length-1;
+var _rec={name:name,type:g('pa-type')||D.types[0]||'Other',amount:amt,date:date,card:g('pa-card')||'Cash/Direct',account:g('pa-acct'),
+ direction:g('pa-dir')||'expense',own_by:g('pa-own')||'me',notes:g('pa-notes'),remarks:g('pa-rem'),auto_pay:!!(ae&&ae.checked)};
+var _ei=(typeof window._plFormIdx==='number')?window._plFormIdx:-1;window._plFormIdx=-1;
+if(_ei>=0&&D.planned[_ei]){Object.keys(_rec).forEach(function(k){D.planned[_ei][k]=_rec[k];});_plNewIdx=_ei;}   // edit in place (keeps id, paid, other fields)
+else{D.planned.push(_rec);_plNewIdx=D.planned.length-1;}
+var _wasEdit=_ei>=0;
 var _fc=!!window._cmFromCal;
 saveD();plAddClose();
 simulate();renderAllTabs();
@@ -1144,8 +1152,12 @@ if(_fc&&typeof window._dashCalAfterSave==='function'){window._dashCalAfterSave()
 try{filterPlanned();}catch(e){}
 var r=document.querySelector('#planned-body tr.pl-main[data-plrow="'+_plNewIdx+'"]');
 if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
-if(typeof toast==='function')toast('\u2705 Planned item added');
+try{if(typeof renderBillReminder==='function')renderBillReminder();}catch(e){}
+if(typeof toast==='function')toast(_wasEdit?'\u2705 Saved':'\u2705 Planned item added');
 }
+// ✏️ Edit on Planned rows → same form as Add (prefilled)
+function plEditOpen(i){if(!D.planned[i])return;window._plEditIdx=i;addPlanned();}
+window.plEditOpen=plEditOpen;
 
 function toggleAllPlanned(c){document.querySelectorAll('.pl-chk').forEach(function(cb){var tr=cb.closest('tr');if(tr&&tr.style.display!=='none')cb.checked=c});updatePlannedBulk()}
 function updatePlannedBulk(){var n=document.querySelectorAll('.pl-chk:checked').length;var el=document.getElementById('planned-bulk');if(el)el.style.display=n>0?'':'none';var c=document.getElementById('pl-sel-count');if(c)c.textContent=n}
@@ -1170,7 +1182,9 @@ var types={},cards={};
 D.planned.forEach(function(p){types[p.type]=1;if(p.card)cards[p.card]=1});
 var ft=document.getElementById('flt-p-type'),fc=document.getElementById('flt-p-card');
 if(ft){var cv=ft.value;ft.innerHTML='<option value="">All Types</option>'+(typeof tOpts==='function'?tOpts(cv):'');ft.value=cv}
-if(fc){var cv2=fc.value;fc.innerHTML='<option value="">All Cards</option>'+Object.keys(cards).sort().map(function(c){return '<option'+(cv2===c?' selected':'')+'>'+esc(c)+'</option>'}).join('')}}
+if(fc){var cv2=fc.value;var _cn=function(c){try{if(typeof window.cardDisplayName==='function'&&/^c\d+$/.test(c)){var n=window.cardDisplayName(c);if(n)return n;}}catch(e){}return c;};
+fc.innerHTML='<option value="">All Cards</option>'+Object.keys(cards).sort(function(a,b){return _cn(a).localeCompare(_cn(b));}).map(function(c){return '<option value="'+esc(c)+'"'+(cv2===c?' selected':'')+'>'+esc(_cn(c))+'</option>'}).join('')}
+var fsx=document.getElementById('flt-p-status');if(fsx&&!fsx.querySelector('option[value="active"]')){var o=document.createElement('option');o.value='active';o.textContent='\u23f3 Active (upcoming + overdue)';fsx.insertBefore(o,fsx.options[1]||null);}}
 
 (function(){if(document.getElementById('pl-done-css'))return;var s=document.createElement('style');s.id='pl-done-css';s.textContent='#planned-body tr.pl-done{opacity:.55}#planned-body tr.pl-done td,#planned-body tr.pl-done .inp-inline,#planned-body tr.pl-done .sel{color:var(--text3)!important}#planned-body tr.pl-done:hover{opacity:.85}';document.head.appendChild(s);})();
 
@@ -1180,7 +1194,7 @@ var _paidN=0;
 document.querySelectorAll('#planned-body tr').forEach(function(tr){
 var pi=tr.getAttribute('data-plrow');if(pi===null){tr.style.display='';return}
 pi=+pi;if(!D.planned[pi]){tr.style.display='';return}
-var show=true;if(ft&&D.planned[pi].type!==ft)show=false;if(fc&&D.planned[pi].card!==fc)show=false;if(fs&&_planStatus(D.planned[pi])!==fs)show=false;
+var show=true;if(ft&&D.planned[pi].type!==ft)show=false;if(fc&&D.planned[pi].card!==fc)show=false;var _st=_planStatus(D.planned[pi]);if(fs==='active'){if(_st==='paid')show=false;}else if(fs&&_st!==fs)show=false;
 var _paid=_planIsPaid(D.planned[pi]);
 var _isD=tr.classList.contains('pl-detail');
 tr.classList.toggle('pl-done',_planStatus(D.planned[pi])==='paid');

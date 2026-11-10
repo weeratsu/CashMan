@@ -72,16 +72,32 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Time','<input id="ta-time" type="time" class="inp">')
  +'</div>'
  +row('Deadline (optional)','<input id="ta-dl" type="date" class="inp" title="Last day it must be done \u2014 shows as a bar in the calendar">')
- +row('Repeat','<select id="ta-recur" class="sel"><option value="none">once</option><option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option><option value="yearly">yearly</option></select>')
+ +'<div style="display:grid;grid-template-columns:1fr auto 1fr 1.3fr;gap:10px;align-items:end">'
+ +row('Repeat','<select id="ta-recur" class="sel" onchange="todoAddRecurUI()"><option value="none">once</option><option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option><option value="yearly">yearly</option></select>')
+ +'<div class="ta-rw" style="visibility:hidden">'
+ +row('Every','<div style="display:flex;gap:4px;align-items:center"><input id="ta-every" type="number" min="1" value="1" class="inp" style="width:60px"><span id="ta-unit" style="font-size:10px;color:var(--text3)">day(s)</span></div>')
+ +'</div>'
+ +'<div id="ta-dowwrap" style="visibility:hidden">'+row('On day','<select id="ta-dow" class="sel">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function(n,i){return '<option value="'+i+'">'+n+'</option>';}).join('')+'</select>')+'</div>'
+ +'<div class="ta-rw" style="visibility:hidden">'+row('Until (optional)','<input id="ta-until" type="date" class="inp">')+'</div>'
+ +'</div>'
  +'</div>'
  +'<div id="ta-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
  +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="todoAddClose()">Cancel</button><button class="btn btn-primary" onclick="todoAddSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
- +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 recurrence details (every N, day, until) can be fine-tuned in the row after saving</div>'
+ +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel</div>'
  +'</div>';
 ov.style.display='flex';
 setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var dm=document.getElementById('ta-mode');var dd=document.getElementById('ta-date');var dw=document.getElementById('ta-datewrap');if(dm)dm.value='date';if(dw)dw.style.visibility='visible';if(dd)dd.value=prefillISO;}var e=document.getElementById('ta-title');if(e)e.focus();},30);
 }
 function todoAddClose(){window._cmFromCal=false;var ov=document.getElementById('todo-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
+// Nov 10 2026: repeat details in the Add popup (every N, weekday for weekly, until)
+function todoAddRecurUI(){var r=(document.getElementById('ta-recur')||{}).value||'none';
+ document.querySelectorAll('#todo-add-ov .ta-rw').forEach(function(w){w.style.visibility=r==='none'?'hidden':'visible';});
+ var u=document.getElementById('ta-unit');if(u)u.textContent={daily:'day(s)',weekly:'week(s)',monthly:'month(s)',yearly:'year(s)'}[r]||'';
+ var dw=document.getElementById('ta-dowwrap');if(dw)dw.style.visibility=r==='weekly'?'visible':'hidden';
+ var dd=document.getElementById('ta-date'),ds=document.getElementById('ta-dow');
+ if(ds&&!ds._set){ds.value=String((dd&&dd.value?new Date(dd.value+'T00:00:00'):new Date()).getDay());}
+ if(ds)ds.onchange=function(){ds._set=1;};}
+window.todoAddRecurUI=todoAddRecurUI;
 function todoAddSave(){
 var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
 var title=g('ta-title');
@@ -92,7 +108,9 @@ var recur=g('ta-recur')||'none';
 var d0=due?new Date(due+'T00:00:00'):new Date();
 var t={id:_todoId(),title:title,note:g('ta-note'),url:g('ta-url'),
  deadline_mode:mode,due_date:mode==='date'?due:'',due_time:g('ta-time'),deadline_date:(mode==='date'&&g('ta-dl')&&g('ta-dl')>due)?g('ta-dl'):'',
- recur:recur,recur_every:1,recur_dow:d0.getDay(),recur_dom:d0.getDate(),recur_month:d0.getMonth()+1,recur_until:'',
+ recur:recur,recur_every:Math.max(1,parseInt(g('ta-every'))||1),
+ recur_dow:(recur==='weekly'&&g('ta-dow')!=='')?parseInt(g('ta-dow')):d0.getDay(),
+ recur_dom:d0.getDate(),recur_month:d0.getMonth()+1,recur_until:recur!=='none'?g('ta-until'):'',
  category:g('ta-cat')||((D.todo_cats&&D.todo_cats[0])||'Other'),priority:parseInt(g('ta-pri'))||2,
  done:false,done_date:'',link_type:'',link_ref:''};
 D.todos.push(t);
@@ -559,18 +577,24 @@ h+='</div>';}
 h+='</div>';
 })();
 
-var chips=[['open','\ud83d\udcdd Open'],['asap','\u2757 ASAP'],['overdue','\u26a0\ufe0f Overdue'],['today','\ud83d\udccc Due today'],['soon','\ud83d\udd14 Due soon'],['upcoming','\ud83d\udcc5 Upcoming'],['done','\u2705 Done'],['all','All']];
-h+='<div class="filterbar" style="gap:6px">';
-chips.forEach(function(c){var on=_todoFilter===c[0];
-h+='<button class="btn '+(on?'btn-primary':'btn-ghost')+'" style="font-size:10px;padding:3px 10px" onclick="setTodoFilter(\''+c[0]+'\')">'+c[1]+'</button>';});
+// Nov 10 2026: grouped pill filters (Status | When) + tools row (search, category, sort)
+var _pill=function(c){var on=_todoFilter===c[0];
+ return '<button onclick="setTodoFilter(\''+c[0]+'\')" style="font-size:11px;padding:3px 12px;border-radius:999px;cursor:pointer;border:1px solid '+(on?'var(--primary)':'var(--border)')+
+ ';background:'+(on?'color-mix(in srgb, var(--primary) 14%, transparent)':'transparent')+';color:'+(on?'var(--primary)':'var(--text2,var(--text))')+';font-weight:'+(on?'700':'500')+'">'+c[1]+'</button>';};
+var _grp=function(lbl,arr){return '<span style="display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap"><span style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.5px">'+lbl+'</span>'+arr.map(_pill).join('')+'</span>';};
+h+='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:6px 0">';
+h+=_grp('STATUS',[['open','Open'],['done','Done'],['all','All']]);
+h+='<span style="width:1px;height:18px;background:var(--border)"></span>';
+h+=_grp('WHEN',[['asap','\u2757 ASAP'],['overdue','\u26a0\ufe0f Overdue'],['today','\ud83d\udccc Today'],['soon','\ud83d\udd14 Soon'],['upcoming','\ud83d\udcc5 Upcoming']]);
+h+='</div>';
+h+='<div class="filterbar" style="gap:8px;align-items:center">';
 // Category filter dropdown (combines with the status chips above).
 var _tcats=(D.todo_cats||[]).slice().sort(function(a,b){return a.localeCompare(b);});
-h+='<span style="flex:1"></span>';
-// Sort-mode selector (combines with header-click sorting; 'urgent_priority' = Overdue > ASAP > Priority).
 var _sortOpts=[['urgent_priority','\ud83d\udd25 Overdue > ASAP > Priority'],['urgency','Urgency'],['priority','Priority'],['due','Due date'],['name','Task name'],['category','Category']];
-h+='<label style="font-size:10px;color:var(--text3)">Sort</label><select class="sel" style="font-size:10px;padding:2px 8px" onchange="setTodoSortMode(this.value)" title="Sort order">'+_sortOpts.map(function(o){return '<option value="'+o[0]+'"'+(_todoSort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';
 h+='<span class="todo-search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input id="todo-search" type="search" placeholder="ค้นหา task / note / category" value="'+esc(_todoSearch)+'" oninput="setTodoSearch(this.value)" onkeydown="if(event.key===\'Escape\')clearTodoSearch()">'+(_todoSearch?'<button class="todo-search-x" title="ล้าง" onclick="clearTodoSearch()">\u00d7</button>':'')+'</span>';
 h+='<select class="sel" style="font-size:10px;padding:2px 8px" onchange="setTodoCatFilter(this.value)" title="Filter by category"><option value="">All categories</option>'+_tcats.map(function(cn){return '<option value="'+esc(cn)+'"'+(_todoCatFilter===cn?' selected':'')+'>'+esc(cn)+'</option>';}).join('')+'</select>';
+h+='<span style="flex:1"></span>';
+h+='<label style="font-size:10px;color:var(--text3)"><i class="fa-solid fa-arrow-down-wide-short"></i> Sort</label><select class="sel" style="font-size:10px;padding:2px 8px" onchange="setTodoSortMode(this.value)" title="Sort order">'+_sortOpts.map(function(o){return '<option value="'+o[0]+'"'+(_todoSort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';
 h+='</div>';
 
 if(!items.length&&_todoSearch){h+='<p class="text-muted" style="font-size:12px;padding:10px 0">ไม่พบ task ที่ตรงกับ "'+esc(_todoSearch)+'" — <a href="#" onclick="clearTodoSearch();return false;">ล้างคำค้น</a></p>';}
@@ -755,13 +779,13 @@ function todoEditOpen(id){
  $('ta-pri').value=String(t.priority||2);$('ta-mode').value=t.deadline_mode||'none';
  $('ta-datewrap').style.visibility=(t.deadline_mode==='date')?'visible':'hidden';$('ta-date').value=t.due_date||'';
  $('ta-time').value=t.due_time||'';$('ta-dl').value=t.deadline_date||'';$('ta-recur').value=t.recur||'none';
- // recurrence details + link, cloned from the row editor (save handlers stripped)
+ // Nov 10 2026: same layout as New task — repeat details use the popup's own fields; only the bill/card Link select is borrowed from the row editor
+ $('ta-every').value=String(t.recur_every||1);$('ta-until').value=t.recur_until||'';
+ $('ta-dow').value=String(t.recur_dow!=null?t.recur_dow:0);$('ta-dow')._set=1;todoAddRecurUI();
  var c=_todoRowCache[id],extra='';
  if(c&&c.r2){var tmp=document.createElement('div');tmp.innerHTML='<table><tbody><tr>'+c.r2+'</tr></tbody></table>';
-  var meta=tmp.querySelector('#tedit_'+id);if(meta){meta.removeAttribute('id');meta.style.display='grid';
-   meta.querySelectorAll('[onchange]').forEach(function(e){e.removeAttribute('onchange');});
-   var bx=meta.children;for(var k=bx.length-1;k>=0;k--){var lb=(bx[k].textContent||'').toUpperCase();if(/CATEGORY|PRIORITY/.test(lb.split('\n')[0]||lb))bx[k].parentNode.removeChild(bx[k]);}
-   extra='<div style="margin-top:10px"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Repeat details \u00b7 Link</div>'+meta.outerHTML+'</div>';}}
+  var ls=tmp.querySelector('select[data-tf="link"]');if(ls){ls.removeAttribute('onchange');ls.className='sel';ls.style.cssText='width:100%';
+   extra='<div style="display:flex;flex-direction:column;gap:3px;margin-top:10px"><label style="font-size:10px;color:var(--text3)">Linked bill / card</label>'+ls.outerHTML+'</div>';}}
  var err=$('ta-err');if(err&&extra)err.insertAdjacentHTML('beforebegin','<div id="ta-extra">'+extra+'</div>');
  var sv=ov.querySelector('button.btn-primary');if(sv)sv.setAttribute('onclick','todoEditSave(\''+id+'\')');
  var box=ov.firstElementChild;if(box)box.setAttribute('onkeydown',"if(event.key==='Escape')todoAddClose();if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'){event.preventDefault();todoEditSave('"+id+"');}");
@@ -776,6 +800,9 @@ function todoEditSave(id){
  t.deadline_mode=mode;t.due_date=mode==='date'?due:'';t.due_time=g('ta-time');
  var dl=g('ta-dl');t.deadline_date=(mode==='date'&&dl&&dl>due)?dl:'';
  var rc=g('ta-recur')||'none';if(rc!==t.recur){t.recur=rc;if(rc!=='none'&&t.due_date){var d0=new Date(t.due_date+'T00:00:00');t.recur_dow=d0.getDay();t.recur_dom=d0.getDate();t.recur_month=d0.getMonth()+1;}}
+ if(rc!=='none'){t.recur_every=Math.max(1,parseInt(g('ta-every'))||1);t.recur_until=g('ta-until');
+  if(rc==='weekly'&&g('ta-dow')!=='')t.recur_dow=parseInt(g('ta-dow'));}
+ else t.recur_until='';
  var ex=document.getElementById('ta-extra');
  if(ex)ex.querySelectorAll('[data-tf]').forEach(function(e){var f=e.getAttribute('data-tf'),v=e.value;
   if(f==='link'){if(!v){t.link_type='';t.link_ref='';}else{var p=v.split('::');t.link_type=p[0]||'';t.link_ref=p.slice(1).join('::')||'';}return;}

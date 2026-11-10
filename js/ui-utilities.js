@@ -296,8 +296,14 @@ function _utilDrawSeason(common,txtColor){
   var st=by.map(function(a){ if(!a.length) return null; var s=a.reduce(function(x,y){return x+y;},0); return {avg:s/a.length,min:Math.min.apply(null,a),max:Math.max.apply(null,a),n:a.length}; });
   var dec=o.metric==='units'?0:2, col=o.utility==='electric'?'#d97706':'#0891b2', unit=o.metric==='units'?(o.utility==='electric'?'kWh':'m\u00b3'):'\u0e3f';
   var all=st.filter(Boolean), ov=all.length?all.reduce(function(s,x){return s+x.avg;},0)/all.length:null;
-  if(_utilChartSeason){try{_utilChartSeason.destroy()}catch(e){}}
+  if(_utilChartSeason){try{_utilChartSeason.destroy()}catch(e){}_utilChartSeason=null;}
+  // Nov 10 2026: other pages call renderUtilities() in the background; building this range chart in a
+  // hidden container throws "reading 'stacks'" (highcharts-more). Only build it when it is on screen.
+  var _sc=document.getElementById('util-chart-season');if(!_sc||!_sc.offsetParent)return;
   _utilChartSeason=Highcharts.chart('util-chart-season',Object.assign({},common,{
+    // Nov 10 2026: no window-resize reflow / animation — other pages re-render while this chart sits hidden,
+    // and a pending reflow on a destroyed/hidden range series threw "reading 'stacks'" (highcharts-more).
+    chart:Object.assign({},common.chart||{},{reflow:false,animation:false}),plotOptions:Object.assign({},common.plotOptions||{},{series:Object.assign({},(common.plotOptions||{}).series||{},{animation:false})}),
     title:{text:null}, xAxis:{categories:MON,labels:{style:{color:txtColor}}},
     yAxis:{title:{text:unit,style:{color:txtColor}},labels:{style:{color:txtColor}},
       plotLines:ov!=null?[{value:ov,color:col,dashStyle:'Dash',width:1.5,label:{text:'avg '+ov.toLocaleString('en-US',{maximumFractionDigits:dec}),align:'right',style:{color:col,fontSize:'10px'}}}]:[]},
@@ -508,8 +514,9 @@ function utilAutoSyncPlanned(){
       }
       if(isPaid){
         var prev=D.bill_payments[payKey];
-        if(!prev || prev.paid_amount!==amt || prev.paid_date!==(paidDate||due)){
-          D.bill_payments[payKey]={paid:true,paid_date:paidDate||due,paid_amount:amt,due:due,type:'Utilities',card:'',auto_pay:false,_fromUtility:true};
+        // Nov 10 2026: store the bill's own period (e.g. 2026-10) so History shows งวด correctly, not the due-month key suffix
+        if(!prev || prev.paid_amount!==amt || prev.paid_date!==(paidDate||due) || prev.period!==b.period){
+          D.bill_payments[payKey]={paid:true,paid_date:paidDate||due,paid_amount:amt,due:due,type:'Utilities',card:'',auto_pay:false,_fromUtility:true,period:b.period,orig_due:due};
           changed=true;
         }
       }else if(D.bill_payments[payKey]&&D.bill_payments[payKey]._fromUtility){

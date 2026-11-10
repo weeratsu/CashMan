@@ -1,6 +1,33 @@
 // ui-cbview.js (Nov 9 2026) — Card Bills add-ons, step 1: Month/Year jump.
 // Does NOT wrap renderCardBills; just watches the page and adds two selects next to the month title.
 (function(){
+// Nov 10 2026: paid = the header has a badge whose own text is exactly "paid" (any case; the badge is
+// uppercased by CSS, so textContent is "Paid" — the old /PAID/ test never matched).
+// v16 (Nov 10 2026): paid state from DATA, not page text — same source ui-bills.js uses for the PAID badge:
+// cbPaidRec(card, viewYear, viewMonth, period).paid, card resolved to its id (D.cards[].id).
+// Period = the box's "งวด YYYY-MM" badge (blank -> cbPaidRec derives it from the view month).
+// Falls back to the old text check only if cbPaidRec is unavailable.
+window.cbvIsPaid=function(h){if(!h)return false;
+  try{
+    if(typeof window.cbPaidRec==='function'||typeof cbPaidRec==='function'){
+      var f=window.cbPaidRec||cbPaidRec;
+      var m=/cbToggle\('(.*)'\)/.exec(h.getAttribute('onclick')||'');if(!m)return false;
+      var nm=m[1].replace(/\\'/g,"'");
+      var c=(typeof window.cardResolve==='function'&&window.cardResolve(nm))||(window.D&&D.cards||[]).filter(function(x){return x.name===nm;})[0]||null;
+      var key=(c&&c.name)||nm;  // cbPaidRec resolves name->id internally (records keyed CB|<id>|period)
+      var pm=/\u0e07\u0e27\u0e14\s*(\d{4}-\d{2})/.exec(h.textContent||'');
+      var vp=(typeof _cbPeriod==='function')?_cbPeriod():{y:_cbYear,m:_cbMonth};
+      var r=f(key,vp.y,vp.m,pm?pm[1]:'');
+      return !!(r&&r.paid);
+    }
+  }catch(e){console.warn('cbvIsPaid',e);}
+  var box=h.closest('.card')||h;
+  var s=box.querySelectorAll('span,b,div');
+  for(var i=0;i<s.length;i++){var t=(s[i].textContent||'').replace(/\s+/g,' ').trim();
+    if(/^to pay$/i.test(t))return false;}
+  for(var j=0;j<s.length;j++){var u=(s[j].textContent||'').replace(/\s+/g,' ').trim();
+    if(/^paid$/i.test(u)||/^statement paid$/i.test(u))return true;}
+  return false;};
 var MONF=['January','February','March','April','May','June','July','August','September','October','November','December'];
 window.cbvJump=function(){
   try{var y=+document.getElementById('cbv-y').value,m=+document.getElementById('cbv-m').value;
@@ -36,7 +63,7 @@ function bankSum(){
       bk=bk||'Other';
       var txt=h.textContent||'',mm=/Effective:\s*\u0e3f?\s*([\d,]+\.\d{2})/.exec(txt);
       var amt=mm?parseFloat(mm[1].replace(/,/g,'')):0;if(!(amt>0.005))continue;
-      var paid=/\bPAID\b/.test(txt)&&!/TO PAY/.test(txt);
+      var paid=window.cbvIsPaid(h);
       if(!by[bk]){by[bk]={due:0,paid:0,n:0};order.push(bk);}
       if(paid)by[bk].paid+=amt;else{by[bk].due+=amt;by[bk].n++;}
     }
@@ -80,7 +107,7 @@ function group(){
       box.style.display=show?'':'none';
       var dm=/deadline\s+(\d+)\w*\s+([A-Z][a-z]{2})/.exec(h.textContent||''),dl=9999;
       if(dm){var mi=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(dm[2]);if(mi>=0)dl=((mi-_cbMonth+12)%12)*40+(+dm[1]);}
-      items.push({box:box,bank:bk||'Other',code:c.bank,amt:amt,dl:dl,paid:/\bPAID\b/.test(h.textContent)&&!/TO PAY/.test(h.textContent),show:show});
+      items.push({box:box,bank:bk||'Other',code:c.bank,amt:amt,dl:dl,paid:window.cbvIsPaid(h),show:show});
     }
     if(!fG||!items.length)return;
     var order=[];items.forEach(function(x){if(order.indexOf(x.bank)<0)order.push(x.bank);});
@@ -96,14 +123,16 @@ function group(){
       var g=document.createElement('div');
       var col=COL[order.indexOf(bk)%COL.length];
       try{if(typeof bankColor==='function')col=bankColor(bk)||col;}catch(e){}
-      g.style.cssText='border:2px solid '+col+';border-left-width:6px;border-radius:12px;padding:10px 10px 2px;margin-bottom:18px;'+
+      g.style.cssText='border:1px solid '+col+';border-left-width:4px;border-radius:12px;padding:10px 10px 2px;margin-bottom:18px;'+
         'background:color-mix(in srgb, '+col+' 7%, var(--bg3));box-shadow:0 2px 6px rgba(0,0,0,.08)'+(vis.length?'':';display:none');
       var badge='';try{if(typeof bankBadge==='function')badge=bankBadge(mem[0].code,false);}catch(e){}
       g.innerHTML='<div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin:0 4px 8px">'+badge+String(bk).replace(/</g,'&lt;')+
         ' <span style="font-weight:400;color:var(--text3);font-size:10px">('+vis.length+' card'+(vis.length!==1?'s':'')+')</span><span style="flex:1"></span>'+
         '<span style="font-size:11px">To pay: <span style="font-family:var(--mono);color:'+(due>0.005?'var(--error)':'var(--success)')+'">\u0e3f'+fm(due)+'</span></span></div>';
       wrap.appendChild(g);
-      mem.forEach(function(x){g.appendChild(x.box);});
+      // Nov 10 2026: paid cards sink to the bottom of their bank frame (stable: keeps original order otherwise)
+      mem.map(function(x,i){return {x:x,i:i};}).sort(function(a,b){return (a.x.paid?1:0)-(b.x.paid?1:0)||a.i-b.i;})
+        .forEach(function(o){g.appendChild(o.x.box);});
     });
   }catch(e){console.warn('cbview group:',e);}
 }
@@ -139,5 +168,41 @@ function pdfIcons(){
     }
   }catch(e){console.warn('cbview pdf:',e);}
 }
-setInterval(function(){add();bankSum();group();pdfIcons();},500);
+// ---- step 5 (Nov 10 2026): missing-statement alert. Per active card (by card_id): if today is past
+// last stmt_date + 1 month + GRACE days and no newer PDF arrived -> warn (email subject/sender may have changed).
+var GRACE=5;
+function missAlert(){
+  try{
+    var el=document.getElementById('cardbills-content');if(!el||document.getElementById('cbv-miss'))return;
+    var nav=el.querySelector('.card');if(!nav)return;
+    var bills=(window.CARD_BILLS&&window.CARD_BILLS.bills)||[],last={};
+    bills.forEach(function(b){if(b.card_id&&b.stmt_date&&(!last[b.card_id]||b.stmt_date>last[b.card_id]))last[b.card_id]=b.stmt_date;});
+    var today=new Date();today.setHours(0,0,0,0);var miss=[];
+    (window.D&&D.cards||[]).forEach(function(c){
+      if(!c||!c.id||!last[c.id])return;
+      if(typeof window.ccIsClosed==='function'&&window.ccIsClosed(c))return;
+      var d=new Date(last[c.id]+'T00:00:00');var exp=new Date(d.getFullYear(),d.getMonth()+1,d.getDate()+GRACE);
+      if(today>exp)miss.push({n:c.name,l:last[c.id],days:Math.round((today-exp)/864e5)});
+    });
+    if(!miss.length)return;
+    var w=document.createElement('div');w.id='cbv-miss';
+    w.style.cssText='margin-top:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--warning,#d97706);background:color-mix(in srgb, var(--warning,#d97706) 10%, transparent);font-size:11px';
+    w.innerHTML='<b>\u26a0\ufe0f Statement PDF not received</b> \u2014 check Gmail Saver (bank may have changed email subject/sender):'+
+      miss.map(function(m){return '<div style="margin-top:3px">\u2022 '+String(m.n).replace(/</g,'&lt;')+' \u2014 last statement '+m.l+' ('+m.days+' day'+(m.days!==1?'s':'')+' overdue)</div>';}).join('');
+    nav.appendChild(w);
+  }catch(e){console.warn('cbview miss:',e);}
+}
+// v14: totals/grouping are built once per render; if any card's paid state changes afterwards
+// (Mark paid / late badge), re-render so TRANSFER BY BANK, To pay and order are recomputed.
+var _paidSig=null;
+function paidWatch(){
+  try{var el=document.getElementById('cardbills-content');if(!el||!el.querySelector('#cbv-bank'))return;
+    var hs=el.querySelectorAll('[onclick^="cbToggle("]'),s='';
+    for(var i=0;i<hs.length;i++)s+=(hs[i].getAttribute('onclick')||'')+(window.cbvIsPaid(hs[i])?'1':'0');
+    var stamp=el.querySelector('#cbv-bank');
+    if(stamp._sig===undefined){stamp._sig=s;return;}
+    if(stamp._sig!==s){stamp._sig=s;renderCardBills();}
+  }catch(e){console.warn('cbview paidWatch:',e);}
+}
+setInterval(function(){add();bankSum();group();pdfIcons();missAlert();paidWatch();},500);
 })();

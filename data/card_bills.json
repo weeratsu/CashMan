@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-10T18:25:39",
+ "generated_at": "2026-11-10T19:04:35",
  "bills": [
   {
    "card": "BAY AIA Visa Platinum",
@@ -28,13 +28,6 @@
     }
    ],
    "paid_total": 1796.55,
-   "unmatched_payments": [
-    {
-     "amount": 667.0,
-     "paid_at": "2026-06-29T10:25:09",
-     "ref": "KS0000000664199789"
-    }
-   ],
    "paid_date": "2026-09-26T12:51:35",
    "paid_full": true,
    "remaining": 0.0
@@ -55,7 +48,7 @@
    "prev_balance": 1796.55,
    "points_balance": 375,
    "points_date": "2026-10-25",
-   "source_file": "e-Statement-450578XXXXXX3243_2026-10-27.pdf",
+   "source_file": "BAY AIA Visa Platinum_2026-10.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\BAY AIA Visa Platinum\\2026\\BAY AIA Visa Platinum_2026-10.pdf",
    "payments": [],
    "paid_total": 0.0,
@@ -146,37 +139,20 @@
    "adjustment_total": -148.0,
    "total_payments": -34548.11,
    "prev_balance": 22548.11,
-   "points_balance": null,
+   "points_balance": 8347,
    "points_date": "2026-10-09",
    "source_file": "BAY JCB Platinum_2026-09.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\BAY JCB Platinum\\2026\\BAY JCB Platinum_2026-09.pdf",
    "payments": [
     {
      "amount": 2772.0,
-     "paid_at": "2026-06-11T11:40:30",
-     "ref": "KS0000000612055373",
-     "carry": true
+     "paid_at": "2026-10-12",
+     "ref": "next-statement",
+     "carry": false
     }
    ],
    "paid_total": 2772.0,
-   "unmatched_payments": [
-    {
-     "amount": 12981.01,
-     "paid_at": "2026-06-11T11:40:30",
-     "ref": "KS0000000612055373"
-    },
-    {
-     "amount": 20898.45,
-     "paid_at": "2026-08-11T11:41:32",
-     "ref": "KS0000000798177305"
-    },
-    {
-     "amount": 12000.0,
-     "paid_at": "2026-09-30T10:28:15",
-     "ref": "KS0000000948879944"
-    }
-   ],
-   "paid_date": "2026-06-11T11:40:30",
+   "paid_date": "2026-10-12",
    "paid_full": true,
    "remaining": 0.0
   },
@@ -194,22 +170,15 @@
    "adjustment_total": -472.5,
    "total_payments": -2772.0,
    "prev_balance": 2772.0,
-   "points_balance": null,
+   "points_balance": 5684,
    "points_date": "2026-11-09",
-   "source_file": "e-Statement-356989XXXXXX0767_2026-11-10.pdf",
+   "source_file": "BAY JCB Platinum_2026-10.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\BAY JCB Platinum\\2026\\BAY JCB Platinum_2026-10.pdf",
-   "payments": [
-    {
-     "amount": 9331.5,
-     "paid_at": "2026-06-11T11:40:30",
-     "ref": "KS0000000612055373",
-     "carry": true
-    }
-   ],
-   "paid_total": 9331.5,
+   "payments": [],
+   "paid_total": 0.0,
    "unmatched_payments": [
     {
-     "amount": 3649.51,
+     "amount": 15753.01,
      "paid_at": "2026-06-11T11:40:30",
      "ref": "KS0000000612055373"
     },
@@ -224,9 +193,9 @@
      "ref": "KS0000000948879944"
     }
    ],
-   "paid_date": "2026-06-11T11:40:30",
-   "paid_full": true,
-   "remaining": 0.0
+   "paid_date": null,
+   "paid_full": false,
+   "remaining": 9331.5
   },
   {
    "card": "BAY Visa Platinum",
@@ -277,23 +246,18 @@
    "points_date": "2026-10-09",
    "source_file": "BAY Visa Platinum_2026-09.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\BAY Visa Platinum\\2026\\BAY Visa Platinum_2026-09.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "unmatched_payments": [
+   "payments": [
     {
-     "amount": 3099.14,
-     "paid_at": "2026-06-11T11:23:00",
-     "ref": "KS0000000612006905"
-    },
-    {
-     "amount": 5551.5,
-     "paid_at": "2026-08-11T11:40:04",
-     "ref": "KS0000000798172777"
+     "amount": 3929.5,
+     "paid_at": "2026-10-12",
+     "ref": "next-statement",
+     "carry": false
     }
    ],
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3929.5
+   "paid_total": 3929.5,
+   "paid_date": "2026-10-12",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "BAY Visa Platinum",
@@ -311,7 +275,7 @@
    "prev_balance": 3929.5,
    "points_balance": 4410,
    "points_date": "2026-11-09",
-   "source_file": "e-Statement-455205XXXXXX6425_2026-11-10.pdf",
+   "source_file": "BAY Visa Platinum_2026-10.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\BAY Visa Platinum\\2026\\BAY Visa Platinum_2026-10.pdf",
    "payments": [],
    "paid_total": 0.0,
@@ -448,12 +412,18 @@
      "paid_at": "2023-10-06T14:28:27",
      "ref": "013279142827APM08735",
      "carry": false
+    },
+    {
+     "amount": 1050.0,
+     "paid_at": "2023-10-10",
+     "ref": "next-statement",
+     "carry": false
     }
    ],
-   "paid_total": 617.0,
-   "paid_date": "2023-10-06T14:28:27",
-   "paid_full": false,
-   "remaining": 1050.0
+   "paid_total": 1667.0,
+   "paid_date": "2023-10-10",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank BDMS Platinum",
@@ -520,11 +490,18 @@
    "points_date": "2017-11-05",
    "source_file": "KBank_2017-10.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2017\\KBank_2017-10.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2075.0
+   "payments": [
+    {
+     "amount": 2075.0,
+     "paid_at": "2017-11-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2075.0,
+   "paid_date": "2017-11-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -544,11 +521,18 @@
    "points_date": "2017-12-05",
    "source_file": "KBank_2017-11.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2017\\KBank_2017-11.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2075.0
+   "payments": [
+    {
+     "amount": 2075.0,
+     "paid_at": "2017-12-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2075.0,
+   "paid_date": "2017-12-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -592,11 +576,18 @@
    "points_date": "2018-02-05",
    "source_file": "KBank_2018-01.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-01.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 8504.79
+   "payments": [
+    {
+     "amount": 8504.79,
+     "paid_at": "2018-02-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 8504.79,
+   "paid_date": "2018-02-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -616,11 +607,18 @@
    "points_date": "2018-03-05",
    "source_file": "KBank_2018-02.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-02.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3157.5
+   "payments": [
+    {
+     "amount": 3157.5,
+     "paid_at": "2018-03-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3157.5,
+   "paid_date": "2018-03-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -640,11 +638,18 @@
    "points_date": "2018-04-05",
    "source_file": "KBank_2018-03.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-03.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 28155.5
+   "payments": [
+    {
+     "amount": 28155.5,
+     "paid_at": "2018-04-30",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 28155.5,
+   "paid_date": "2018-04-30",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -664,11 +669,18 @@
    "points_date": "2018-05-05",
    "source_file": "KBank_2018-04.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-04.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5527.93
+   "payments": [
+    {
+     "amount": 5527.93,
+     "paid_at": "2018-05-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5527.93,
+   "paid_date": "2018-05-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -688,11 +700,18 @@
    "points_date": "2018-06-05",
    "source_file": "KBank_2018-05.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-05.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2075.0
+   "payments": [
+    {
+     "amount": 2075.0,
+     "paid_at": "2018-06-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2075.0,
+   "paid_date": "2018-06-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -712,11 +731,18 @@
    "points_date": "2018-07-05",
    "source_file": "KBank_2018-06.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-06.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2075.0
+   "payments": [
+    {
+     "amount": 2075.0,
+     "paid_at": "2018-07-31",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2075.0,
+   "paid_date": "2018-07-31",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -736,11 +762,18 @@
    "points_date": "2018-08-05",
    "source_file": "KBank_2018-07.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-07.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2074.0
+   "payments": [
+    {
+     "amount": 2074.0,
+     "paid_at": "2018-08-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2074.0,
+   "paid_date": "2018-08-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -760,11 +793,18 @@
    "points_date": "2018-09-05",
    "source_file": "KBank_2018-08.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-08.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3820.0
+   "payments": [
+    {
+     "amount": 3820.0,
+     "paid_at": "2018-09-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3820.0,
+   "paid_date": "2018-09-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -808,11 +848,18 @@
    "points_date": "2018-12-05",
    "source_file": "KBank_2018-11.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-11.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5574.7
+   "payments": [
+    {
+     "amount": 5574.7,
+     "paid_at": "2018-12-12",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5574.7,
+   "paid_date": "2018-12-12",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -832,11 +879,18 @@
    "points_date": "2019-01-05",
    "source_file": "KBank_2018-12.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2018\\KBank_2018-12.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 7434.7
+   "payments": [
+    {
+     "amount": 7434.7,
+     "paid_at": "2019-01-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 7434.7,
+   "paid_date": "2019-01-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -856,11 +910,18 @@
    "points_date": "2019-02-05",
    "source_file": "KBank_2019-01.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-01.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 7052.7
+   "payments": [
+    {
+     "amount": 7052.7,
+     "paid_at": "2019-02-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 7052.7,
+   "paid_date": "2019-02-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -880,11 +941,18 @@
    "points_date": "2019-03-05",
    "source_file": "KBank_2019-02.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-02.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5574.7
+   "payments": [
+    {
+     "amount": 5574.7,
+     "paid_at": "2019-03-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5574.7,
+   "paid_date": "2019-03-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -904,11 +972,18 @@
    "points_date": "2019-04-05",
    "source_file": "KBank_2019-03.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-03.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5574.7
+   "payments": [
+    {
+     "amount": 5574.7,
+     "paid_at": "2019-04-09",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5574.7,
+   "paid_date": "2019-04-09",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -928,11 +1003,18 @@
    "points_date": "2019-05-05",
    "source_file": "KBank_2019-04.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-04.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5574.7
+   "payments": [
+    {
+     "amount": 5574.7,
+     "paid_at": "2019-05-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5574.7,
+   "paid_date": "2019-05-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -976,11 +1058,18 @@
    "points_date": "2019-07-05",
    "source_file": "KBank_2019-06.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-06.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 15600.0
+   "payments": [
+    {
+     "amount": 15600.0,
+     "paid_at": "2019-07-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 15600.0,
+   "paid_date": "2019-07-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1000,11 +1089,18 @@
    "points_date": "2019-08-05",
    "source_file": "KBank_2019-07.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-07.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5633.33
+   "payments": [
+    {
+     "amount": 5633.33,
+     "paid_at": "2019-08-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5633.33,
+   "paid_date": "2019-08-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1024,11 +1120,18 @@
    "points_date": "2019-09-05",
    "source_file": "KBank_2019-08.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-08.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 6560.33
+   "payments": [
+    {
+     "amount": 6560.33,
+     "paid_at": "2019-09-09",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 6560.33,
+   "paid_date": "2019-09-09",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1048,11 +1151,18 @@
    "points_date": "2019-10-05",
    "source_file": "KBank_2019-09.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-09.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5633.34
+   "payments": [
+    {
+     "amount": 5633.34,
+     "paid_at": "2019-10-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5633.34,
+   "paid_date": "2019-10-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1096,11 +1206,18 @@
    "points_date": "2019-12-05",
    "source_file": "KBank_2019-11.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2019\\KBank_2019-11.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5000.0
+   "payments": [
+    {
+     "amount": 5000.0,
+     "paid_at": "2019-12-09",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5000.0,
+   "paid_date": "2019-12-09",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1157,12 +1274,18 @@
      "paid_at": "2020-02-14T13:45:02",
      "ref": "010045134502224273",
      "carry": false
+    },
+    {
+     "amount": 1826.0,
+     "paid_at": "2020-02-21",
+     "ref": "next-statement",
+     "carry": false
     }
    ],
-   "paid_total": 4500.0,
-   "paid_date": "2020-02-14T13:45:02",
-   "paid_full": false,
-   "remaining": 1826.0
+   "paid_total": 6326.0,
+   "paid_date": "2020-02-21",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1230,11 +1353,18 @@
    "points_date": "2020-05-05",
    "source_file": "KBank_2020-04.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2020\\KBank_2020-04.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3725.0
+   "payments": [
+    {
+     "amount": 3725.0,
+     "paid_at": "2020-05-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3725.0,
+   "paid_date": "2020-05-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1371,11 +1501,18 @@
    "points_date": "2020-10-05",
    "source_file": "KBank_2020-09.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2020\\KBank_2020-09.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 15789.37
+   "payments": [
+    {
+     "amount": 15789.37,
+     "paid_at": "2020-10-20",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 15789.37,
+   "paid_date": "2020-10-20",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1426,11 +1563,18 @@
    "points_date": "2020-12-05",
    "source_file": "KBank_2020-11.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2020\\KBank_2020-11.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2525.0
+   "payments": [
+    {
+     "amount": 2525.0,
+     "paid_at": "2020-12-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2525.0,
+   "paid_date": "2020-12-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1450,11 +1594,18 @@
    "points_date": "2021-01-05",
    "source_file": "KBank_2020-12.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2020\\KBank_2020-12.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5645.0
+   "payments": [
+    {
+     "amount": 5645.0,
+     "paid_at": "2021-01-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5645.0,
+   "paid_date": "2021-01-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1474,11 +1625,18 @@
    "points_date": "2021-02-05",
    "source_file": "KBank_2021-01.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2021\\KBank_2021-01.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5645.0
+   "payments": [
+    {
+     "amount": 5645.0,
+     "paid_at": "2021-02-16",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5645.0,
+   "paid_date": "2021-02-16",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1498,11 +1656,18 @@
    "points_date": "2021-03-05",
    "source_file": "KBank_2021-02.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2021\\KBank_2021-02.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 5645.0
+   "payments": [
+    {
+     "amount": 5645.0,
+     "paid_at": "2021-03-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 5645.0,
+   "paid_date": "2021-03-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -1553,11 +1718,18 @@
    "points_date": "2021-05-05",
    "source_file": "KBank_2021-04.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2021\\KBank_2021-04.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 4100.0
+   "payments": [
+    {
+     "amount": 4100.0,
+     "paid_at": "2021-05-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 4100.0,
+   "paid_date": "2021-05-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -3308,11 +3480,18 @@
    "points_date": "2026-02-05",
    "source_file": "KBank_2026-01.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2026\\KBank_2026-01.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 4956.73
+   "payments": [
+    {
+     "amount": 4956.73,
+     "paid_at": "2026-03-03",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 4956.73,
+   "paid_date": "2026-03-03",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -3394,11 +3573,18 @@
    "points_date": "2026-05-05",
    "source_file": "KBank_2026-04.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2026\\KBank_2026-04.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3572.0
+   "payments": [
+    {
+     "amount": 3572.0,
+     "paid_at": "2026-05-14",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3572.0,
+   "paid_date": "2026-05-14",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -3449,11 +3635,18 @@
    "points_date": "2026-07-05",
    "source_file": "KBank_2026-06.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2026\\KBank_2026-06.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 422.0
+   "payments": [
+    {
+     "amount": 422.0,
+     "paid_at": "2026-07-16",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 422.0,
+   "paid_date": "2026-07-16",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -3473,11 +3666,18 @@
    "points_date": "2026-08-05",
    "source_file": "KBank_2026-07.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2026\\KBank_2026-07.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2388.41
+   "payments": [
+    {
+     "amount": 2388.41,
+     "paid_at": "2026-08-11",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2388.41,
+   "paid_date": "2026-08-11",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -3497,11 +3697,18 @@
    "points_date": "2026-09-05",
    "source_file": "KBank_2026-08.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2026\\KBank_2026-08.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2323.41
+   "payments": [
+    {
+     "amount": 2323.41,
+     "paid_at": "2026-09-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2323.41,
+   "paid_date": "2026-09-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -3521,11 +3728,18 @@
    "points_date": "2026-10-05",
    "source_file": "KBank_2026-09.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2026\\KBank_2026-09.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2032.41
+   "payments": [
+    {
+     "amount": 2032.41,
+     "paid_at": "2026-10-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2032.41,
+   "paid_date": "2026-10-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank PLUSTINUM",
@@ -3640,11 +3854,18 @@
    "points_date": "2016-03-05",
    "source_file": "KBank_2016-02.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-02.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 42735.29
+   "payments": [
+    {
+     "amount": 42735.29,
+     "paid_at": "2016-03-16",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 42735.29,
+   "paid_date": "2016-03-16",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3664,11 +3885,18 @@
    "points_date": "2016-04-05",
    "source_file": "KBank_2016-03.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-03.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 1299.0
+   "payments": [
+    {
+     "amount": 1299.0,
+     "paid_at": "2016-04-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 1299.0,
+   "paid_date": "2016-04-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3688,11 +3916,18 @@
    "points_date": "2016-05-05",
    "source_file": "KBank_2016-04.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-04.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-05-10",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-05-10",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3712,11 +3947,18 @@
    "points_date": "2016-06-05",
    "source_file": "KBank_2016-05.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-05.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-06-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-06-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3736,11 +3978,18 @@
    "points_date": "2016-07-05",
    "source_file": "KBank_2016-06.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-06.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-07-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-07-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3760,11 +4009,18 @@
    "points_date": "2016-08-05",
    "source_file": "KBank_2016-07.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-07.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-08-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-08-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3784,11 +4040,18 @@
    "points_date": "2016-09-05",
    "source_file": "KBank_2016-08.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-08.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-09-13",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-09-13",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3808,11 +4071,18 @@
    "points_date": "2016-10-05",
    "source_file": "KBank_2016-09.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-09.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-10-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-10-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3832,11 +4102,18 @@
    "points_date": "2016-11-05",
    "source_file": "KBank_2016-10.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-10.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-11-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-11-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3856,11 +4133,18 @@
    "points_date": "2016-12-05",
    "source_file": "KBank_2016-11.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-11.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2016-12-07",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2016-12-07",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3880,11 +4164,18 @@
    "points_date": "2017-01-05",
    "source_file": "KBank_2016-12.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2016\\KBank_2016-12.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 3639.0
+   "payments": [
+    {
+     "amount": 3639.0,
+     "paid_at": "2017-01-12",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 3639.0,
+   "paid_date": "2017-01-12",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3904,11 +4195,18 @@
    "points_date": "2017-02-05",
    "source_file": "KBank_2017-01.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2017\\KBank_2017-01.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2340.0
+   "payments": [
+    {
+     "amount": 2340.0,
+     "paid_at": "2017-02-06",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2340.0,
+   "paid_date": "2017-02-06",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -3952,11 +4250,18 @@
    "points_date": "2017-05-05",
    "source_file": "KBank_2017-04.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\KBank\\2017\\KBank_2017-04.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 2111.0
+   "payments": [
+    {
+     "amount": 2111.0,
+     "paid_at": "2017-05-08",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 2111.0,
+   "paid_date": "2017-05-08",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "KBank VISA Platinum",
@@ -4239,11 +4544,18 @@
    "points_date": "2026-09-22",
    "source_file": "ttb so smart_2026-09.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\ttb so smart\\2026\\ttb so smart_2026-09.pdf",
-   "payments": [],
-   "paid_total": 0.0,
-   "paid_date": null,
-   "paid_full": false,
-   "remaining": 28220.81
+   "payments": [
+    {
+     "amount": 28220.81,
+     "paid_at": "2026-10-22",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 28220.81,
+   "paid_date": "2026-10-22",
+   "paid_full": true,
+   "remaining": 0.0
   },
   {
    "card": "ttb so smart",

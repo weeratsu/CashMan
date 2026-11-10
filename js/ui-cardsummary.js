@@ -101,6 +101,8 @@
     if(tp>0.005) return { paid_total: tp, paid_full: due>0?(tp+0.01)>=due:false, paid_date:'' };
     return { paid_total: 0, paid_full: false, paid_date:'' };
   }
+  // Nov 10 2026: shared for Card Funding (same paid logic as Card Summary: ledger > email > next-stmt txns)
+  window.cardPaidFor=function(card,period,b){ try{ return _csPaid(card,period,b); }catch(e){ return null; } };
 
   window.setCardSummaryFilter=function(v){ _csCard=v||''; try{ renderCardSummary(); }catch(e){ console.error(e); } };
   window.cardSummaryYear=function(key){ _csYrOpen[key]=!_csIsYrOpen(key); try{ renderCardSummary(); }catch(e){ console.error(e); } };

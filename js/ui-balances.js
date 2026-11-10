@@ -26,9 +26,14 @@ function cmActualCash(){_balInit();var a=(D.accounts||[]).filter(function(x){ret
  if(!a.length)return null;return Math.round(a.reduce(function(s,x){var v=acctTHB(x,x.balance,x.balance_date);return s+(v||0);},0)*100)/100;}
 function cmStartCash(){var v=cmActualCash();return v===null?((D.profile&&D.profile.starting_cash)||0):v;}
 window.cmActualCash=cmActualCash;window.cmStartCash=cmStartCash;
+// log order = date, then save time (ts); old entries without ts sort first within the day
+function _blKey(x){return (x.date||'')+'|'+(x.ts||'');}
+function _blCmp(x,y){var a=_blKey(x),b=_blKey(y);return a<b?-1:a>b?1:0;}
+function _blTime(ts){var d=new Date(ts);return isNaN(d)?'':String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function _blX(x){var t=Date.parse(x.date+'T00:00:00');if(x.ts){var d=new Date(x.ts);if(!isNaN(d))t+=(d.getHours()*60+d.getMinutes())*60000;}return t;}
 function balLogSave(a){_balInit();if(!_hasBal(a))return;var d=a.balance_date||_isoT();
- D.balance_log=(D.balance_log||[]).filter(function(x){return !(x.acct===a.id&&x.date===d);});
- D.balance_log.push({id:_bid('bl'),date:d,acct:a.id,balance:+a.balance,cur:a.currency||'THB',rate:fxRate(a.currency||'THB',d)||1});}
+ D.balance_log=D.balance_log||[];   // Nov 10 2026 (user): keep EVERY save, ts = save time
+ D.balance_log.push({id:_bid('bl'),date:d,ts:new Date().toISOString(),acct:a.id,balance:+a.balance,cur:a.currency||'THB',rate:fxRate(a.currency||'THB',d)||1});}
 function acctToggleSim(id){var a=(D.accounts||[]).find(function(x){return x.id===id;});if(!a)return;a.in_sim=(a.in_sim===false);saveD();renderBankAccount();try{simulate();renderAllTabs&&renderAllTabs();}catch(e){}}
 
 // ===== Setup > Currency & FX =====
@@ -78,6 +83,9 @@ function _balSeries(){var log=(D.balance_log||[]).slice().sort(function(a,b){ret
  var last={},out=[];dates.forEach(function(d){log.filter(function(l){return l.date===d;}).forEach(function(l){last[l.acct]=l;});
   var as=0,li=0;Object.keys(last).forEach(function(k){var a=(D.accounts||[]).find(function(x){return x.id===k;});if(!a)return;var v=(+last[k].balance)*(fxRate(last[k].cur,d)||last[k].rate||1);if(acctIsLoan(a))li+=Math.abs(v);else as+=v;});
   out.push({date:d,assets:as,debt:li,net:as-li});});return out;}
+// Nov 10 2026: expand/collapse all bank groups + pocket rows
+window.asExpandAll=function(on){var B=window._asBkOpen=window._asBkOpen||{},P=window._asPkOpen=window._asPkOpen||{};
+ (D.accounts||[]).forEach(function(a){B[a.bank||'']=!!on;if(a.pockets&&a.pockets.length)P[a.id]=!!on;});renderBalances();};
 function renderBalances(){_balInit();var h=document.getElementById('an-balances-body');if(!h)return;
  var acc=(D.accounts||[]).filter(_hasBal),as=0,li=0,sim=0,miss=[];
  acc.forEach(function(a){var v=acctTHB(a,a.balance,a.balance_date);if(v==null){miss.push(a.name);return;}if(acctIsLoan(a))li+=Math.abs(v);else{as+=v;if(acctInSim(a))sim+=v;}});
@@ -85,30 +93,128 @@ function renderBalances(){_balInit();var h=document.getElementById('an-balances-
  function kpi(l,v,c,sub){return '<div class="kpi"><div class="kpi-label">'+l+'</div><div class="kpi-val" style="color:'+(c||'inherit')+'">\u0e3f'+fmt(v)+'</div>'+(sub?'<div style="font-size:9px;color:var(--text3)">'+sub+'</div>':'')+'</div>';}
  var k='<div class="kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px">'+kpi('Total Assets',as,'var(--success)',acc.filter(function(a){return !acctIsLoan(a);}).length+' accounts')+kpi('Total Debt',li,'var(--danger)','loan accounts')+kpi('Net Worth (cash)',as-li,(as-li)<0?'var(--danger)':'var(--primary)',chg==null?'':((chg>=0?'\u25b2 ':'\u25bc ')+'\u0e3f'+fmt(Math.abs(chg))+' vs '+fmtDate(prev.date)))+kpi('Used in Timeline',sim,'','ticked accounts')+'</div>'+(miss.length?'<div style="font-size:10px;color:var(--danger);margin-bottom:8px">\u26a0\ufe0f No FX rate: '+esc(miss.join(', '))+' \u2014 add in Accounts & Wealth \u203a FX Rates</div>':'');
  // per account summary
- var rows=(D.accounts||[]).filter(_hasBal).map(function(a){var lg=(D.balance_log||[]).filter(function(l){return l.acct===a.id;}).sort(function(x,y){return x.date<y.date?-1:1;});var p=lg.length>1?lg[lg.length-2]:null;var v=acctTHB(a,a.balance,a.balance_date);var d=p?(+a.balance)-(+p.balance):null;
+ var rows=(D.accounts||[]).filter(function(a){return a&&a.id;}).map(function(a){var lg=(D.balance_log||[]).filter(function(l){return l.acct===a.id;}).sort(_blCmp);var p=lg.length>1?lg[lg.length-2]:null;var v=acctTHB(a,a.balance,a.balance_date);var d=p?(+a.balance)-(+p.balance):null;
   return {a:a,v:v,d:d};}).sort(function(x,y){return (y.v||0)-(x.v||0);});
- var tb=rows.map(function(r){var a=r.a,loan=acctIsLoan(a);return '<tr><td>'+esc((typeof bankName==='function'?bankName(a.bank):a.bank)||'')+'</td><td style="font-weight:600">'+esc(a.name)+(loan?' <span class="type-chip" style="font-size:9px;color:var(--danger)">Debt</span>':'')+'</td><td style="text-align:right;font-family:var(--mono)">'+curSym(a.currency||'THB')+fmt(+a.balance)+'</td><td style="text-align:right;font-family:var(--mono);color:'+(loan?'var(--danger)':'inherit')+'">'+(r.v==null?'\u2014':(loan?'-':'')+'\u0e3f'+fmt(Math.abs(r.v)))+'</td><td style="text-align:right;font-family:var(--mono);color:'+(r.d==null?'var(--text3)':r.d>=0?'var(--success)':'var(--danger)')+'">'+(r.d==null?'\u2014':(r.d>=0?'+':'')+fmt(r.d))+'</td><td>'+fmtDate(a.balance_date||'')+'</td></tr>';}).join('');
+ var _bn=function(a){return (typeof bankName==='function'?bankName(a.bank):a.bank)||'';};
+ var _asBk=window._asBank||'';if(_asBk)rows=rows.filter(function(r){return r.a.bank===_asBk;});
+ var _S=window._asSort||{c:'',d:1},_K={bank:function(r){return _bn(r.a);},acct:function(r){return r.a.name||'';},bal:function(r){return +r.a.balance||0;},thb:function(r){return r.v||0;},chg:function(r){return r.d==null?-1e15:r.d;},date:function(r){return r.a.balance_date||'';}};
+ if(_S.c&&_K[_S.c])rows.sort(function(x,y){var p=_K[_S.c](x),q=_K[_S.c](y);return (typeof p==='number'?p-q:String(p).localeCompare(String(q)))*_S.d;});
+ // Nov 10 2026: keep row order after edits (no jumping). Order is re-computed only by a header click, bank filter or 'Re-sort'.
+ var _fz=window._asFrozen;if(_fz){var _ix={};_fz.forEach(function(id,i){_ix[id]=i;});rows.sort(function(x,y){var a=_ix[x.a.id],c=_ix[y.a.id];return (a==null?1e9:a)-(c==null?1e9:c);});}
+ else window._asFrozen=rows.map(function(r){return r.a.id;});
+ var _ash=function(c,l,r){return '<th style="cursor:pointer;'+(r?'text-align:right':'')+'" onclick="asSortBy(\''+c+'\')">'+l+(_S.c===c?(_S.d>0?' \u25b2':' \u25bc'):'')+'</th>';};
+ var _pkO=window._asPkOpen=window._asPkOpen||{};
+  var tb=rows.map(function(r){var a=r.a,loan=acctIsLoan(a),P=(a.pockets||[]),hp=P.length>0,op=hp&&_pkO[a.id];
+  var car=hp?'<span style="cursor:pointer;display:inline-block;width:12px;color:var(--text3);transform:rotate('+(op?'90':'0')+'deg)" onclick="window._asPkOpen[\''+a.id+'\']=!window._asPkOpen[\''+a.id+'\'];renderBalances()">\u25b6</span> ':'';
+  var main='<tr><td></td><td style="font-weight:600;white-space:nowrap">'+car+esc(a.name)+(hp?' <span style="font-size:9px;color:var(--text3);font-weight:400">('+P.length+' pockets)</span>':'')+(function(){var mx=+a.max_amount||0,bl=+a.balance||0;if(!(mx>0)||loan)return '';var pc=bl/mx*100,cl=pc>=100?'var(--success)':pc>=75?'var(--warning)':'var(--primary)';return ' <span title="Max Target '+curSym(a.currency||'THB')+fmt(mx)+'" style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:999px;color:'+cl+';border:1px solid '+cl+'">'+(pc>=100?'\u2713 max':Math.round(pc)+'%')+'</span>';})()+(loan?' <span class="type-chip" style="font-size:9px;color:var(--danger)">Debt</span>':'')+'</td>'+'<td style="text-align:right;font-family:var(--mono)">'+((function(){var P=a.pockets||[],m={},k=[];P.forEach(function(p){var c=p.currency||a.currency||'THB';if(m[c]==null){m[c]=0;k.push(c);}m[c]+=(+p.balance||0);});
+   if(k.length<2)return '';return k.map(function(c){return '<div style="line-height:1.35">'+curSym(c)+fmt(m[c])+'</div>';}).join('');})()||(_hasBal(a)?curSym(a.currency||'THB')+fmt(+a.balance||0):'<span style="color:var(--text3)" title="No balance yet - click \u270f\ufe0f to set">\u2014</span>'))+'</td>'+'<td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(r.v||0)+(((a.currency)&&(a.currency)!=='THB'&&fxRate(a.currency))?'<div style="font-size:9px;color:var(--text3)">@ \u0e3f'+(+fxRate(a.currency)).toFixed(4)+' / '+esc(a.currency)+'</div>':'')+'</td>'+'<td style="text-align:right;font-family:var(--mono);color:'+(r.d==null?'var(--text3)':(r.d>=0?'var(--success)':'var(--error)'))+'">'+(r.d==null?'\u2013':(r.d>=0?'+':'\u2212')+curSym(a.currency||'THB')+fmt(Math.abs(r.d)))+'</td>'+'<td style="font-size:10px">'+fmtDate(a.balance_date)+'</td><td style="text-align:center;white-space:nowrap"><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit balance" onclick="balEditAcct(\''+a.id+'\')"><i class="fa-solid fa-pen"></i></button><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px" title="Balance log" onclick="balAcctHist(\''+a.id+'\')"><i class="fa-solid fa-clock-rotate-left"></i></button></td></tr>';
+  if(!op)return main;
+  var cs=(a.currency||'THB'),sub=P.map(function(p){var cn='';try{var c=(D.cards||[]).find(function(x){return x.id===p.card_id;});cn=c?c.name:'';}catch(e){}
+   var pc=p.currency||cs,pt=(+p.balance||0)*((pc==='THB')?1:(fxRate(pc)||0));
+   return '<tr style="background:var(--bg3);font-size:11px"><td></td><td style="padding-left:28px">\u2514 '+esc(p.name||'')+(cn?' <span style="font-size:9px;color:var(--text3)">\u00b7 '+esc(cn)+'</span>':'')+'</td><td style="text-align:right;font-family:var(--mono)">'+curSym(pc)+fmt(+p.balance||0)+'</td><td style="text-align:right;font-family:var(--mono);color:var(--text3)">\u0e3f'+fmt(pt)+((pc!=='THB'&&!fxRate(pc))?'<div style="font-size:9px;color:var(--warning)">\u26a0\ufe0f no rate</div>':'')+(((pc)&&(pc)!=='THB'&&fxRate(pc))?'<div style="font-size:9px;color:var(--text3)">@ \u0e3f'+(+fxRate(pc)).toFixed(4)+' / '+esc(pc)+'</div>':'')+'</td><td></td><td style="font-size:10px">'+(p.balance_date?fmtDate(p.balance_date):'')+'</td>'+
+   '<td style="text-align:center;white-space:nowrap"><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;margin-right:4px" title="Edit pocket balance" onclick="cfWithAcct(\''+a.id+'\',\'cfEditPocket\',\''+p.id+'\')"><i class="fa-solid fa-pen"></i></button><button class="btn btn-ghost" style="font-size:10px;padding:2px 7px" title="Pocket balance log" onclick="cfWithAcct(\''+a.id+'\',\'cfPocketHist\',\''+p.id+'\')"><i class="fa-solid fa-clock-rotate-left"></i></button></td></tr>';}).join('');
+  return main+sub;});
+  // Nov 10 2026: group Bank > Account > Pocket (bank header collapsible, default open)
+  var _bkO=window._asBkOpen=window._asBkOpen||{},_grp={},_go=[];
+  rows.forEach(function(r,i){var k=r.a.bank||'';if(!_grp[k]){_grp[k]={rows:[],t:0};_go.push(k);}_grp[k].rows.push(i);_grp[k].t+=(r.v||0);});
+  if(!(_S.c&&_K[_S.c])&&!window._asBkFrozen)_go.sort(function(x,y){return _grp[y].t-_grp[x].t;});
+  if(window._asBkFrozen){var _bi={};window._asBkFrozen.forEach(function(k,i){_bi[k]=i;});_go.sort(function(x,y){return (_bi[x]==null?1e9:_bi[x])-(_bi[y]==null?1e9:_bi[y]);});}
+  window._asBkFrozen=_go.slice();
+  tb=_go.map(function(k){var g=_grp[k],op=_bkO[k]!==false,nm=(typeof bankName==='function'?bankName(k):k)||'(no bank)';
+   return '<tr style="background:var(--bg3);font-weight:700;cursor:pointer" onclick="window._asBkOpen[\''+esc(k)+'\']='+(op?'false':'true')+';renderBalances()"><td colspan="3"><span style="display:inline-block;width:12px;transform:rotate('+(op?'90':'0')+'deg)">\u25b6</span> '+(typeof bankBadge==='function'?bankBadge(k,false)+' ':'')+esc(nm)+' <span style="font-weight:400;font-size:10px;color:var(--text3)">('+g.rows.length+' account'+(g.rows.length!==1?'s':'')+')</span></td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(g.t)+'</td><td colspan="3"></td></tr>'+
+    (op?g.rows.map(function(i){return tb[i];}).join(''):'');}).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:12px">No balances yet</td></tr>';
+  // Nov 10 2026: footer totals - grand total (THB) + per-currency subtotals (native amount + THB)
+  if(rows.length){var _cu={},_co=[],_gt=0;var _add=function(c,n,t){if(!_cu[c]){_cu[c]={n:0,t:0};_co.push(c);}_cu[c].n+=n;_cu[c].t+=t;};
+   // Nov 10 2026: accounts with pockets are split by each pocket's own currency
+   rows.forEach(function(r){var a=r.a,ac=a.currency||'THB',P=a.pockets||[];
+    if(P.length){P.forEach(function(p){var pc=p.currency||ac,n=+p.balance||0;_add(pc,n,n*((pc==='THB')?1:(fxRate(pc)||0)));});}
+    else _add(ac,+a.balance||0,(ac==='THB'||fxRate(ac))?(r.v||0):0);});
+   _co.forEach(function(c){_gt+=_cu[c].t;});
+   _co.sort(function(x,y){return _cu[y].t-_cu[x].t;});
+   var _sb='background:color-mix(in srgb, var(--primary) 7%, var(--bg2))';
+   tb+='<tr><td colspan="7" style="padding:0;height:10px;border:0;background:transparent"></td></tr>'+
+    '<tr style="'+_sb+';border-top:1px solid var(--primary)"><td colspan="7" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--primary);padding:6px 8px"><i class="fa-solid fa-sigma"></i> SUMMARY BY CURRENCY</td></tr>';
+   if(_co.length>1)tb+=_co.map(function(c){var x=_cu[c];return '<tr style="font-size:11px;'+_sb+'"><td></td><td style="font-weight:600">'+esc(c)+'</td><td style="text-align:right;font-family:var(--mono)">'+curSym(c)+fmt(x.n)+'</td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(x.t)+(c!=='THB'&&!fxRate(c)?'<div style="font-size:9px;color:var(--warning)">\u26a0\ufe0f no rate</div>':'')+(c!=='THB'&&fxRate(c)?'<div style="font-size:9px;color:var(--text3)">@ \u0e3f'+(+fxRate(c)).toFixed(4)+'</div>':'')+'</td><td colspan="3"></td></tr>';}).join('');
+   tb+='<tr style="font-weight:700;font-size:13px;background:color-mix(in srgb, var(--primary) 14%, var(--bg2));border-top:1px solid var(--primary);border-bottom:1px solid var(--primary)"><td colspan="3">GRAND TOTAL <span style="font-weight:400;font-size:10px;color:var(--text3)">('+rows.length+' accounts, in THB)</span></td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(_gt)+'</td><td colspan="3"></td></tr>';}
  // log table
  var lg=(D.balance_log||[]).filter(function(l){return !_blAcct||l.acct===_blAcct;}).map(function(l){return {l:l,n:_acName(l.acct),t:(+l.balance)*(fxRate(l.cur,l.date)||l.rate||1)};});
- lg.sort(function(x,y){var c=_blSort.c,a=c==='acct'?x.n:c==='balance'?+x.l.balance:c==='thb'?x.t:x.l.date,b=c==='acct'?y.n:c==='balance'?+y.l.balance:c==='thb'?y.t:y.l.date;return a<b?-_blSort.d:a>b?_blSort.d:0;});
+ lg.sort(function(x,y){var c=_blSort.c,a=c==='acct'?x.n:c==='balance'?+x.l.balance:c==='thb'?x.t:_blKey(x.l),b=c==='acct'?y.n:c==='balance'?+y.l.balance:c==='thb'?y.t:_blKey(y.l);return a<b?-_blSort.d:a>b?_blSort.d:0;});
  function th(c,l,r){return '<th style="cursor:pointer;'+(r?'text-align:right':'')+'" onclick="_blSort.d=(_blSort.c===\''+c+'\')?-_blSort.d:1;_blSort.c=\''+c+'\';renderBalances()">'+l+(_blSort.c===c?(_blSort.d>0?' \u25b2':' \u25bc'):'')+'</th>';}
- var lr=lg.map(function(x){return '<tr><td>'+fmtDate(x.l.date)+'</td><td>'+esc(x.n)+'</td><td style="text-align:right;font-family:var(--mono)">'+curSym(x.l.cur)+fmt(+x.l.balance)+'</td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(x.t)+'</td><td style="text-align:center"><button class="btn btn-ghost" style="font-size:11px;padding:3px 7px" onclick="balLogDel(\''+x.l.id+'\')"><i class="fa-solid fa-xmark"></i></button></td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:12px">No balance log yet \u2014 enter Actual Balance in Accounts & Wealth \u203a Accounts</td></tr>';
+ var lr=lg.map(function(x){return '<tr><td>'+fmtDate(x.l.date)+(x.l.ts?' <span style="font-size:9px;color:var(--text3)">'+_blTime(x.l.ts)+'</span>':'')+'</td><td>'+esc(x.n)+'</td><td style="text-align:right;font-family:var(--mono)">'+curSym(x.l.cur)+fmt(+x.l.balance)+'</td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(x.t)+'</td><td style="text-align:center"><button class="btn btn-ghost" style="font-size:11px;padding:3px 7px" onclick="balLogDel(\''+x.l.id+'\')"><i class="fa-solid fa-xmark"></i></button></td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:12px">No balance log yet \u2014 enter Actual Balance in Accounts & Wealth \u203a Accounts</td></tr>';
  var ao='<option value="">All accounts</option>'+(D.accounts||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'');}).map(function(a){return '<option value="'+a.id+'"'+(a.id===_blAcct?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
  h.innerHTML=k+
  '<div class="card"><h2><i class="fa-solid fa-chart-area"></i> Balance Trend</h2><div id="bal-trend" style="height:300px"></div></div>'+
  '<div class="card"><h2><i class="fa-solid fa-chart-pie"></i> Assets by Account</h2><div id="bal-pie" style="height:300px"></div></div>'+
- '<div class="card"><h2><i class="fa-solid fa-table"></i> Account Summary</h2><div class="rec-scroll"><table class="tbl" style="font-size:11px;width:100%"><thead><tr><th>Bank</th><th>Account</th><th style="text-align:right">Balance</th><th style="text-align:right">THB</th><th style="text-align:right">Change vs prev</th><th>As of</th></tr></thead><tbody>'+tb+'</tbody></table></div></div>'+
- '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><h2 style="margin:0"><i class="fa-solid fa-clock-rotate-left"></i> Balance Log</h2><div style="display:flex;gap:6px"><select class="inp" style="font-size:11px;width:auto" onchange="_blAcct=this.value;renderBalances()">'+ao+'</select><button class="btn btn-primary" style="font-size:11px" onclick="balLogAdd()"><i class="fa-solid fa-plus"></i> Add Balance</button></div></div><div class="rec-scroll"><table class="tbl" style="font-size:11px;width:100%"><thead><tr>'+th('date','Date')+th('acct','Account')+th('balance','Balance',1)+th('thb','THB',1)+'<th style="width:44px"></th></tr></thead><tbody>'+lr+'</tbody></table></div></div>';
+'<div class="card"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0"><i class="fa-solid fa-table"></i> Account Summary</h2><span style="flex:1"></span>'+
+'<button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="asResort()" title="Re-sort rows (order is kept while you edit)"><i class="fa-solid fa-arrow-down-wide-short"></i> Re-sort</button>'+
+'<button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="asExpandAll(1)"><i class="fa-solid fa-angles-down"></i> Expand all</button>'+
+'<button class="btn btn-ghost" style="font-size:10px;padding:3px 10px" onclick="asExpandAll(0)"><i class="fa-solid fa-angles-up"></i> Collapse all</button>'+
+(function(){var seen={},bk=[];(D.accounts||[]).forEach(function(a){if(a.bank&&!seen[a.bank]){seen[a.bank]=1;bk.push({id:a.bank,n:_bn(a)});}});bk.sort(function(x,y){return x.n.localeCompare(y.n);});var cur=bk.filter(function(b){return b.id===_asBk;})[0];
+return '<input list="as-bank-dl" class="inp" autocomplete="off" placeholder="All banks" style="font-size:11px;width:160px;padding:4px 7px" value="'+esc(cur?cur.n:'')+'" onfocus="this.dataset.prev=this.value;this.value=\'\'" onblur="var t=this;setTimeout(function(){if(!t.value&&t.dataset.prev)t.value=t.dataset.prev},150)" oninput="asBankPick(this.value)" onkeydown="if(event.key===\'Enter\'&&!this.value)asBankPick(\'\',1)"><datalist id="as-bank-dl"><option data-id="" value="All banks"></option>'+bk.map(function(b){return '<option data-id="'+esc(b.id)+'" value="'+esc(b.n)+'"></option>';}).join('')+'</datalist>';})()+'</div><div class="rec-scroll"><table class="tbl" style="font-size:11px;width:100%"><thead><tr>'+_ash('bank','Bank')+_ash('acct','Account')+_ash('bal','Balance',1)+_ash('thb','THB',1)+_ash('chg','Change vs prev',1)+_ash('date','As of')+'<th style="width:70px"></th></tr></thead><tbody>'+tb+'</tbody></table></div></div>'+
+'<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(window._blOpen?'8px':'0')+';gap:8px;flex-wrap:wrap"><h2 style="margin:0;cursor:pointer" onclick="window._blOpen=!window._blOpen;renderBalances()"><i class="fa-solid fa-caret-'+(window._blOpen?'down':'right')+'" style="width:12px"></i> <i class="fa-solid fa-clock-rotate-left"></i> Balance Log <span style="font-size:10px;font-weight:400;color:var(--text3)">('+lg.length+')</span></h2><div style="display:flex;gap:6px">'+(window._blOpen?'<select class="inp" style="font-size:11px;width:auto" onchange="_blAcct=this.value;renderBalances()">'+ao+'</select>':'')+'<button class="btn btn-primary" style="font-size:11px" onclick="balLogAdd()"><i class="fa-solid fa-plus"></i> Add Balance</button></div></div>'+(window._blOpen?'<div class="rec-scroll"><table class="tbl" style="font-size:11px;width:100%"><thead><tr>'+th('date','Date')+th('acct','Account')+th('balance','Balance',1)+th('thb','THB',1)+'<th style="width:44px"></th></tr></thead><tbody>'+lr+'</tbody></table></div>':'')+'</div>';
  if(window.Highcharts){var co={chart:{backgroundColor:'transparent'},credits:{enabled:false},accessibility:{enabled:false},title:{text:null}};
   if(ser.length)Highcharts.chart('bal-trend',Object.assign({},co,{xAxis:{type:'datetime'},yAxis:{title:{text:'\u0e3f'}},tooltip:{shared:true,valueDecimals:2,valuePrefix:'\u0e3f'},series:[{name:'Assets',type:'area',color:'#22c55e',fillOpacity:.15,data:ser.map(function(s){return [Date.parse(s.date),Math.round(s.assets*100)/100];})},{name:'Debt',type:'line',color:'#ef4444',data:ser.map(function(s){return [Date.parse(s.date),Math.round(s.debt*100)/100];})},{name:'Net',type:'line',color:'#3b82f6',lineWidth:3,data:ser.map(function(s){return [Date.parse(s.date),Math.round(s.net*100)/100];})}]}));
   var pd=rows.filter(function(r){return !acctIsLoan(r.a)&&r.v>0;}).map(function(r){return {name:r.a.name,y:Math.round(r.v*100)/100};});
   if(pd.length)Highcharts.chart('bal-pie',Object.assign({},co,{chart:{type:'pie',backgroundColor:'transparent'},tooltip:{pointFormat:'\u0e3f{point.y:,.2f} ({point.percentage:.1f}%)'},plotOptions:{pie:{innerSize:'55%',dataLabels:{format:'{point.name}: {point.percentage:.0f}%',style:{fontSize:'10px'}}}},series:[{name:'Balance',data:pd}]}));}
 }
 function balLogDel(id){_balInit();if(!confirm('Delete this balance log entry?'))return;D.balance_log=D.balance_log.filter(function(x){return x.id!==id;});saveD();renderBalances();}
+// Per-account balance history popup (by account id) — chart + table
+function balAcctHist(aid){_balInit();var a=(D.accounts||[]).find(function(x){return x.id===aid;});if(!a)return;
+var L=(D.balance_log||[]).filter(function(l){return l.acct===aid;}).sort(_blCmp);
+var sym=((D.currencies||[]).find(function(c){return c.id===(a.currency||'THB');})||{}).symbol||'\u0e3f';
+var M='font-family:var(--mono);font-size:10px;text-align:right';
+var rows=L.slice().reverse().map(function(x,k,arr){var pr=arr[k+1],d=pr?(+x.balance)-(+pr.balance):null;
+return '<tr><td>'+fmtDate(x.date)+(x.ts?' <span style="font-size:9px;color:var(--text3)">'+_blTime(x.ts)+'</span>':'')+'</td><td style="'+M+'">'+sym+fmt(+x.balance)+'</td><td style="'+M+';color:'+(d==null?'var(--text3)':(d>=0?'var(--success)':'var(--error)'))+'">'+(d==null?'\u2013':(d>=0?'+':'\u2212')+sym+fmt(Math.abs(d)))+'</td>'+
+'<td><button class="del-btn" onclick="balLogDel(\''+x.id+'\');balAcctHist(\''+aid+'\')"><i class="fa-solid fa-trash"></i></button></td></tr>';}).join('');
+var old=document.getElementById('bal-ah-ov');if(old)old.remove();
+var o=document.createElement('div');o.id='bal-ah-ov';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+o.onclick=function(e){if(e.target===o)o.remove();};
+var bn=(typeof bankName==='function'?bankName(a.bank):a.bank)||'';
+o.innerHTML='<div style="background:var(--bg2);border-radius:var(--radius);padding:16px 18px;width:560px;max-width:100%;max-height:85vh;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.3)">'+
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:13px"><i class="fa-solid fa-clock-rotate-left"></i> '+esc((bn?bn+' \u00b7 ':'')+(a.name||''))+'</b>'+
+'<button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="document.getElementById(\'bal-ah-ov\').remove()">\u2715</button></div>'+
+'<div style="font-size:10px;color:var(--text3);margin-bottom:8px">Now <b>'+sym+fmt(+a.balance||0)+'</b> \u00b7 as of '+fmtDate(a.balance_date)+' \u00b7 '+L.length+' entries</div>'+
+(L.length>1?'<div id="bal-ah-chart" style="height:180px;margin-bottom:8px"></div>':'')+
+'<table class="tbl"><thead><tr><th>Date</th><th class="r">Balance</th><th class="r">Change</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:12px">No history yet.</td></tr>')+'</tbody></table></div>';
+o.addEventListener('keydown',function(e){if(e.key==='Escape')o.remove();});document.body.appendChild(o);
+if(L.length>1&&typeof Highcharts!=='undefined'){try{Highcharts.chart('bal-ah-chart',{chart:{type:'area',backgroundColor:'transparent'},title:{text:null},credits:{enabled:false},legend:{enabled:false},
+xAxis:{type:'datetime'},yAxis:{title:{text:null}},tooltip:{valuePrefix:sym,valueDecimals:2,xDateFormat:'%d/%m/%Y'},
+series:[{name:a.name,data:L.map(function(x){return [_blX(x),+x.balance];}),fillOpacity:.15,marker:{radius:3}}]});}catch(e){}}}
+window.balAcctHist=balAcctHist;
+// Edit balance popup (✏️ → popup → Save). Logs to Balance Log via balLogSave. Accounts with pockets → redirect.
+function balEditAcct(aid){_balInit();var a=(D.accounts||[]).find(function(x){return x.id===aid;});if(!a)return;
+var sym=curSym(a.currency||'THB'),bn=(typeof bankName==='function'?bankName(a.bank):a.bank)||'';
+var pk=a.pockets&&a.pockets.length;
+var inp='class="inp" style="width:100%;font-size:11px;padding:5px 7px;box-sizing:border-box"',L='style="display:block;font-size:10px;color:var(--text3);margin:8px 0 2px"';
+var old=document.getElementById('bal-ed-ov');if(old)old.remove();
+var o=document.createElement('div');o.id='bal-ed-ov';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+var _md=null;o.addEventListener('mousedown',function(e){_md=e.target;});o.addEventListener('click',function(e){if(e.target===o&&_md===o)o.remove();});
+o.innerHTML='<div style="background:var(--bg2);border-radius:var(--radius);padding:16px 18px;width:360px;max-width:100%;box-shadow:0 10px 30px rgba(0,0,0,.3)">'+
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px"><i class="fa-solid fa-pen"></i> Edit balance</b><button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="document.getElementById(\'bal-ed-ov\').remove()">\u2715</button></div>'+
+'<div style="font-size:10px;color:var(--text3)">'+esc((bn?bn+' \u00b7 ':'')+(a.name||''))+' \u00b7 '+esc(a.currency||'THB')+'</div>'+
+(pk?'<div style="font-size:10px;margin-top:8px;padding:6px 8px;border:1px solid var(--warning);border-radius:var(--radius-sm);color:var(--warning);background:var(--warning-bg)">\u26a0\ufe0f This account has <b>'+a.pockets.length+' pockets</b> \u2014 its balance = sum of pockets. Edit in <b>Credit Cards \u203a Card Funding \u203a Pockets</b>.</div>':
+'<label '+L+'>Balance ('+esc(sym)+')</label><input id="bal-ed-amt" '+inp+' inputmode="decimal" value="'+(a.balance===''||a.balance==null?'':(+a.balance))+'">'+
+'<label '+L+'>As of</label><input id="bal-ed-date" type="date" '+inp+' value="'+_isoT()+'">'+
+'<div style="font-size:9px;color:var(--text3);margin-top:2px">Defaults to today. Last updated '+(a.balance_date?fmtDate(a.balance_date):'\u2013')+'. Saved to Balance Log.</div>')+
+'<div style="display:flex;justify-content:space-between;gap:6px;margin-top:14px"><button class="btn btn-ghost" style="font-size:11px" onclick="document.getElementById(\'bal-ed-ov\').remove()">Cancel</button>'+
+(pk?'':'<button class="btn btn-primary" style="font-size:11px" onclick="balEditSave(\''+aid+'\')">\u2713 Save</button>')+'</div></div>';
+o.addEventListener('keydown',function(e){if(e.key==='Escape')o.remove();if(e.key==='Enter'&&!pk)balEditSave(aid);});
+document.body.appendChild(o);setTimeout(function(){var n=document.getElementById('bal-ed-amt');if(n){n.focus();n.select();}},30);}
+function balEditSave(aid){var a=(D.accounts||[]).find(function(x){return x.id===aid;});if(!a)return;
+var v=(document.getElementById('bal-ed-amt')||{}).value,d=(document.getElementById('bal-ed-date')||{}).value||'';
+var nb=String(v).trim()===''?'':(parseFloat(String(v).replace(/,/g,''))||0),chg=String(nb)!==String(a.balance===''||a.balance==null?'':+a.balance),dchg=d&&d!==_isoT();
+if(chg||dchg){a.balance=nb;a.balance_date=d||_isoT();if(nb!=='')balLogSave(a);}
+var o=document.getElementById('bal-ed-ov');if(o)o.remove();saveD();renderBalances();try{simulate();}catch(e){}}
+window.balEditAcct=balEditAcct;window.balEditSave=balEditSave;
+// Account Summary: sort (asc → desc → default) + bank filter (by bank id)
+window.asSortBy=function(c){var s=window._asSort||{c:'',d:1};if(s.c!==c)s={c:c,d:1};else if(s.d>0)s.d=-1;else s={c:'',d:1};window._asSort=s;asResort();};
+window.asResort=function(){window._asFrozen=null;window._asBkFrozen=null;renderBalances();};
+window.asBankPick=function(v,clear){window._asFrozen=null;window._asBkFrozen=null;if(clear||v==='All banks'){window._asBank='';renderBalances();return;}
+var op=document.querySelectorAll('#as-bank-dl option');for(var k=0;k<op.length;k++){if(op[k].value===v){window._asBank=op[k].getAttribute('data-id')||'';renderBalances();return;}}};
 function balLogAdd(){_balInit();var ao=(D.accounts||[]).slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'');}).map(function(a){return '<option value="'+a.id+'">'+esc(a.name)+'</option>';}).join('');
  _bpop('<i class="fa-solid fa-clock-rotate-left"></i> Add Balance','<div class="form-group"><label>Account</label><select class="inp" id="bl-a">'+ao+'</select></div><div class="form-group"><label>Date</label><input type="date" class="inp" id="bl-d" value="'+_isoT()+'"></div><div class="form-group"><label>Balance (account currency)</label><input class="inp inp-num" id="bl-b"></div>',
  function(){var b=parseFloat(_gv('bl-b').replace(/,/g,''));if(isNaN(b)){toast('\u26a0\ufe0f Balance required');return false;}var a=(D.accounts||[]).find(function(x){return x.id===_gv('bl-a');});if(!a)return false;var d=_gv('bl-d')||_isoT();
-  D.balance_log=D.balance_log.filter(function(x){return !(x.acct===a.id&&x.date===d);});D.balance_log.push({id:_bid('bl'),date:d,acct:a.id,balance:b,cur:a.currency||'THB',rate:fxRate(a.currency||'THB',d)||1});
+  D.balance_log.push({id:_bid('bl'),date:d,ts:new Date().toISOString(),acct:a.id,balance:b,cur:a.currency||'THB',rate:fxRate(a.currency||'THB',d)||1});
   if(!a.balance_date||d>=a.balance_date){a.balance=b;a.balance_date=d;}saveD();renderBalances();try{simulate();}catch(e){}});}
 window.renderCurrencyFx=renderCurrencyFx;window.renderBalances=renderBalances;
 

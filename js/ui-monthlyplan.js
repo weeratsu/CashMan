@@ -234,16 +234,34 @@ function mpDelRow(id){if(!confirm('Delete this item?'))return;var V=_mpActive();
 
 // ---- version CRUD -----------------------------------------------------------
 function mpSwitchVer(id){D.plan_active=id;saveD();renderMonthlyPlan();}
+// Nov 10 2026: version name popup (UI standard) — replaces browser prompt() for New + Rename
+function _mpVerPopup(title,icon,val,hint,onSave){
+  var o=document.getElementById('mp-ver-ov');if(o)o.remove();
+  o=document.createElement('div');o.id='mp-ver-ov';
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  var md=null;o.addEventListener('mousedown',function(e){md=e.target;});o.addEventListener('click',function(e){if(e.target===o&&md===o)o.remove();});
+  o.innerHTML='<div style="background:var(--bg2);border-radius:var(--radius);padding:16px 18px;width:380px;max-width:100%;box-shadow:0 10px 30px rgba(0,0,0,.3)">'+
+   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px"><i class="fa-solid '+icon+'"></i> '+title+'</b><button class="btn btn-ghost" style="font-size:11px;padding:2px 8px" onclick="document.getElementById(\'mp-ver-ov\').remove()">\u2715</button></div>'+
+   (hint?'<div style="font-size:10px;color:var(--text3);margin-bottom:6px">'+hint+'</div>':'')+
+   '<label style="display:block;font-size:10px;color:var(--text3);margin:6px 0 2px">Plan name *</label><input id="mp-ver-name" class="inp" style="width:100%;font-size:11px;padding:5px 7px;box-sizing:border-box" value="'+esc(val||'')+'">'+
+   '<div id="mp-ver-err" style="color:var(--error);font-size:10px;min-height:12px;margin-top:4px"></div>'+
+   '<div style="display:flex;justify-content:space-between;gap:6px;margin-top:8px"><button class="btn btn-ghost" style="font-size:11px" onclick="document.getElementById(\'mp-ver-ov\').remove()">Cancel</button><button class="btn btn-primary" style="font-size:11px" id="mp-ver-save"><i class="fa-solid fa-check"></i> Save</button></div>'+
+   '<div style="font-size:9px;color:var(--text3);margin-top:6px;text-align:right">Enter = Save \u00b7 Esc = Cancel</div></div>';
+  document.body.appendChild(o);
+  var go=function(){var v=(document.getElementById('mp-ver-name').value||'').trim();if(!v){document.getElementById('mp-ver-err').textContent='Please enter a name';return;}o.remove();onSave(v);};
+  document.getElementById('mp-ver-save').onclick=go;
+  o.addEventListener('keydown',function(e){if(e.key==='Escape')o.remove();else if(e.key==='Enter'){e.preventDefault();go();}});
+  setTimeout(function(){var n=document.getElementById('mp-ver-name');if(n){n.focus();n.select();}},30);
+}
 function mpNewVersion(){
   var V=_mpActive();
-  var label=prompt('\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e1c\u0e19\u0e40\u0e27\u0e2d\u0e23\u0e4c\u0e0a\u0e31\u0e19\u0e43\u0e2b\u0e21\u0e48 (\u0e02\u0e2d\u0e07\u0e40\u0e01\u0e48\u0e32\u0e08\u0e30\u0e16\u0e39\u0e01\u0e40\u0e01\u0e47\u0e1a\u0e44\u0e27\u0e49 refer \u0e44\u0e14\u0e49):','\u0e41\u0e1c\u0e19 '+new Date().toLocaleDateString('en-GB'));
-  if(label===null)return;
+  _mpVerPopup('New plan version','fa-code-branch','Plan '+new Date().toLocaleDateString('en-GB'),'Copies all rows from <b>'+esc(V.label||'')+'</b>. The old version is kept for reference.',function(label){
   var copy=(V.rows||[]).map(function(r){return {id:_mpId('r'),name:r.name,amount:r.amount,account:r.account,purpose:r.purpose,category:r.category};});
-  var nv={id:_mpId('v'),label:label.trim()||('\u0e41\u0e1c\u0e19 '+new Date().toLocaleDateString('en-GB')),created:new Date().toISOString(),rows:copy};
+  var nv={id:_mpId('v'),label:label,created:new Date().toISOString(),rows:copy};
   D.plan_versions.push(nv);D.plan_active=nv.id;saveD();renderMonthlyPlan();
-  toast('\u2705 \u0e2a\u0e23\u0e49\u0e32\u0e07\u0e40\u0e27\u0e2d\u0e23\u0e4c\u0e0a\u0e31\u0e19\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e02\u0e2d\u0e07\u0e40\u0e01\u0e48\u0e32\u0e22\u0e31\u0e07\u0e2d\u0e22\u0e39\u0e48');
+  toast('\u2705 New version created \u2014 old version kept');});
 }
-function mpRenameVersion(){var V=_mpActive();var label=prompt('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e1c\u0e19\u0e19\u0e35\u0e49:',V.label||'');if(label===null||!label.trim())return;V.label=label.trim();saveD();renderMonthlyPlan();}
+function mpRenameVersion(){var V=_mpActive();_mpVerPopup('Rename plan','fa-pen',V.label||'','',function(label){V.label=label;saveD();renderMonthlyPlan();toast('\u2705 Saved');});}
 
 
 // ---- infographic charts (account / category / annual) -----------------------

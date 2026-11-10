@@ -267,6 +267,6 @@ try{var ex=document.querySelector('.nav-sub[data-sub="tax-exempt"]');
 if(ex&&!document.querySelector('.nav-sub[data-sub="other-income"]')){var b=ex.cloneNode(true);b.dataset.sub='other-income';b.classList.remove('active');b.querySelector('span').textContent='50 Tawi';ex.parentNode.insertBefore(b,ex.nextSibling)}
 var tt=document.querySelector('#tab-paytax .sub-tab[onclick*="tax-exempt"]');
 if(tt&&!document.querySelector('#tab-paytax .sub-tab[onclick*="other-income"]')){var s=document.createElement('span');s.className='sub-tab';s.setAttribute('onclick',"swPayTax(this,'other-income')");s.textContent='50 Tawi';tt.parentNode.insertBefore(s,tt.nextSibling)}}catch(e){}}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inj);else inj()})();
+inj();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inj)})();
 
 window.oiPayerAdd=oiPayerAdd;window.oiPayerDel=oiPayerDel;window.oiPayersSave=oiPayersSave;window.oiView=oiView;window.oiToggle=oiToggle;window.renderOtherIncome=renderOtherIncome;window.oiImportWHT=oiImportWHT;window.oiEdit=oiEdit;window.oiSave=oiSave;window.oiDel=oiDel;window.oiYearTotals=oiYearTotals;

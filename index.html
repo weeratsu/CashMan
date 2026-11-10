@@ -705,6 +705,7 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 
 <script>try{window.__cmBootLM=(JSON.parse(localStorage.getItem('cashflow_v5')||'null')||{}).last_modified||'';}catch(e){window.__cmBootLM='';}</script>
 <script src="js/data.js?v=321"></script>
+<script src="js/ui-confirm.js?v=1"></script>
 <script src="js/unified.js?v=8"></script>
 <script src="js/unified-adapter.js?v=18"></script>
 <script>window.CM_USE_UNIFIED=true;/* Step 2: Bill Reminder/Timeline/Calendar read the unified generator via billOccurrencesUnified. Set false to A/B against legacy. */</script>
@@ -714,29 +715,30 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
 </script>
 <script src="js/simulation.js?v=290"></script>
 
-<script src="js/ui-setup.js?v=271"></script>
+<script src="js/ui-setup.js?v=275"></script>
 <script src="js/ui-holidays.js?v=5"></script>
-<script src="js/ui-balances.js?v=12"></script>
+<script src="js/ui-balances.js?v=37"></script>
 
 <script src="js/ui-payroll.js?v=259"></script>
 <script src="data/wht_income.js" onerror="window.WHT_INCOME=[]"></script>
 <script src="js/ui-otherincome.js?v=16"></script>
-<script src="js/ui-monthlyplan.js?v=16"></script>
-<script src="js/ui-bills.js?v=355"></script>
+<script src="js/ui-monthlyplan.js?v=17"></script>
+<script src="js/ui-bills.js?v=358"></script>
 <script src="js/ui-creditcards.js?v=319"></script>
 
 <script src="js/ui-timeline.js?v=256"></script>
-<script src="js/ui-dashboard.js?v=324"></script>
-<script src="js/ui-calview.js?v=5"></script>
+<script src="js/ui-dashboard.js?v=327"></script>
+<script src="js/ui-calview.js?v=9"></script>
 <script src="js/ui-cardstatus.js?v=3"></script>
-<script src="js/ui-cbview.js?v=8"></script>
+<script src="js/ui-cbview.js?v=16"></script>
 <script src="js/help-data.js?v=254"></script>
 <script src="js/trx-io.js?v=269"></script>
 <script src="js/retirement-calc.js?v=254"></script>
 <script src="js/ui-retirement.js?v=257"></script>
 
 <script src="js/ui-billreminder.js?v=350"></script>
-<script src="js/ui-todos.js?v=321"></script>
+<script src="js/ui-todos.js?v=325"></script>
+<script src="js/ui-todoview.js?v=1"></script>
 <script src="js/ui-wishlist.js?v=257"></script>
 <!-- utility_log.js is REWRITTEN by the parser on every run. Load it with a per-load cache-bust
      timestamp (document.write keeps it synchronous & in-order, so ui-utilities.js / app.js below
@@ -750,11 +752,12 @@ html.dark input[type=date],html.dark input[type=time]{color-scheme:dark}
      card_txns_local.json (detailed merchant lines) is PRIVATE (gitignored); loaded here on PC only. -->
 <script>document.write('<script src="data/card_bills.js?t='+Date.now()+'"><\/script>');</script>
 <script>document.write('<script src="data/card_txns_local.js?t='+Date.now()+'" onerror="window.CARD_TXNS_LOCAL=null"><\/script>');</script>
-<script src="js/ui-utilities.js?v=280"></script>
+<script src="js/ui-utilities.js?v=283"></script>
 <script src="js/ui-cardsync.js?v=316"></script>
 <script src="js/ui-cardraw.js?v=3"></script>
 <script src="js/ui-cardtxns.js?v=3"></script>
-<script src="js/ui-cardsummary.js?v=20"></script>
+<script src="js/ui-cardsummary.js?v=21"></script>
+<script src="js/ui-cardfunding.js?v=17"></script>
 <script src="js/drive-view.js?v=2"></script>
 <script src="js/app.js?v=298"></script>
 <script src="../WRHub/shared/pull-refresh.js?v=2" onerror="var s=document.createElement('script');s.src='js/pull-refresh.js?v=2';document.body.appendChild(s);"></script>
