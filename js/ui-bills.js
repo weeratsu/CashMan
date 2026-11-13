@@ -434,7 +434,7 @@ var mainRow='<tr class="m-main" data-mrow="'+i+'" style="'+(m.direction==='incom
 '<td class="r"><input class="inp inp-num" type="text" value="'+fmt(m.amount)+'" style="width:90px;padding:2px 4px;font-size:11px" data-mi="'+i+'" data-f="amount" onfocus="var v=parseFloat(this.value.replace(/,/g,\'\'));this.value=v||\'\';" onblur="this.value=(parseFloat(this.value.replace(/,/g,\'\'))||0).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2})"></td>'+'<td class="r"><input type="number" class="inp inp-num" value="'+m.billing_day+'" min="1" max="31" style="width:46px;font-size:11px" data-mi="'+i+'" data-f="billing_day"></td>'+
 '<td><select class="sel" data-mi="'+i+'" data-f="card">'+cOpts(m.card)+'</select></td>'+'<td><select class="sel" style="font-size:10px;max-width:150px" data-mi="'+i+'" data-f="account" onchange="readAll();saveD();" title="Transfer to account">'+_acctOptsSel(m.account)+'</select></td>'+'<td class="r"><input type="checkbox" '+(m.auto_pay?'checked':'')+' title="'+(m.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.monthly['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
 '<td><select class="sel" style="font-size:9px;'+stStyle+'" data-mi="'+i+'" data-f="status"><option value="Active"'+(st==='Active'?' selected':'')+' style="color:var(--success)">Active</option><option value="Hold"'+(st==='Hold'?' selected':'')+' style="color:var(--warning)">Hold</option><option value="Cancelled"'+(st==='Cancelled'?' selected':'')+' style="color:var(--error)">Cancelled</option></select></td>'+
-'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.monthly.splice('+i+',1);renderMonthly()"><i class="fa-solid fa-trash"></i></button></td></tr>';
+'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.monthly.splice('+i+',1);saveD();simulate();renderAllTabs()"><i class="fa-solid fa-trash"></i></button></td></tr>';
 // detail row (timing/period settings) — spans all columns, hidden unless expanded
 var detail='<tr class="m-detail" data-mrow="'+i+'" style="'+(open?'':'display:none;')+(m.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+rowOpac+'"><td></td><td></td><td colspan="10" style="padding:8px 10px">'+
 '<div class="rec-det" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:10px;position:sticky;left:8px;box-sizing:border-box;max-width:100%">'+
@@ -550,7 +550,7 @@ var mainRow='<tr class="y-main" data-yrow="'+i+'" style="'+(y.direction==='incom
 '<td><select class="sel" data-yi="'+i+'" data-f="card">'+cOpts(y.card)+'</select></td>'+'<td><select class="sel" style="font-size:10px;max-width:150px" data-yi="'+i+'" data-f="account" onchange="readAll();saveD();" title="Transfer to account">'+_acctOptsSel(y.account)+'</select></td>'+
 '<td class="r"><input type="checkbox" '+(y.auto_pay?'checked':'')+' title="'+(y.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.yearly['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
 '<td><select class="sel" style="font-size:9px;'+ystStyle+'" data-yi="'+i+'" data-f="status"><option value="Active"'+(yst==='Active'?' selected':'')+' style="color:var(--success)">Active</option><option value="Hold"'+(yst==='Hold'?' selected':'')+' style="color:var(--warning)">Hold</option><option value="Cancelled"'+(yst==='Cancelled'?' selected':'')+' style="color:var(--error)">Cancelled</option></select></td>'+
-'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.yearly.splice('+i+',1);renderYearly()"><i class="fa-solid fa-trash"></i></button></td></tr>';
+'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.yearly.splice('+i+',1);saveD();simulate();renderAllTabs()"><i class="fa-solid fa-trash"></i></button></td></tr>';
 // detail row
 var detail='<tr class="y-detail" data-yrow="'+i+'" style="'+(open?'':'display:none;')+(y.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+yRowOpac+'"><td></td><td></td><td colspan="10" style="padding:8px 10px">'+
 '<div class="rec-det" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:10px;position:sticky;left:8px;box-sizing:border-box;max-width:100%">'+
@@ -749,7 +749,7 @@ rows+='<tr data-idx="'+inst._oi+'" style="'+opac+'"><td style="width:24px"><inpu
 '<td><input type="date" class="inp" value="'+(inst.hide_before||'')+'" title="Hide periods before this date (Timeline & Bills Reminder)" style="width:115px;padding:2px 4px;font-size:10px" data-ii="'+inst._oi+'" data-f="hide_before"></td>'+
 '<td><select class="sel" data-ii="'+inst._oi+'" data-f="status">'+STATUSES.map(function(s){return '<option'+(st===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select></td>'+
 '<td>'+srcTag+'</td>'+
-'<td><button class="del-btn" onclick="if(confirm(\'Delete this item?\')){{readAll();D.installments.splice('+inst._oi+',1);renderInst()}}"><i class="fa-solid fa-trash"></i></button></td></tr>'}});
+'<td><button class="del-btn" onclick="if(confirm(\'Delete this item?\')){{readAll();D.installments.splice('+inst._oi+',1);saveD();simulate();renderAllTabs()}}"><i class="fa-solid fa-trash"></i></button></td></tr>'}});
 document.getElementById('inst-body').innerHTML=rows;_recRO('inst');
 populateInstDropdown()}
 
@@ -1028,6 +1028,8 @@ function _planStatus(p){
   return 'upcoming';
 }
 // Small coloured status pill for the Planned table Status column.
+function _plToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function _plPayRec(p){if(!p||!D.bill_payments)return null;var pfx='P|'+(p.name||'')+'|'+(p.date||'')+'::',ks=Object.keys(D.bill_payments);for(var i=0;i<ks.length;i++){if(ks[i].indexOf(pfx)===0){var r=D.bill_payments[ks[i]];if(r&&r.paid)return r;}}return null;}
 function _planStatusBadge(p){
   var s=_planStatus(p);
   if(s==='paid')return '<span style="font-size:8px;padding:1px 6px;border-radius:8px;background:var(--success);color:#fff;white-space:nowrap">\u2705 Paid</span>';
@@ -1050,7 +1052,7 @@ var mainRow='<tr class="pl-main" data-plrow="'+i+'" style="'+(p.direction==='inc
 '<td><select class="sel" data-pli="'+i+'" data-f="card" onchange="readAll();saveD();simulate();renderAllTabs()">'+cOpts(p.card)+'</select></td>'+'<td><select class="sel" style="font-size:10px;max-width:150px" data-pli="'+i+'" data-f="account" onchange="readAll();saveD();" title="Transfer to account">'+_acctOptsSel(p.account)+'</select></td>'+
 '<td class="r">'+_planStatusBadge(p)+'</td>'+
 '<td class="r"><input type="checkbox" '+(p.auto_pay?'checked':'')+' title="'+(p.auto_pay?'Auto-charged':'Manual payment')+'" onchange="D.planned['+i+'].auto_pay=this.checked;saveD();if(typeof renderBillReminder===\'function\')try{renderBillReminder()}catch(e){}"></td>'+
-'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.planned.splice('+i+',1);renderPlanned();filterPlanned()"><i class="fa-solid fa-trash"></i></button></td></tr>';
+'<td><button class="del-btn" onclick="if(!confirm(\'Delete this item?\'))return;readAll();D.planned.splice('+i+',1);saveD();simulate();renderAllTabs()"><i class="fa-solid fa-trash"></i></button></td></tr>';
 var detail='<tr class="pl-detail" data-plrow="'+i+'" style="'+(open?'':'display:none;')+(p.direction==='income'?'background:rgba(16,185,129,0.03)':'background:var(--bg3)')+'"><td></td><td></td><td colspan="10" style="padding:8px 10px">'+
 '<div class="rec-det" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;font-size:10px;position:sticky;left:8px;box-sizing:border-box;max-width:100%">'+
 '<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Own By</div><select class="sel" data-pli="'+i+'" data-f="own_by" onchange="readAll();saveD()">'+oOpts(p.own_by)+'</select></div>'+
@@ -1095,7 +1097,7 @@ var _plNewIdx=-1;
 function addPlanned(prefillISO){
 readAll();
 // Nov 10 2026: ONE form for Add + Edit (user chose the Add layout as standard). editIdx>=0 → Edit mode.
-var _ei=(typeof window._plEditIdx==='number')?window._plEditIdx:-1;window._plEditIdx=-1;var P=_ei>=0?D.planned[_ei]:null;window._plFormIdx=_ei;
+var _ei=(typeof window._plEditIdx==='number')?window._plEditIdx:-1;window._plEditIdx=-1;var P=_ei>=0?D.planned[_ei]:null;window._plFormIdx=_ei;window._plOldKey=P?(P.name||'')+'|'+(P.date||''):'';
 var ov=document.getElementById('pl-add-ov');
 if(!ov){ov=document.createElement('div');ov.id='pl-add-ov';
  ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
@@ -1123,6 +1125,12 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +row('Notes','<input id="pa-notes" class="inp" style="width:100%" value="'+esc(P?P.notes||'':'')+'">')
  +row('Remarks','<textarea id="pa-rem" class="inp" rows="2" style="width:100%;resize:vertical;box-sizing:border-box">'+esc(P?P.remarks||'':'')+'</textarea>')
  +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="pa-auto"'+(P&&P.auto_pay?' checked':'')+'> Auto-charged (auto-pay)</label>'
+ // Nov 13 2026: paid / received status + date, right in the Edit form (not for card-statement rows)
+ +((P&&!P._fromCard)?(function(){var r=_plPayRec(P),inc=(P.direction==='income');
+   return '<div style="border-top:1px dashed var(--border);padding-top:8px;display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;align-items:end">'
+   +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding-bottom:6px"><input type="checkbox" id="pa-paid"'+(r&&r.paid?' checked':'')+' onchange="document.querySelectorAll(\'.pa-pw\').forEach(function(w){w.style.visibility=this.checked?\'visible\':\'hidden\'},this)"> '+(inc?'Received':'Paid')+'</label>'
+   +'<div class="pa-pw" style="visibility:'+(r&&r.paid?'visible':'hidden')+'">'+row('Date '+(inc?'received':'paid'),'<input id="pa-pdate" type="date" class="inp" value="'+esc((r&&r.paid_date)||_plToday())+'">')+'</div>'
+   +'<div class="pa-pw" style="visibility:'+(r&&r.paid?'visible':'hidden')+'">'+row('Amount','<input id="pa-pamt" class="inp inp-num" inputmode="decimal" value="'+esc(r&&r.paid_amount!=null?r.paid_amount:(P.amount||''))+'">')+'</div></div>';})():'')
  +'</div>'
  +'<div id="pa-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
  +'<div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="plAddClose()">Cancel</button><button class="btn btn-primary" onclick="plAddSave()"><i class="fa-solid fa-check"></i> Save</button></div>'
@@ -1145,6 +1153,13 @@ var _ei=(typeof window._plFormIdx==='number')?window._plFormIdx:-1;window._plFor
 if(_ei>=0&&D.planned[_ei]){Object.keys(_rec).forEach(function(k){D.planned[_ei][k]=_rec[k];});_plNewIdx=_ei;}   // edit in place (keeps id, paid, other fields)
 else{D.planned.push(_rec);_plNewIdx=D.planned.length-1;}
 var _wasEdit=_ei>=0;
+// Nov 13 2026: save paid/received from the form (same ledger key as Mark paid: P|name|date::YYYY-MM). Old record (pre-rename) is moved.
+try{var _pe=document.getElementById('pa-paid');if(_wasEdit&&_pe&&!D.planned[_ei]._fromCard){var _p=D.planned[_ei],_nk='P|'+_p.name+'|'+_p.date+'::'+String(_p.date).slice(0,7);D.bill_payments=D.bill_payments||{};
+ var _old=null;Object.keys(D.bill_payments).forEach(function(k){if((window._plOldKey&&k.indexOf('P|'+window._plOldKey+'::')===0)||k.indexOf('P|'+_p.name+'|'+_p.date+'::')===0){if(!_old)_old=D.bill_payments[k];delete D.bill_payments[k];}});
+ if(_pe.checked){var _pd=g('pa-pdate')||_plToday(),_pa=parseFloat(g('pa-pamt').replace(/,/g,''));
+  var _r=Object.assign({},_old||{},{paid:true,paid_date:_pd,paid_amount:isNaN(_pa)?_p.amount:_pa,due:_p.date,type:_p.type,card:_p.card||'Cash/Direct',auto_pay:!!_p.auto_pay,orig_due:_p.date});D.bill_payments[_nk]=_r;}
+}}catch(_x){console.warn('planned paid save',_x);}
+window._plOldKey='';
 var _fc=!!window._cmFromCal;
 saveD();plAddClose();
 simulate();renderAllTabs();

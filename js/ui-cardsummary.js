@@ -117,7 +117,7 @@
     var rows=_csTxns().filter(function(t){ return _csNameRaw(t.card,t.last4)===card && t.period===period; });
     if(!rows.length) return '<div style="padding:6px 10px;color:var(--text3);font-size:10px">ไม่มีรายการ transaction ของงวดนี้</div>';
     rows.sort(function(a,b){ return String(a.txn_date||'').localeCompare(String(b.txn_date||'')); });
-    var h='<table class="tbl" style="font-size:10px;width:100%;margin:4px 0">';
+    var h='<table class="tbl cs-txn" data-card="'+_esc(card)+'" data-period="'+_esc(period)+'" style="font-size:10px;width:100%;margin:4px 0">';
     h+='<thead><tr><th style="text-align:left">วันที่</th><th style="text-align:left">รายการ</th><th>ประเภท</th><th style="text-align:right">จำนวน</th></tr></thead><tbody>';
     rows.forEach(function(t){
       var inst=(t.kind==='installment'&&t.installment_seq)?(' <span style="color:var(--text3)">('+_esc(t.installment_seq)+')</span>'):'';
@@ -125,7 +125,7 @@
       // money going OUT of the balance — color them green so they stand out from charges (spending).
       var _neg=_n(t.amount)<0;
       var _rc=_neg?'color:var(--success,#16a34a)':'';
-      h+='<tr style="'+_rc+'"><td style="white-space:nowrap">'+_dmy(t.txn_date||t.post_date)+'</td>'+
+      h+='<tr style="'+_rc+'" data-amt="'+_n(t.amount)+'" data-kind="'+_esc(t.kind||'')+'" data-desc="'+_esc(t.desc||'')+'" data-tk="'+_esc([t.last4||t.card_id||t.card,t.period,t.txn_date,t.amount,t.desc].join('|'))+'"><td style="white-space:nowrap">'+_dmy(t.txn_date||t.post_date)+'</td>'+
          '<td>'+_esc(t.desc||'-')+inst+'</td>'+
          '<td style="white-space:nowrap;color:'+(_neg?'var(--success,#16a34a)':'var(--text3)')+'">'+_esc(_KIND[t.kind]||t.kind||'-')+'</td>'+
          '<td style="text-align:right;font-variant-numeric:tabular-nums;'+_rc+'">'+_f(t.amount)+'</td></tr>';
