@@ -834,6 +834,19 @@ if(x.status==='Cancelled'||x.status==='Hold')return false;
 if(x.status==='Active'||x.status==='Planned')return true;
 var _ld=_instLastDueMs(x);if(_ld==null)return false;var _sv=(window._instMatrixStart||'');var _sm=/^\d{4}-\d{2}$/.test(_sv)?Date.UTC(+_sv.slice(0,4),+_sv.slice(5,7),1):_mRecentMs;return _ld>=Math.min(_sm,_mRecentMs);// v337: Finished visible if last period >= matrix Start-from month
 });
+// Nov 16 2026: card filter (by card id) — dropdown injected next to 'Start from'
+(function(){
+  var cs=document.getElementById('inst-startmonth');
+  if(cs&&!document.getElementById('inst-mcard')){var s=document.createElement('select');s.id='inst-mcard';s.className='sel';s.style.cssText='min-width:160px';
+    s.onchange=function(){window._instMatrixCard=this.value;renderInstMatrix();};cs.parentNode.insertBefore(s,cs.nextSibling);
+    var lb=document.createElement('span');lb.style.cssText='font-size:10px;color:var(--text3);margin:0 4px 0 10px;white-space:nowrap';lb.textContent='Card';cs.parentNode.insertBefore(lb,s);}
+  var sel=document.getElementById('inst-mcard');if(!sel)return;
+  var cid=function(x){var c=D.cards.find(function(k){return k.id===x.card||k.name===x.card});return c?c.id||c.name:(x.card||'');};
+  var ids={};all.forEach(function(x){var k=cid(x);if(k)ids[k]=1;});
+  var cur=window._instMatrixCard||'';
+  sel.innerHTML='<option value="">All cards</option>'+Object.keys(ids).map(function(k){var c=D.cards.find(function(z){return z.id===k||z.name===k});return '<option value="'+esc(k)+'"'+(k===cur?' selected':'')+'>'+esc(c?c.name:k)+'</option>';}).join('');
+  if(cur&&ids[cur])all=all.filter(function(x){return cid(x)===cur;});
+})();
 if(!all.length){el.innerHTML='<div class="text-muted" style="font-size:10px;padding:8px">No active installments.</div>';return}
 
 // Build month range from profile — but extend the START backward to cover any recently-finished

@@ -27,6 +27,7 @@ function hookAll(){
 }
 // header badge + Status select after Expiry field in each card body
 function decorate(){
+  if(!window.D||!D.cards)return;
   (D.cards||[]).forEach(function(c,i){
     var hd=document.querySelector('[onclick="ccToggleCard('+i+')"]');
     if(hd&&!hd.querySelector('.cs-badge')){var b=badge(c);if(b){var nm=hd.querySelector('b');(nm||hd).insertAdjacentHTML('afterend',b);}}

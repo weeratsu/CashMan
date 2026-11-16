@@ -102,7 +102,7 @@
       row('อีเมลเจ้าของ (แจ้งเตือน)', inp('vh-email', v.email, 'name@mail.com', 'email')) + '</div>' +
       row('สถานะ', '<select id="vh-st" class="sel">' + [['active', 'Active'], ['sold', 'Sold'], ['inactive', 'Inactive']].map(function (o) { return '<option value="' + o[0] + '"' + ((v.status || 'active') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>') +
       row('หมายเหตุ', inp('vh-note', v.note, 'เช่น เล่มเก็บที่ตู้เซฟ')) +
-      row('ชื่อโฟลเดอร์ใน Car Documents', inp('vh-folder', v.folder || v.name || '', 'เช่น Honda Civic 2019')),
+      row('ชื่อโฟลเดอร์ใน Car Documents', inp('vh-folder', v.folder || '', v.plate || 'เช่น Honda Civic 2019')),
       function (o) {
         var plate = gv('vh-plate'); if (!plate) { document.getElementById('vh-ov-err').textContent = 'กรุณาใส่ทะเบียน'; return; }
         var t = isNew ? { id: vid('vh'), docs: [] } : v;
@@ -152,19 +152,48 @@
   // Folder layout (user's Drive): G:\My Drive\Documents\Car Documents\<vehicle folder>\<doc-type subfolder>
   var ROOT = 'G:\\My Drive\\Documents\\Car Documents';
   var SUB = { insurance: 'Insurance', prb: 'Insurance', tax: 'Car Tax', inspect: 'Check Up', book: 'Registration Documents', other: '' };
-  function vhDir(v, type) { var f = (v && (v.folder || v.name || v.plate)) || ''; var s = SUB[type] || ''; return ROOT + (f ? '\\' + f : '') + (s ? '\\' + s : ''); }
+  function vhDir(v, type) { var f = (v && (v.folder || v.plate || v.name)) || ''; var s = SUB[type] || ''; return ROOT + (f ? '\\' + f : '') + (s ? '\\' + s : ''); }
   window.vhDir = vhDir;
   // update the shown folder when the doc type changes
   document.addEventListener('change', function (e) { if (e.target && e.target.id === 'vd-type') { var o = document.getElementById('vd-dir'), v = byId(_sel);
     if (o) o.textContent = '📁 ' + vhDir(v, e.target.value); } });
   // Nov 13 2026: a document can hold several files (e.g. registration book pages); old single d.file still read
   function vhFiles(d) { return Array.isArray(d && d.files) ? d.files : ((d && d.file) ? [d.file] : []); }
-  window.vhPicked = function (el, vid_) {
-    var fs = el && el.files; if (!fs || !fs.length) return;
-    var root = vhDir(byId(vid_), gv('vd-type')), out = document.getElementById('vd-file');
-    if (out) { var cur = out.value.split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean);
-      [].forEach.call(fs, function (f) { var p = root + '\\' + f.name; if (cur.indexOf(p) < 0) cur.push(p); }); out.value = cur.join('\n'); }
-    el.value = '';
+  // v5 (Nov 16 2026): COPY picked files into Car Documents\<vehicle folder>\<doc-type folder> using the browser
+  // folder permission (File System Access API). Real path is stored. Never overwrites: name (2).pdf if taken.
+  var _rootH = null;
+  async function rootHandle() {
+    if (_rootH) { try { if ((await _rootH.queryPermission({ mode: 'readwrite' })) === 'granted') return _rootH; if ((await _rootH.requestPermission({ mode: 'readwrite' })) === 'granted') return _rootH; } catch (e) { } }
+    if (!window.showDirectoryPicker) throw new Error('browser นี้ไม่รองรับการเลือกโฟลเดอร์ (ใช้ Chrome/Edge)');
+    alert('เลือกโฟลเดอร์ "Car Documents" (G:\\My Drive\\Documents\\Car Documents) แล้วกดอนุญาตให้แก้ไขไฟล์');
+    var h = await window.showDirectoryPicker({ id: 'cm-car-docs', mode: 'readwrite' });
+    if (h.name !== 'Car Documents' && !confirm('โฟลเดอร์ที่เลือกชื่อ "' + h.name + '" ไม่ใช่ "Car Documents" — ใช้โฟลเดอร์นี้ต่อ?')) throw new Error('cancelled');
+    _rootH = h; return h;
+  }
+  async function uniqueName(dir, name) {
+    var dot = name.lastIndexOf('.'), b = dot > 0 ? name.slice(0, dot) : name, x = dot > 0 ? name.slice(dot) : '', n = name, i = 2;
+    while (true) { try { await dir.getFileHandle(n); n = b + ' (' + (i++) + ')' + x; } catch (e) { return n; } }
+  }
+  window.vhPicked = async function (el, vid_) {
+    var fs = el && el.files ? Array.prototype.slice.call(el.files) : []; el.value = ''; if (!fs.length) return;
+    var v = byId(vid_), type = gv('vd-type'), out = document.getElementById('vd-file'), info = document.getElementById('vd-dir');
+    var fold = (v && (v.folder || v.plate || v.name)) || 'Vehicle', sub = SUB[type] || '';
+    try {
+      var root = await rootHandle(), dir = await root.getDirectoryHandle(fold, { create: true });
+      if (sub) dir = await dir.getDirectoryHandle(sub, { create: true });
+      var cur = out ? out.value.split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean) : [];
+      for (var k = 0; k < fs.length; k++) {
+        if (info) info.textContent = '⏳ กำลัง copy ' + (k + 1) + '/' + fs.length + ' …';
+        var nm = await uniqueName(dir, fs[k].name), fh = await dir.getFileHandle(nm, { create: true }), w = await fh.createWritable();
+        await w.write(fs[k]); await w.close();
+        cur.push(ROOT + '\\' + fold + (sub ? '\\' + sub : '') + '\\' + nm);
+      }
+      if (out) out.value = cur.join('\n');
+      if (info) info.textContent = '✅ copy แล้ว ' + fs.length + ' ไฟล์ → 📁 ' + ROOT + '\\' + fold + (sub ? '\\' + sub : '');
+    } catch (e) {
+      if (info) info.textContent = '⚠️ copy ไม่สำเร็จ: ' + (e && e.message || e);
+      console.warn('vhPicked', e);
+    }
   };
   window.vhF = function (f) { _stF = f; render(); };
   window.renderVehicles = render;

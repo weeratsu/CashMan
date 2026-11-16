@@ -204,6 +204,13 @@
   }
   function showSub(sub) {
     var tc = document.getElementById('todos-content'), lc = document.getElementById('leave-content'); if (!tc || !lc) return;
+    // v5: make sure the To-Do tab itself is visible (sidebar sub-menu may not switch tabs)
+    var tab = document.getElementById('tab-todos');
+    if (tab && !tab.classList.contains('active')) {
+      document.querySelectorAll('.tab-content').forEach(function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+    }
+    _sub = sub; pills();
     tc.style.display = sub === 'leave' ? 'none' : ''; lc.style.display = sub === 'leave' ? '' : 'none';
     document.querySelectorAll('.nav-sub[data-tab="todos"]').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-sub') === sub); });
     if (sub === 'leave') renderLeave();
@@ -213,4 +220,16 @@
     var sub = b.getAttribute('data-sub'); setTimeout(function () { showSub(sub); }, 0);
   });
   injLeave(); if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injLeave);
+  // v5: Tasks | Leave pills at the top of the To-Do page (always reachable, independent of the sidebar)
+  var _sub = 'tasks';
+  function pills() {
+    var tab = document.getElementById('tab-todos'); if (!tab) return;
+    var p = document.getElementById('lv-pills');
+    if (!p) { p = document.createElement('div'); p.id = 'lv-pills'; p.style.cssText = 'display:flex;gap:6px;margin:0 0 8px'; tab.insertBefore(p, tab.firstChild); }
+    var b = function (k, t) { var on = _sub === k; return '<button onclick="lvShowSub(\'' + k + '\')" style="font-size:11px;padding:4px 14px;border-radius:999px;cursor:pointer;border:1px solid ' + (on ? 'var(--primary)' : 'var(--border)') +
+      ';background:' + (on ? 'color-mix(in srgb, var(--primary) 14%, transparent)' : 'transparent') + ';color:' + (on ? 'var(--primary)' : 'var(--text)') + ';font-weight:' + (on ? 700 : 500) + '">' + t + '</button>'; };
+    p.innerHTML = b('tasks', '<i class="fa-solid fa-list-check"></i> Tasks') + b('leave', '<i class="fa-solid fa-umbrella-beach"></i> Leave');
+  }
+  window.lvShowSub = function (s) { showSub(s); };
+  setTimeout(pills, 300);
 })();
