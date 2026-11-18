@@ -332,7 +332,7 @@ function _calBillDL(o){
 function _calTaskDL(t){return (t.deadline_date&&/^\d{4}-\d{2}-\d{2}$/.test(t.deadline_date))?t.deadline_date:'';}
 function _calBar(seg,muted){
  var it=seg.it,isT=seg.task;var done=isT?it.done:_calIsPaid(it);
- if(isT?!_dashCalShowTDL:!_dashCalShowBDL)return '';
+ if(isT?(!_dashCalShowTDL||!_dashCalShowTasks):(!_dashCalShowBDL||!_dashCalShowBills))return '';   // Nov 18 2026: parent pill off hides its deadlines too
  if(isT&&!_dashCalShowDone&&done)return '';if(!isT&&!_dashCalShowPaid&&done)return '';
  var col=done?'var(--text3)':(seg.late?'var(--error)':'#d97706');
  var idx=isT?_dashCalCache.push({_isTask:true,task:it})-1:it._calIdx;
@@ -687,7 +687,7 @@ var kidSum=0;
 o.children.forEach(function(ch){kidSum+=(ch.amount||0);
 var cd=ch.orig_due||ch.due;
 var chLbl=(ch.kind==='Installment'&&ch.info)?' <span style=\"font-size:9px;color:var(--text3)\">'+esc(ch.info)+'</span>':'';
-body+='<tr><td style="padding:3px 0">'+(ch.auto_pay?'\ud83e\udd16 ':'')+esc(ch.name||'')+chLbl+(cd?' <span style=\"font-size:9px;color:var(--text3)\">'+cd.getDate()+'</span>':'')+'</td><td style="font-size:10px;color:var(--text3)">'+esc(ch.type||'')+'</td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(ch.amount||0)+'</td></tr>';
+body+='<tr><td style="padding:3px 0">'+(ch.auto_pay?'\ud83e\udd16 ':'')+esc(ch.name||'')+chLbl+(cd?' <span style=\"font-size:9px;color:var(--text3)\">'+cd.getDate()+'</span>':'')+'</td><td style="font-size:10px;color:var(--text3)">'+esc((function(t){var x=(D.types||[]).find(function(y){return y&&(y.id===t||y.name===t);});return x?(x.name||x.label||t):(t||'');})(ch.type))+'</td><td style="text-align:right;font-family:var(--mono)">\u0e3f'+fmt(ch.amount||0)+'</td></tr>';
 });
 var extra=(o.amount||0)-kidSum;
 if(extra>0.005)body+='<tr><td style="padding:3px 0;color:var(--primary)">+ extra spend</td><td></td><td style="text-align:right;font-family:var(--mono);color:var(--primary)">\u0e3f'+fmt(extra)+'</td></tr>';
