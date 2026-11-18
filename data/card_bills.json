@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-13T11:13:00",
+ "generated_at": "2026-11-18T15:17:53",
  "bills": [
   {
    "card": "BAY AIA Visa Platinum",
@@ -4319,11 +4319,42 @@
    "points_date": "2026-10-13",
    "source_file": "eStatement.pdf",
    "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\UOB Preferred Platinum\\2026\\UOB Preferred Platinum_2026-09 (1).pdf",
+   "payments": [
+    {
+     "amount": 4015.35,
+     "paid_at": "2026-11-12",
+     "ref": "next-statement",
+     "carry": false
+    }
+   ],
+   "paid_total": 4015.35,
+   "paid_date": "2026-11-12",
+   "paid_full": true,
+   "remaining": 0.0
+  },
+  {
+   "card": "UOB Preferred Platinum",
+   "card_id": "c9",
+   "last4": "5868",
+   "period": "2026-10",
+   "stmt_date": "2026-11-12",
+   "due_date": "2026-12-04",
+   "amount_due": 1016.0,
+   "min_due": 82.0,
+   "txn_total": 1016.0,
+   "installment_total": null,
+   "adjustment_total": null,
+   "total_payments": 4015.35,
+   "prev_balance": 4015.35,
+   "points_balance": 17802,
+   "points_date": "2026-11-12",
+   "source_file": "eStatement.pdf",
+   "file": "G:\\My Drive\\Documents\\Bills\\Credit Card Statements\\UOB Preferred Platinum\\2026\\UOB Preferred Platinum_2026-10.pdf",
    "payments": [],
    "paid_total": 0.0,
    "paid_date": null,
    "paid_full": false,
-   "remaining": 4015.35
+   "remaining": 1016.0
   },
   {
    "card": "ttb so smart",
