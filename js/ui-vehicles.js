@@ -163,11 +163,12 @@
   // folder permission (File System Access API). Real path is stored. Never overwrites: name (2).pdf if taken.
   var _rootH = null;
   async function rootHandle() {
+    if (window.cmFolder) { _rootH = await window.cmFolder('car_docs'); return _rootH; } // Nov 18 2026: Setup › File Locations
     if (_rootH) { try { if ((await _rootH.queryPermission({ mode: 'readwrite' })) === 'granted') return _rootH; if ((await _rootH.requestPermission({ mode: 'readwrite' })) === 'granted') return _rootH; } catch (e) { } }
     if (!window.showDirectoryPicker) throw new Error('browser นี้ไม่รองรับการเลือกโฟลเดอร์ (ใช้ Chrome/Edge)');
-    alert('เลือกโฟลเดอร์ "Car Documents" (G:\\My Drive\\Documents\\Car Documents) แล้วกดอนุญาตให้แก้ไขไฟล์');
+    if (!(await window.cmAsk('ครั้งแรกต้องเลือกโฟลเดอร์ปลายทางก่อน\n\n📁 G:\\My Drive\\Documents\\Car Documents\n\nเลือกโฟลเดอร์นี้ แล้วกด "อนุญาต / Allow" ให้แอปบันทึกไฟล์ได้', { title: 'เลือกโฟลเดอร์ Car Documents', icon: 'fa-folder-open', ok: '<i class="fa-solid fa-folder-open"></i> เลือกโฟลเดอร์' }))) throw new Error('cancelled');
     var h = await window.showDirectoryPicker({ id: 'cm-car-docs', mode: 'readwrite' });
-    if (h.name !== 'Car Documents' && !confirm('โฟลเดอร์ที่เลือกชื่อ "' + h.name + '" ไม่ใช่ "Car Documents" — ใช้โฟลเดอร์นี้ต่อ?')) throw new Error('cancelled');
+    if (h.name !== 'Car Documents' && !(await window.cmAsk('โฟลเดอร์ที่เลือกชื่อ "' + h.name + '" ไม่ใช่ "Car Documents"\nใช้โฟลเดอร์นี้ต่อ?', { title: 'โฟลเดอร์ไม่ตรง', icon: 'fa-triangle-exclamation', ok: '\u2713 ใช้โฟลเดอร์นี้' }))) throw new Error('cancelled');
     _rootH = h; return h;
   }
   async function uniqueName(dir, name) {

@@ -21,9 +21,26 @@ function apply(){
   try{
     var s=document.getElementById('cm-calview-css');
     if(!s){s=document.createElement('style');s.id='cm-calview-css';document.head.appendChild(s);}
-    s.textContent=css();
-    addBtns();addCat();
+    s.textContent=css()+
+      // Nov 18 2026: tidy header — filter pill groups on one wrapping row, same height, aligned
+      '#dash-calendar .calf-grp{height:30px;box-sizing:border-box}'+
+      '#calview-fbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 4px;width:100%}'+
+      '#calview-fbar>*{margin:0!important}'+
+      '#calview-cat select{border:0!important;background:transparent!important;height:24px}';
+    addBtns();addCat();tidy();
   }catch(e){console.warn('calview:',e);}
+}
+// Nov 18 2026: Today/Refresh right next to the month navigation; all filter groups + category in one row
+function tidy(){
+  var el=document.getElementById('dash-calendar');if(!el)return;
+  var nav=el.querySelector('#calview-nav'),act=el.querySelector('#calview-act');
+  if(nav&&act&&nav.nextSibling!==act)nav.parentNode.insertBefore(act,nav.nextSibling);
+  var grps=[].slice.call(el.querySelectorAll('.calf-grp')).filter(function(g){return g.id!=='calview-nav'&&g.id!=='calview-act'&&g.id!=='calview-fsg';});
+  if(!grps.length)return;
+  var bar=el.querySelector('#calview-fbar');
+  if(!bar){bar=document.createElement('div');bar.id='calview-fbar';var first=grps[0],host=first.parentNode;
+    host.parentNode.insertBefore(bar,host);}
+  grps.forEach(function(g){if(g.parentNode!==bar)bar.appendChild(g);});
 }
 function addBtns(){
   var el=document.getElementById('dash-calendar');if(!el)return;

@@ -36,4 +36,18 @@ window.confirm=function(msg){
   window.cmConfirm(msg,function(){_yes=true;try{el.click();}finally{_yes=false;}});
   return false;
 };
+// Nov 18 2026: promise popup (same format) — await cmAsk(msg,{title,ok,cancel:false,icon}) → true/false.
+// OK click is a real user gesture, so callers may open file/folder pickers right after it.
+window.cmAsk=function(msg,opt){opt=opt||{};return new Promise(function(res){
+  window.cmConfirm(msg,function(){res(true);},{title:opt.title,danger:false});
+  var ov=document.getElementById('cm-confirm-ov');if(!ov)return res(false);
+  var y=ov.querySelector('#cm-cf-yes'),n=ov.querySelector('#cm-cf-no');
+  if(opt.icon){var i=ov.querySelector('h3 i');if(i)i.className='fa-solid '+opt.icon;}
+  if(opt.ok)y.innerHTML=opt.ok;
+  if(opt.cancel===false)n.style.visibility='hidden';
+  n.addEventListener('click',function(){res(false);});
+  new MutationObserver(function(m,o){if(!document.contains(ov)){o.disconnect();res(false);}}).observe(document.body,{childList:true});
+});};
+// app-wide: native alert() never shown — styled info popup with OK only
+window.alert=function(msg){window.cmAsk(msg,{title:'แจ้งเตือน',icon:'fa-circle-info',ok:'\u2713 OK',cancel:false});};
 })();
