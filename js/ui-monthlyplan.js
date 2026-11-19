@@ -158,15 +158,22 @@ function renderMonthlyPlan(){
   verSel+='</select>';
 
   host.innerHTML=
+    // Nov 19 2026 layout: Summary on top · month + income · plan tools / Add Item / filters right above the table
     '<div class="card">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h2 style="margin:0"><i class="fa-solid fa-wallet"></i> Monthly Planning</h2>'+
-        '<button class="btn btn-primary" style="font-size:11px" onclick="mpAddPopup()"><i class="fa-solid fa-plus"></i> Add Item</button></div>'+
+      '<div style="margin-bottom:4px"><h2 style="margin:0"><i class="fa-solid fa-wallet"></i> Monthly Planning</h2></div>'+
       '<p class="text-muted" style="font-size:10px;margin-bottom:8px">\u0e27\u0e32\u0e07\u0e41\u0e1c\u0e19\u0e08\u0e31\u0e14\u0e2a\u0e23\u0e23\u0e40\u0e07\u0e34\u0e19\u0e41\u0e15\u0e48\u0e25\u0e30\u0e40\u0e14\u0e37\u0e2d\u0e19 \u2014 income \u0e14\u0e36\u0e07\u0e08\u0e32\u0e01 Payroll + \u0e23\u0e32\u0e22\u0e23\u0e31\u0e1a\u0e2d\u0e37\u0e48\u0e19 \u0e46, \u0e04\u0e07\u0e40\u0e2b\u0e25\u0e37\u0e2d\u0e04\u0e33\u0e19\u0e27\u0e13\u0e17\u0e49\u0e32\u0e22\u0e41\u0e15\u0e48\u0e25\u0e30\u0e41\u0e16\u0e27 (\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48 Setup \u203a Bank & Account)</p>'+
+      _mpSummaryHtml(V)+
       '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">'+
         '<span style="font-size:11px;color:var(--text3)">\u0e40\u0e14\u0e37\u0e2d\u0e19</span>'+moSel+
-        '<span style="margin-left:auto;font-size:11px;color:var(--text3)">\u0e41\u0e1c\u0e19</span>'+verSel+
+      '</div>'+
+      kpis+
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--border)">'+
+        '<span style="font-size:11px;color:var(--text3)">\u0e41\u0e1c\u0e19</span>'+verSel+
         '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="mpNewVersion()" title="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e1c\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19\u0e40\u0e1b\u0e47\u0e19\u0e40\u0e27\u0e2d\u0e23\u0e4c\u0e0a\u0e31\u0e19 \u0e41\u0e25\u0e49\u0e27\u0e40\u0e23\u0e34\u0e48\u0e21\u0e41\u0e1c\u0e19\u0e43\u0e2b\u0e21\u0e48"><i class="fa-solid fa-code-branch"></i> \u0e40\u0e27\u0e2d\u0e23\u0e4c\u0e0a\u0e31\u0e19\u0e43\u0e2b\u0e21\u0e48</button>'+
         '<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="mpRenameVersion()" title="\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e1c\u0e19\u0e19\u0e35\u0e49"><i class="fa-solid fa-pen"></i></button>'+
+        '<button class="del-btn" style="padding:4px 8px" onclick="mpDeleteVersion()" title="\u0e25\u0e1a\u0e41\u0e1c\u0e19\u0e19\u0e35\u0e49"><i class="fa-solid fa-trash"></i></button>'+
+        '<span style="flex:1"></span>'+
+        '<button class="btn btn-primary" style="font-size:11px" onclick="mpAddPopup()"><i class="fa-solid fa-plus"></i> Add Item</button>'+
       '</div>'+
       // table filters (category + account) — sourced from Setup, id-linked, sorted
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">'+
@@ -176,10 +183,8 @@ function renderMonthlyPlan(){
         '<select class="sel" style="font-size:11px" onchange="setMpFilter(\'acct\',this.value)">'+mpAcctOpts(_mpFilterAcct,_mpFilterBank)+'</select>'+
         ((_mpFilterCat||_mpFilterAcct||_mpFilterBank)?'<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="_mpFilterCat=\'\';_mpFilterAcct=\'\';_mpFilterBank=\'\';renderMonthlyPlan()">\u2715 \u0e25\u0e49\u0e32\u0e07</button>':'')+
       '</div>'+
-      kpis+planTable+
+      planTable+
     '</div>'+
-    // --- group-by summary list ---
-    _mpSummaryHtml(V)+
     // --- infographic / analysis section ---
     '<div class="card" style="margin-top:10px"><h2><i class="fa-solid fa-chart-pie"></i> \u0e2a\u0e23\u0e38\u0e1b / \u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c</h2>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:6px">'+
@@ -255,13 +260,28 @@ function _mpVerPopup(title,icon,val,hint,onSave){
 }
 function mpNewVersion(){
   var V=_mpActive();
-  _mpVerPopup('New plan version','fa-code-branch','Plan '+new Date().toLocaleDateString('en-GB'),'Copies all rows from <b>'+esc(V.label||'')+'</b>. The old version is kept for reference.',function(label){
-  var copy=(V.rows||[]).map(function(r){return {id:_mpId('r'),name:r.name,amount:r.amount,account:r.account,purpose:r.purpose,category:r.category};});
+  // Nov 19 2026: choose start — blank plan or copy from any existing plan (by id)
+  window._mpCopyFrom=V.id;
+  var src='<label style="display:block;font-size:10px;color:var(--text3);margin:2px 0 2px">เริ่มจาก</label><select class="sel" style="width:100%" onchange="window._mpCopyFrom=this.value">'+
+    '<option value="">\u2014 แผนว่าง (ไม่มีรายการ) \u2014</option>'+(D.plan_versions||[]).map(function(x){return '<option value="'+x.id+'"'+(x.id===V.id?' selected':'')+'>ก๊อปจาก: '+esc(x.label||'')+' ('+((x.rows||[]).length)+' รายการ)</option>';}).join('')+'</select>';
+  _mpVerPopup('New plan version','fa-code-branch','Plan '+new Date().toLocaleDateString('en-GB'),src+'<div style="margin-top:4px">แผนเดิมยังเก็บไว้ทั้งหมด</div>',function(label){
+  var S=(D.plan_versions||[]).find(function(x){return x.id===window._mpCopyFrom;});
+  var copy=((S&&S.rows)||[]).map(function(r){return {id:_mpId('r'),name:r.name,amount:r.amount,account:r.account,purpose:r.purpose,category:r.category};});
   var nv={id:_mpId('v'),label:label,created:new Date().toISOString(),rows:copy};
   D.plan_versions.push(nv);D.plan_active=nv.id;saveD();renderMonthlyPlan();
-  toast('\u2705 New version created \u2014 old version kept');});
+  toast(S?'\u2705 สร้างแผนใหม่ (ก๊อปจาก '+(S.label||'')+')':'\u2705 สร้างแผนว่างแล้ว');});
 }
 function mpRenameVersion(){var V=_mpActive();_mpVerPopup('Rename plan','fa-pen',V.label||'','',function(label){V.label=label;saveD();renderMonthlyPlan();toast('\u2705 Saved');});}
+// Nov 19 2026: delete current plan version (confirm popup; the last remaining plan can't be deleted)
+function mpDeleteVersion(){
+  var V=_mpActive(),L=D.plan_versions||[];
+  if(L.length<=1){alert('ลบไม่ได้ — ต้องมีแผนอย่างน้อย 1 แผน');return;}
+  cmConfirm('ลบแผน "'+(V.label||'')+'"?\n'+((V.rows||[]).length)+' รายการในแผนนี้จะหายไป (แผนอื่นไม่กระทบ)',function(){
+    var i=L.indexOf(V);L.splice(i,1);
+    var nx=L.slice().sort(function(a,b){return String(b.created||'').localeCompare(String(a.created||''));})[0];
+    D.plan_active=nx.id;saveD();renderMonthlyPlan();toast('\u{1F5D1} ลบแผนแล้ว');
+  },{title:'Delete plan',danger:true});
+}
 
 
 // ---- infographic charts (account / category / annual) -----------------------
@@ -394,3 +414,4 @@ window.setMpSort=setMpSort;window.setMpFilter=setMpFilter;
 window.mpAddPopup=mpAddPopup;window.mpEditPopup=mpEditPopup;window.mpSavePopup=mpSavePopup;window.mpDelRow=mpDelRow;window._mpClosePopup=_mpClosePopup;
 window.mpSwitchVer=mpSwitchVer;window.mpNewVersion=mpNewVersion;window.mpRenameVersion=mpRenameVersion;
 window.mpAcctLabel=mpAcctLabel;
+bel;

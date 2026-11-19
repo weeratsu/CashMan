@@ -65,23 +65,27 @@ function bankSum(){
       var amt=mm?parseFloat(mm[1].replace(/,/g,'')):0;if(!(amt>0.005))continue;
       var paid=window.cbvIsPaid(h);
       if(!by[bk]){by[bk]={due:0,paid:0,n:0,pk:0,pks:[]};order.push(bk);}
-      if(paid)by[bk].paid+=amt;else{by[bk].due+=amt;by[bk].n++;
-        // Nov 13 2026: money already in the pocket linked to this card (by card id) is deducted from the transfer
-        (D.accounts||[]).forEach(function(a){(a.pockets||[]).forEach(function(p){if(p&&c.id&&p.card_id===c.id){var b=+p.balance||0;
-          var pc=p.currency||a.currency||'THB';if(pc!=='THB'){var r=(typeof fxRate==='function')?fxRate(pc):0;b=r?b*r:0;}
-          by[bk].pk+=b;by[bk].pks.push({n:(a.name||'')+' \u203a '+(p.name||''),b:b});}});});}
+      if(paid)by[bk].paid+=amt;else{by[bk].due+=amt;by[bk].n++;}
+      // Nov 19 2026 fix: list linked pockets for EVERY card (paid cards too); only unpaid cards' pockets are deducted
+      (D.accounts||[]).forEach(function(a){(a.pockets||[]).forEach(function(p){if(p&&c.id&&p.card_id===c.id){var b=+p.balance||0;
+        var pc=p.currency||a.currency||'THB';if(pc!=='THB'){var r=(typeof fxRate==='function')?fxRate(pc):0;b=r?b*r:0;}
+        if(!paid)by[bk].pk+=b;by[bk].pks.push({n:(a.name||'')+' \u203a '+(p.name||''),b:b,paid:paid});}});});
     }
     if(!order.length)return;
     order.sort(function(a,b){return by[b].due-by[a].due;});
     var f=function(v){return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
     var d=document.createElement('div');d.id='cbv-bank';d.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:8px';
     d.innerHTML='<div style="width:100%;font-size:9px;font-weight:700;color:var(--text3)"><i class="fa-solid fa-building-columns"></i> TRANSFER BY BANK</div>'+
-      order.map(function(bk){var g=by[bk];g.full=g.due;g.due=Math.max(0,g.due-g.pk);var ok=g.due<=0.005;g.pks=g.pks.map(function(x){return x.n+' \u0e3f'+f(x.b);});
+      // Nov 19 2026: clearer layout — amount to transfer, then a mini breakdown: bill / − pocket (only pockets with money) / = transfer
+      order.map(function(bk){var g=by[bk];g.full=g.due;g.due=Math.max(0,g.due-g.pk);var ok=g.due<=0.005;
+        var R=function(l,v,c,b){return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:9px;'+(b?'border-top:1px solid var(--border);margin-top:2px;padding-top:2px;font-weight:700;':'')+'color:'+(c||'var(--text3)')+'"><span>'+l+'</span><span style="font-family:var(--mono)">'+v+'</span></div>';};
+        var pk=g.pks; // Nov 19 2026: show every linked pocket, even ฿0
+        var brk=R('บิล '+g.n+' ใบ','\u0e3f'+f(g.full))+(pk.length?pk.map(function(x){return R('<i class="fa-solid fa-wallet" style="color:var(--primary)"></i> '+String(x.n.split(' \u203a ').pop()).replace(/</g,'&lt;'),'\u2212\u0e3f'+f(x.b),x.b>0.005?'var(--success)':'');}).join(''):R('<i class="fa-solid fa-wallet"></i> ไม่ได้ผูก pocket','\u2212\u0e3f0.00'))+R('ต้องโอน','\u0e3f'+f(g.due),ok?'var(--success)':'var(--error)',1);
         return '<div style="flex:1;min-width:140px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg2)">'+
           '<div style="font-size:10px;font-weight:700">'+String(bk).replace(/</g,'&lt;')+'</div>'+
           '<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:'+(ok?'var(--success)':'var(--error)')+'">\u0e3f'+f(g.due)+'</div>'+
-          '<div style="font-size:9px;color:var(--text3)">'+(ok?(g.full>0.005?'\u2713 covered by pocket':'\u2713 all paid'):g.n+' card'+(g.n!==1?'s':'')+' to pay')+(g.paid>0.005?' \u00b7 paid \u0e3f'+f(g.paid):'')+'</div>'+
-          (g.pks.length?'<div style="font-size:9px;color:var(--text3)" title="'+String(g.pks.join(' + ')).replace(/"/g,'&quot;')+'">\ud83d\udc5b '+g.pks.map(function(x){return String(x).replace(/</g,'&lt;');}).join(', ')+'<br>bill \u0e3f'+f(g.full)+' \u2212 pocket \u0e3f'+f(g.pk)+'</div>':'')+
+          '<div style="font-size:9px;color:var(--text3);margin-bottom:3px">'+(ok?(g.full>0.005?'\u2713 pocket พอจ่ายแล้ว':'\u2713 จ่ายครบแล้ว'):(pk.length?'ต้องโอนเพิ่ม':g.n+' ใบที่ต้องจ่าย'))+(g.paid>0.005?' \u00b7 จ่ายแล้ว \u0e3f'+f(g.paid):'')+'</div>'+
+          brk+
           '</div>';}).join('');
     nav.appendChild(d);
   }catch(e){console.warn('cbview bank:',e);}

@@ -59,6 +59,8 @@
     wrap('markRowPaid', function (o) { return function (key, amount) {
       var self = this, args = arguments, id = 'brpd_' + String(key).replace(/[^a-zA-Z0-9]/g, '_'), di = document.getElementById(id), prev = prevOf(key);
       ask('Pay', +amount || 0, prev, di && di.value, function (v, d, close) {
+        // Nov 19 2026 fix: the calendar's temp date input is gone by now → always use one that is IN the page
+        di = document.getElementById(id);
         var tmp = null; if (!di) { tmp = document.createElement('input'); tmp.type = 'hidden'; tmp.id = id; document.body.appendChild(tmp); di = tmp; }
         var bak = di.value; di.value = d;
         try { window._ppSkip = 1; o.apply(self, args); } finally { window._ppSkip = 0; di.value = bak; if (tmp) tmp.remove(); }
@@ -87,6 +89,59 @@
       });
     }; });
   }
+  // ===== v3 (Nov 19 2026): show REMAINING for open partial bills everywhere =====
+  // Open partial record = {partial:true, paid:false, remaining}. Readers treat it as unpaid and use `remaining` as the amount.
+  function openPart(r) { return r && r.paid === false && r.remaining > 0.005 ? r : null; }
+  function findCB(card, per) {
+    var bp = D.bill_payments || {}, cid = (typeof window.cardResolve === 'function') ? ((window.cardResolve(card) || {}).id || card) : card;
+    var k = Object.keys(bp).find(function (k) { return k.indexOf('CB|' + cid + '|' + per + '::') === 0 || k.indexOf('CB|' + card + '|' + per + '::') === 0; });
+    return k ? bp[k] : null;
+  }
+  window.cmPartialFor = function (key) { return openPart((D.bill_payments || {})[key]); };
+  function hookReaders() {
+    // Nov 19 2026: Payment History ✕ (unmark paid) asks first — standard popup
+    wrap('toggleBillPaid', function (o) { return function (key, amount, checked) {
+      var self = this, args = arguments;
+      if (checked || window._ppDelOk) return o.apply(self, args);
+      var r = (D.bill_payments || {})[key] || {}, nm = String(key).split('|')[1] || key;
+      window.cmConfirm('ลบรายการจ่ายนี้ออกจากประวัติ?\n\n' + nm + (r.paid_amount ? '\n฿' + F(r.paid_amount) : '') + (r.paid_date ? ' · ' + r.paid_date : '') + '\n\nบิลจะกลับเป็น "ยังไม่จ่าย"',
+        function () { window._ppDelOk = 1; try { o.apply(self, args); } finally { window._ppDelOk = 0; } },
+        { title: 'Remove payment', danger: true });
+    }; });
+    // Bills Reminder / Dashboard / Calendar: occurrences
+    wrap('billOccurrences', function (o) { return function () {
+      var occ = o.apply(this, arguments);
+      (occ || []).forEach(function (x) {
+        var r = openPart((D.bill_payments || {})[x.fullKey]) || (x.statementPeriod ? openPart(findCB(x.card, x.statementPeriod)) : null);
+        if (!r) return;
+        x.paid = false; x.partial = true; x.amount_full = x.amount; x.paid_amount = r.paid_amount; x.amount = r.remaining;
+        x.info = (x.info ? x.info + ' ' : '') + '· จ่ายแล้ว ฿' + F(r.paid_amount) + ' เหลือ ฿' + F(r.remaining);
+      });
+      return occ;
+    }; });
+    // Card statement readers: an open partial is NOT paid
+    wrap('cardPaidRecFor', function (o) { return function (card, per) { var r = o.apply(this, arguments); return (r && r.paid === false) ? null : r; }; });
+    wrap('cbPaidRec', function (o) { return function (card, y, m, per) { var r = o.apply(this, arguments); if (r && r.paid && per) { var p = findCB(card, per); if (openPart(p)) return Object.assign({}, r, { paid: false, partial: p }); } return r; }; });
+  }
+  // Card Bills page: rewrite "Effective" to the remaining amount (bank transfer summary reads this number)
+  function cardBillsDom() {
+    var el = document.getElementById('cardbills-content'); if (!el) return;
+    [].slice.call(el.querySelectorAll('[onclick^="cbToggle("]')).forEach(function (h) {
+      if (h.querySelector('.pp-rem')) return;
+      var m = /cbToggle\('(.*)'\)/.exec(h.getAttribute('onclick') || ''), pm = /\u0e07\u0e27\u0e14\s*(\d{4}-\d{2})/.exec(h.textContent || '');
+      if (!m || !pm) return;
+      var r = openPart(findCB(m[1].replace(/\\'/g, "'"), pm[1])); if (!r) return;
+      var w = document.createTreeWalker(h, NodeFilter.SHOW_TEXT), n;
+      while ((n = w.nextNode())) { if (/Effective:/.test(n.nodeValue)) break; }
+      if (!n) return;
+      var amtNode = n.nextSibling && n.nextSibling.nodeType === 1 ? n.nextSibling : n.parentNode.nextElementSibling;
+      if (amtNode) amtNode.textContent = '\u0e3f' + F(r.remaining);
+      var s = document.createElement('span'); s.className = 'pp-rem';
+      s.style.cssText = 'font-size:9px;padding:1px 6px;border-radius:999px;background:#fff7ed;color:#c2410c;border:1px solid #fdba74;margin-left:6px';
+      s.textContent = '🟠 จ่ายแล้วบางส่วน ฿' + F(r.paid_amount) + ' / ฿' + F(r.paid_amount + r.remaining);
+      (amtNode || n.parentNode).after(s);
+    });
+  }
   // v1 inline field in the calendar popup is no longer used
-  setInterval(function () { try { hookAll(); var w = document.getElementById('calpa-w'); if (w) w.remove(); } catch (e) { console.warn('partialpay', e); } }, 300);
+  setInterval(function () { try { hookAll(); hookReaders(); cardBillsDom(); var w = document.getElementById('calpa-w'); if (w) w.remove(); } catch (e) { console.warn('partialpay', e); } }, 300);
 })();
