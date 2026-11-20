@@ -389,7 +389,7 @@ function recEditOpen(kind,i){
  ov.addEventListener('click',function(e){if(e.target===ov)recEditClose();});
  ov.innerHTML='<style>#rec-edit-ov .sel,#rec-edit-ov input:not([type=checkbox]),#rec-edit-ov textarea{width:100%!important;max-width:none!important;box-sizing:border-box}#rec-edit-ov .rec-det{width:auto!important;position:static!important}</style>'+
   '<div style="background:var(--bg2,#fff);color:var(--text);border-radius:10px;padding:16px 18px;width:min(760px,96vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">'+
-  '<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-pen"></i> Edit '+(kind==='inst'?'installment':kind)+' \u00b7 '+esc(it.name||'')+'</h3>'+
+  ((window._recNew&&window._recNew.i===i&&window._recNew.kind===kind)?'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-plus"></i> New '+kind+' recurring</h3>':'<h3 style="margin:0 0 12px;font-size:14px"><i class="fa-solid fa-pen"></i> Edit '+(kind==='inst'?'installment':kind)+' \u00b7 '+esc(it.name||'')+'</h3>')+
   '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;font-size:11px;margin-bottom:10px">'+boxes+'</div>'+
   '<div class="'+(kind==='monthly'?'m':(kind==='yearly'?'y':'pl'))+'-detail">'+detH+'</div>'+
   '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn btn-ghost" onclick="recEditClose()">Cancel</button><button class="btn btn-primary" onclick="recEditSave(\''+kind+'\','+i+')"><i class="fa-solid fa-check"></i> Save</button></div>'+
@@ -398,11 +398,19 @@ function recEditOpen(kind,i){
  ov.addEventListener('keydown',function(e){if(e.key==='Escape')recEditClose();else if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();recEditSave(kind,i);}});
  setTimeout(function(){var f=ov.querySelector('input:not([type=checkbox])');if(f)f.focus();},30);
 }
-function recEditClose(){var ov=document.getElementById('rec-edit-ov');if(ov)ov.remove();}
+function recEditClose(){var ov=document.getElementById('rec-edit-ov');if(ov)ov.remove();
+ var n=window._recNew;if(n){window._recNew=null;var A=n.kind==='yearly'?D.yearly:D.monthly;if(A[n.i]===n.it){A.splice(n.i,1);saveD();}   // Cancel on a NEW item = discard it
+ if(n.kind==='yearly'){renderYearly();try{filterYearly();}catch(e){}}else{renderMonthly();try{filterMonthly();}catch(e){}}}}
 function recEditSave(kind,i){
  var ov=document.getElementById('rec-edit-ov');if(!ov)return;var arr=kind==='monthly'?D.monthly:(kind==='yearly'?D.yearly:(kind==='inst'?D.installments:D.planned));
  var cb=kind==='inst'?null:ov.querySelector('input[type=checkbox]:not(.m-chk):not(.y-chk):not(.pl-chk)');if(cb&&arr[i])arr[i].auto_pay=cb.checked;
- readAll();saveD();recEditClose();
+ readAll();
+ var _isNew=!!(window._recNew&&window._recNew.i===i&&window._recNew.kind===kind);
+ if(_isNew&&arr[i]&&(!String(arr[i].name||'').trim()||!(+arr[i].amount>0))){
+  var _q=function(f){return ov.querySelector('[data-f="'+f+'"]');};
+  if(typeof cmCheckReq==='function')cmCheckReq([[_q('name'),!String(arr[i].name||'').trim(),'Enter a name'],[_q('amount'),!(+arr[i].amount>0),'Enter an amount > 0']]);
+  if(typeof toast==='function')toast('\u26a0\ufe0f Please fill the highlighted fields');return;}
+ window._recNew=null;saveD();recEditClose();
  if(kind==='monthly'){renderMonthly();try{filterMonthly();}catch(e){}}else if(kind==='yearly'){renderYearly();try{filterYearly();}catch(e){}}else if(kind==='inst'){try{if(typeof autoFinishInstallments==='function')autoFinishInstallments();}catch(e){}try{simulate();}catch(e){}renderInst();try{filterInst();}catch(e){}try{renderInstMonthly();}catch(e){}}else{try{simulate();}catch(e){}renderPlanned();try{filterPlanned();}catch(e){}}
  try{if(typeof renderBillReminder==='function')renderBillReminder();}catch(e){}try{if(typeof simulate==='function')simulate();}catch(e){}
  var r=document.querySelector('#'+kind+'-body tr[data-'+(kind==='monthly'?'mrow':(kind==='yearly'?'yrow':(kind==='inst'?'idx':'plrow')))+'="'+i+'"]');if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';}
@@ -482,8 +490,8 @@ ov.innerHTML='<div style="background:var(--bg2,#fff);color:var(--text);border-ra
  +'<label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)"><input type="checkbox" id="ra-auto"> Auto-charged (auto-pay)</label>'
  +'</div>'
  +'<div id="ra-err" style="color:var(--error);font-size:10px;min-height:14px;margin-top:6px"></div>'
- +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="recAddClose()">Cancel</button><button class="btn btn-primary" onclick="recAddSave(\''+kind+'\')"><i class="fa-solid fa-floppy-disk"></i> Save</button></div>'
- +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 start/end date, deadline'+(Y?'':', utility link')+' can be set in the row (\u25b6) after saving</div>'
+ +'<div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><button class="btn btn-ghost" onclick="recAddClose()">Cancel</button><span style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="recAddSaveMore(\''+kind+'\')" title="Save, then open all fields (deadline, starts/ends, billing, period, links, remarks)"><i class="fa-solid fa-sliders"></i> Save &amp; more details</button><button class="btn btn-primary" onclick="recAddSave(\''+kind+'\')"><i class="fa-solid fa-check"></i> Save</button></span></div>'
+ +'<div style="font-size:9px;color:var(--text3);margin-top:6px">Enter = Save \u00b7 Esc = Cancel \u00b7 deadline, starts/ends, billing, period'+(Y?'':', links')+' \u2192 Save &amp; more details</div>'
  +'</div>';
 ov.style.display='flex';
 setTimeout(function(){var e=document.getElementById('ra-name');if(e)e.focus();},30);
@@ -492,13 +500,13 @@ function recAddClose(){var ov=document.getElementById('rec-add-ov');if(ov){ov.st
 function recAddSave(kind){
 var Y=kind==='yearly';
 var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
-var err=function(m,f){var e=document.getElementById('ra-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&fe.focus)fe.focus();};
+var err=function(m,f){var e=document.getElementById('ra-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&typeof cmMarkReq==='function')cmMarkReq(fe,m);if(fe&&fe.focus)fe.focus();};
 var name=g('ra-name'); if(!name){err('Please enter a name','ra-name');return;}
 var amt=parseFloat(g('ra-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amount greater than 0','ra-amt');return;}
 var day=parseInt(g('ra-day'),10); if(!(day>=1&&day<=31)){err('Billing day must be 1-31','ra-day');return;}
 var ae=document.getElementById('ra-auto'), auto=!!(ae&&ae.checked);
 var base={name:name,type:g('ra-type')||D.types[0]||'Other',amount:amt,billing_day:day,card:g('ra-card')||'Cash/Direct',account:g('ra-acct'),
- direction:g('ra-dir')||'expense',status:'Active',start_mode:'forever',deadline_mode:'custom',deadline_day:'',auto_pay:auto};
+ direction:g('ra-dir')||'expense',status:'Active',start_mode:'forever',deadline_mode:((g('ra-card')||'Cash/Direct')!=='Cash/Direct'?'card':'custom'),deadline_day:'',auto_pay:auto};
 var list,idx,sel;
 if(Y){
  var pm=g('ra-pay')||'full', per=pm==='installment'?Math.max(1,Math.min(60,parseInt(g('ra-per'),10)||1)):1;
@@ -514,8 +522,23 @@ try{Y?filterYearly():filterMonthly();}catch(e){}
 var r=document.querySelector(sel);
 if(r){r.style.boxShadow='inset 3px 0 0 var(--primary)';r.style.background='var(--primary-bg,rgba(59,130,246,0.06))';if(r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}}
 if(typeof toast==='function')toast('\u2705 '+(Y?'Yearly':'Monthly')+' item added');
+// Nov 20 2026: "Save & more details" → open the full Edit popup for the new item (deadline, starts/ends, billing, period, links, remarks)
+if(window._recAddMore){window._recAddMore=false;setTimeout(function(){try{recEditOpen(Y?'yearly':'monthly',idx);}catch(e){}},80);}
 }
-function addMonthly(){_recAddOpen('monthly');}
+function recAddSaveMore(kind){window._recAddMore=true;recAddSave(kind);if(document.getElementById('ra-err')&&document.getElementById('ra-err').textContent)window._recAddMore=false;}
+// Nov 20 2026 (user): ONE form for Add + Edit, Monthly + Yearly. Add = create a draft row with full defaults,
+// open the same Edit popup titled "New …"; Save keeps it (Name + Amount required), Cancel/✕/Esc discards it.
+function _recNewDraft(kind){readAll();var Y=kind==='yearly';
+ var it={name:'',type:(D.types[0]&&D.types[0].id)||'Other',amount:0,billing_day:1,card:'Cash/Direct',account:'',direction:'expense',status:'Active',
+  start_mode:'forever',deadline_mode:'custom',deadline_day:'',auto_pay:false,remarks:''};
+ if(Y){it.month=new Date().getMonth()+1;it.pay_mode='full';it.inst_periods=1;it.own_by='me';it.start_from='';}
+ else{it.start_date='';it.end_mode='forever';it.end_date='';it.util_link='';it.card_link='';}
+ var A=Y?D.yearly:D.monthly;A.push(it);var i=A.length-1;window._recNew={kind:kind,i:i,it:it};
+ if(Y){renderYearly();try{filterYearly();}catch(e){}}else{renderMonthly();try{filterMonthly();}catch(e){}}
+ recEditOpen(kind,i);
+ if(!document.getElementById('rec-edit-ov')){window._recNew=null;A.splice(i,1);_recAddOpen(kind);}   // safety: fall back to the old quick form
+}
+function addMonthly(){_recNewDraft('monthly');}
 
 function toggleAllMonthly(c){document.querySelectorAll('.m-chk').forEach(function(cb){var tr=cb.closest('tr');if(tr&&tr.style.display!=='none')cb.checked=c});updateMonthlyBulk()}
 function updateMonthlyBulk(){var n=document.querySelectorAll('.m-chk:checked').length;var el=document.getElementById('monthly-bulk');if(el)el.style.display=n>0?'':'none';var c=document.getElementById('m-sel-count');if(c)c.textContent=n}
@@ -565,7 +588,7 @@ var detail='<tr class="y-detail" data-yrow="'+i+'" style="'+(open?'':'display:no
 '<div style="background:var(--bg2,#fff);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:0;grid-column:1/-1"><div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Remarks</div><textarea class="inp" rows="2" placeholder="\u0e42\u0e19\u0e49\u0e15\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21" style="width:100%;font-size:11px;resize:vertical;box-sizing:border-box" data-yi="'+i+'" data-f="remarks" onchange="D.yearly['+i+'].remarks=this.value;saveD();">'+esc(y.remarks||'')+'</textarea></div>'+'</div></td></tr>';
 return mainRow+detail}).join('');_recFitDet();_recRO('yearly');}
 
-function addYearly(){_recAddOpen('yearly');}
+function addYearly(){_recNewDraft('yearly');}
 
 function toggleAllYearly(c){document.querySelectorAll('.y-chk').forEach(function(cb){var tr=cb.closest('tr');if(tr&&tr.style.display!=='none')cb.checked=c});updateYearlyBulk()}
 function updateYearlyBulk(){var n=document.querySelectorAll('.y-chk:checked').length;var el=document.getElementById('yearly-bulk');if(el)el.style.display=n>0?'':'none';var c=document.getElementById('y-sel-count');if(c)c.textContent=n}
@@ -1157,7 +1180,7 @@ setTimeout(function(){if(prefillISO&&/^\d{4}-\d{2}-\d{2}$/.test(prefillISO)){var
 function plAddClose(){var _k=window._cmFromCal;window._cmFromCal=false;var ov=document.getElementById('pl-add-ov');if(ov){ov.style.display='none';ov.innerHTML='';}}
 function plAddSave(){
 var g=function(id){var e=document.getElementById(id);return e?String(e.value).trim():'';};
-var err=function(m,f){var e=document.getElementById('pa-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&fe.focus)fe.focus();};
+var err=function(m,f){var e=document.getElementById('pa-err');if(e)e.textContent=m;var fe=document.getElementById(f);if(fe&&typeof cmMarkReq==='function')cmMarkReq(fe,m);if(fe&&fe.focus)fe.focus();};
 var name=g('pa-name'); if(!name){err('Please enter a name','pa-name');return;}
 var amt=parseFloat(g('pa-amt').replace(/,/g,'')); if(!(amt>0)){err('Enter an amount greater than 0','pa-amt');return;}
 var date=g('pa-date'); if(!date){err('Pick a date (items without a date are skipped by the Timeline)','pa-date');return;}

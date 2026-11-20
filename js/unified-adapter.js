@@ -75,9 +75,14 @@ function _periodForDateOnCardU(cardObj, iso){
 
 // Build D.bills[] on the fly (read-only clone) if the app hasn't migrated yet.
 function _unifiedBills(){
-  if(D.bills && D.bills.length) return D.bills;
+  // Nov 20 2026 FIX: D.bills is a DERIVED copy. A stored D.bills snapshot froze the list, so items added
+  // later (e.g. a new monthly gym bill) never reached card statements / calendar. Always rebuild from the
+  // live monthly/yearly/installments/planned; cache only until the data changes (D.last_modified).
+  var _k=String(D.last_modified||'')+'|'+(D.monthly||[]).length+'|'+(D.yearly||[]).length+'|'+(D.installments||[]).length+'|'+(D.planned||[]).length;
+  if(glob._ubCache && glob._ubCache.k===_k) return glob._ubCache.b;
   var clone=JSON.parse(JSON.stringify({monthly:D.monthly||[],yearly:D.yearly||[],installments:D.installments||[],planned:D.planned||[],cards:D.cards||[]}));
   var mig=glob.migrateToUnified(clone,{force:true});
+  glob._ubCache={k:_k,b:mig.bills};
   return mig.bills;
 }
 

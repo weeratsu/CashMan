@@ -267,7 +267,9 @@ function generateOccurrences(bills, cards, fromDate, toDate){
         }
       }
     } else if(bill.recurrence==='monthly'){
-      if(!sd) return;
+      // Nov 20 2026 FIX: "Starts = Always" (no start_ym) used to be skipped entirely → new monthly bills
+      // (e.g. Jetts) never appeared. Always = no lower bound → start from the window's first month.
+      if(!sd) sd={y:fromDate.getFullYear(), m0:fromDate.getMonth()};
       var endd = bill.end_ym?parseYM(bill.end_ym):null;
       // iterate month by month across window (bounded by start/end)
       var cur={y:fromDate.getFullYear(), m0:fromDate.getMonth()};
