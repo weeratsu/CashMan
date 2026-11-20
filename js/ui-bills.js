@@ -541,7 +541,8 @@ var payModeHtml='<select class="sel" data-yi="'+i+'" data-f="pay_mode" onchange=
 // main row
 var mainRow='<tr class="y-main" data-yrow="'+i+'" style="'+(y.direction==='income'?'background:rgba(16,185,129,0.05)':'')+yRowOpac+'"><td><input type="checkbox" class="y-chk" data-idx="'+i+'" onchange="updateYearlyBulk()"></td>'+
 '<td><span style="display:inline-block;cursor:pointer;user-select:none;font-size:10px;color:var(--text3);transition:transform .15s;transform:rotate('+(open?'90':'0')+'deg)" onclick="yToggle('+i+')" title="Show details">\u25b6</span></td>'+
-'<td><input class="inp-inline" value="'+esc(y.name)+'" data-yi="'+i+'" data-f="name"></td>'+
+// Nov 20 2026: pay-mode flag beside the name
+'<td><div style="display:flex;align-items:center;gap:5px"><input class="inp-inline" value="'+esc(y.name)+'" data-yi="'+i+'" data-f="name" style="flex:1;min-width:0">'+(y.pay_mode==='installment'?'<span title="จ่ายแบบผ่อน" style="white-space:nowrap;font-size:9px;font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid var(--primary);color:var(--primary)">ผ่อน '+(y.inst_periods||1)+' งวด</span>':'<span title="จ่ายเต็มจำนวน" style="white-space:nowrap;font-size:9px;padding:1px 7px;border-radius:999px;border:1px solid var(--border);color:var(--text3)">Full</span>')+'</div></td>'+
 '<td><select class="sel" style="'+yDirCls+'" data-yi="'+i+'" data-f="direction">'+dirOpts(y.direction)+'</select></td>'+
 '<td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(y.type)+'<select class="sel" data-yi="'+i+'" data-f="type">'+tOpts(y.type)+'</select></span></td>'+
 '<td class="r"><input class="inp inp-num" type="text" value="'+fmt(y.amount)+'" style="width:90px;padding:2px 4px;font-size:11px" data-yi="'+i+'" data-f="amount" onfocus="var v=parseFloat(this.value.replace(/,/g,\'\'));this.value=v||\'\';" onblur="this.value=(parseFloat(this.value.replace(/,/g,\'\'))||0).toLocaleString(\'en-US\',{minimumFractionDigits:2,maximumFractionDigits:2})"></td>'+
@@ -729,14 +730,15 @@ var opac=st==='Finished'||st==='Cancelled'?'opacity:.4;':'';
 
 if(isAuto){
 var ai=inst._oi-manualCount;
-rows+='<tr data-idx="'+inst._oi+'" style="'+opac+'"><td style="width:24px"><input type="checkbox" class="inst-chk" data-auto="'+ai+'" value="'+inst._oi+'" onchange="updateInstBulkActions()"></td><td>'+esc(inst.name)+'</td><td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(inst.type)+esc(inst.type)+'</span></td><td><span class="tag tag-auto" style="font-size:9px">'+esc(inst.card)+'</span></td>'+
+// Nov 20 2026: show names (type/card are stored as ids)
+rows+='<tr data-idx="'+inst._oi+'" style="'+opac+'"><td style="width:24px"><input type="checkbox" class="inst-chk" data-auto="'+ai+'" value="'+inst._oi+'" onchange="updateInstBulkActions()"></td><td>'+esc(inst.name)+'</td><td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(inst.type)+esc(typeof typeName==='function'?typeName(inst.type):inst.type)+'</span></td><td><span class="tag tag-auto" style="font-size:9px">'+esc((inst.card&&inst.card!=='Cash/Direct'&&typeof window.cardResolve==='function'&&(window.cardResolve(inst.card)||{}).name)||inst.card)+'</span></td>'+
 '<td>'+esc(typeof ownerName==='function'?ownerName(inst.own_by):inst.own_by)+'</td><td class="r" style="font-family:var(--mono);font-size:10px">\u0e3f'+fmt(inst.total)+'</td>'+
 '<td class="r" style="font-family:var(--mono);font-size:10px">\u0e3f'+fmt(inst.per_period)+'</td>'+
 '<td class="r" style="font-family:var(--mono)">'+inst.periods+'</td>'+
 '<td style="font-size:10px">'+((inst.start_day||1)<10?'0':'')+(inst.start_day||1)+'/'+(inst.start_month<10?'0':'')+inst.start_month+'/'+inst.start_year+'</td>'+
 '<td><input type="date" class="inp" value="'+(inst.hide_before||'')+'" title="Hide periods before this date (Timeline & Bills Reminder). Saved on the source Yearly item." style="width:115px;padding:2px 4px;font-size:10px" onchange="setAutoInstHideBefore('+ai+',this.value)"></td>'+
 '<td>'+stTag+'</td><td>'+srcTag+'</td>'+
-'<td><button class="del-btn" title="Convert to editable" onclick="convertAutoInst('+ai+')" style="font-size:9px;padding:2px 5px">\u270f\ufe0f</button></td></tr>'}
+'<td><button class="del-btn" title="Convert to editable" onclick="cmConfirm(\'แปลง &quot;'+esc(inst.name).replace(/\'/g,'')+'&quot; เป็นรายการผ่อนที่แก้ไขได้?\\nรายการ Auto จาก Yearly จะถูกแทนด้วยรายการ Manual\',function(){convertAutoInst('+ai+')},{title:\'Convert to editable\',danger:false})" style="font-size:9px;padding:2px 5px">\u270f\ufe0f</button></td></tr>'}
 else{
 rows+='<tr data-idx="'+inst._oi+'" style="'+opac+'"><td style="width:24px"><input type="checkbox" class="inst-chk" value="'+inst._oi+'" onchange="updateInstBulkActions()"></td><td><input class="inp-inline" value="'+esc(inst.name)+'" data-ii="'+inst._oi+'" data-f="name"></td>'+
 '<td><span style="display:inline-flex;align-items:center;gap:4px">'+typeIcon(inst.type)+'<select class="sel" data-ii="'+inst._oi+'" data-f="type">'+tOpts(inst.type)+'</select></span></td>'+

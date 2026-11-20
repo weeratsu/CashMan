@@ -120,7 +120,9 @@ function renderMonthlyPlan(){
     var balColor=bal<0?'var(--error)':'var(--text)';
     var hl=_mpTouched[r.id]?';box-shadow:inset 3px 0 0 var(--primary);background:var(--primary-bg,rgba(59,130,246,0.06))':'';
     bodyRows+='<tr data-rid="'+r.id+'" style="'+hl.replace(/^;/,'')+'">'+
-      '<td style="font-weight:600;font-size:12px">'+esc(r.name||'')+'</td>'+
+      // Nov 20 2026: Recurring / One-time flag
+      '<td style="font-weight:600;font-size:12px">'+esc(r.name||'')+' '+(r.freq==='once'?'<span title="ครั้งเดียว" style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid var(--warning);color:var(--warning);white-space:nowrap">ครั้งเดียว'+(r.once_date?' · '+(typeof fmtDate==='function'?fmtDate(r.once_date):r.once_date):'')+'</span>':
+        '<span title="ทุกเดือน" style="font-size:9px;padding:1px 7px;border-radius:999px;border:1px solid var(--border);color:var(--text3);white-space:nowrap">ทุกเดือน</span>')+'</td>'+
       '<td style="white-space:nowrap;font-size:11px">'+(r.category?'<span class="type-chip" style="font-size:10px">'+esc((typeof _planCatName==='function')?_planCatName(r.category):r.category)+'</span>':'')+'</td>'+
       '<td style="text-align:right;white-space:nowrap">\u0e3f'+fmt(amt)+'</td>'+
       '<td style="white-space:nowrap;font-size:11px">'+esc(mpAcctLabel(r.account))+'</td>'+
@@ -207,9 +209,12 @@ function _mpRowPopup(existing){
     '<div class="form-group"><label>\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 / \u0e41\u0e1c\u0e19</label><input class="inp" id="mp-f-name" value="'+esc(r.name||'')+'" placeholder="\u0e40\u0e0a\u0e48\u0e19 \u0e42\u0e2d\u0e19\u0e40\u0e02\u0e49\u0e32\u0e01\u0e2d\u0e07\u0e17\u0e38\u0e19"></div>'+
     '<div class="form-group"><label>\u0e08\u0e33\u0e19\u0e27\u0e19\u0e40\u0e07\u0e34\u0e19</label><input class="inp" id="mp-f-amount" type="number" value="'+(r.amount!=null?r.amount:'')+'" placeholder="0"></div>'+
     '<div class="form-group"><label>\u0e2b\u0e21\u0e27\u0e14</label><select class="inp" id="mp-f-category">'+(typeof planCatOpts==='function'?planCatOpts(r.category):'')+'</select></div>'+
+    '<div class="form-group"><label>ความถี่</label><div style="display:flex;gap:8px"><select class="sel" id="mp-f-freq" style="flex:1" onchange="document.getElementById(\'mp-f-once\').style.display=this.value===\'once\'?\'\':\'none\'">'+
+      '<option value="recurring"'+(r.freq!=='once'?' selected':'')+'>ทุกเดือน (Recurring)</option><option value="once"'+(r.freq==='once'?' selected':'')+'>ครั้งเดียว (One-time)</option></select>'+
+      '<input type="date" class="inp" id="mp-f-once" value="'+esc(r.once_date||'')+'" title="วันที่ (ครั้งเดียว)" style="flex:1;display:'+(r.freq==='once'?'':'none')+'"></div></div>'+
     '<div class="form-group"><label>\u0e1a\u0e31\u0e0d\u0e0a\u0e35</label><select class="inp" id="mp-f-account">'+mpAcctOpts(r.account)+'</select></div>'+
     '<div class="form-group"><label>Remarks</label><input class="inp" id="mp-f-purpose" value="'+esc(r.purpose||'')+'" placeholder="(\u0e44\u0e21\u0e48\u0e1a\u0e31\u0e07\u0e04\u0e31\u0e1a)"></div>'+
-    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">'+
+    '<div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px">'+
       '<button class="btn btn-ghost" onclick="_mpClosePopup()">Cancel</button>'+
       '<button class="btn btn-primary" onclick="mpSavePopup(\''+(r.id||'')+'\')"><i class="fa-solid fa-check"></i> Save</button>'+
     '</div></div>';
@@ -226,11 +231,13 @@ function mpSavePopup(id){
   var account=(document.getElementById('mp-f-account')||{}).value||'';
   var purpose=((document.getElementById('mp-f-purpose')||{}).value||'').trim();
   var category=(document.getElementById('mp-f-category')||{}).value||'';
+  var freq=(document.getElementById('mp-f-freq')||{}).value==='once'?'once':'recurring';
+  var once_date=freq==='once'?((document.getElementById('mp-f-once')||{}).value||''):'';
   if(!name){toast('\u26a0\ufe0f \u0e43\u0e2a\u0e48\u0e0a\u0e37\u0e48\u0e2d\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23');return;}
   var amount=(amtRaw===''||amtRaw==null)?0:(+amtRaw||0);
   var V=_mpActive();if(!Array.isArray(V.rows))V.rows=[];
-  if(id){var r=V.rows.find(function(x){return x.id===id;});if(r){r.name=name;r.amount=amount;r.account=account;r.purpose=purpose;r.category=category;}}
-  else{id=_mpId('r');V.rows.push({id:id,name:name,amount:amount,account:account,purpose:purpose,category:category});}
+  if(id){var r=V.rows.find(function(x){return x.id===id;});if(r){r.name=name;r.amount=amount;r.account=account;r.purpose=purpose;r.category=category;r.freq=freq;r.once_date=once_date;}}
+  else{id=_mpId('r');V.rows.push({id:id,name:name,amount:amount,account:account,purpose:purpose,category:category,freq:freq,once_date:once_date});}
   _mpTouched[id]=true;
   saveD();_mpClosePopup();renderMonthlyPlan();
   setTimeout(function(){var row=document.querySelector('tr[data-rid="'+id+'"]');if(row)row.scrollIntoView({behavior:'smooth',block:'center'});},40);
@@ -414,4 +421,4 @@ window.setMpSort=setMpSort;window.setMpFilter=setMpFilter;
 window.mpAddPopup=mpAddPopup;window.mpEditPopup=mpEditPopup;window.mpSavePopup=mpSavePopup;window.mpDelRow=mpDelRow;window._mpClosePopup=_mpClosePopup;
 window.mpSwitchVer=mpSwitchVer;window.mpNewVersion=mpNewVersion;window.mpRenameVersion=mpRenameVersion;
 window.mpAcctLabel=mpAcctLabel;
-bel;
+window.mpDeleteVersion=mpDeleteVersion;
